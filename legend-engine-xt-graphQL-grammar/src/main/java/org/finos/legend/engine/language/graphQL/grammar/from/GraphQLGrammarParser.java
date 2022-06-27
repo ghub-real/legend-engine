@@ -14,6 +14,7 @@
 
 package org.finos.legend.engine.language.graphQL.grammar.from;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -32,6 +33,8 @@ import org.finos.legend.engine.protocol.graphQL.metamodel.value.*;
 
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GraphQLGrammarParser
 {
@@ -450,6 +453,19 @@ public class GraphQLGrammarParser
             ListValue listValue = new ListValue();
             listValue.values = ListIterate.collect(valueContext.listValue().value(), this::visitValue);
             return listValue;
+        }
+        if (valueContext.objectValue() != null)
+        {
+            ObjectValue objValue = new ObjectValue();
+
+            objValue.keyValuePairs = valueContext.objectValue().objectField().stream()
+                    .map(item -> {
+                        JSONKeyValue keyVal = new JSONKeyValue();
+                        keyVal.key = item.name().getText().trim();
+                        keyVal.value = this.visitValue(item.value());
+                        return keyVal;
+                    }).collect(Collectors.toList());
+            return objValue;
         }
         throw new RuntimeException("Error");
     }

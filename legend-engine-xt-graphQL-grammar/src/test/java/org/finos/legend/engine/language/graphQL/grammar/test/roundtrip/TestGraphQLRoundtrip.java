@@ -14,6 +14,7 @@
 
 package org.finos.legend.engine.language.graphQL.grammar.test.roundtrip;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.legend.engine.language.graphQL.grammar.from.GraphQLGrammarParser;
 import org.finos.legend.engine.language.graphQL.grammar.from.GraphQLParserException;
 import org.finos.legend.engine.language.graphQL.grammar.to.GraphQLGrammarComposer;
@@ -345,6 +346,13 @@ public class TestGraphQLRoundtrip
                 "  ENUM_VALUE\n" +
                 "  INPUT_OBJECT\n" +
                 "  INPUT_FIELD_DEFINITION\n" +
+                "}");
+    }
+
+    @Test
+    public void testMutationPayLoad() throws Exception {
+        check("mutation MyMutation {\n" +
+                "  persistFirm(input: {firmId: 10, name: \"renu\"})\n" +
                 "}");
     }
 
