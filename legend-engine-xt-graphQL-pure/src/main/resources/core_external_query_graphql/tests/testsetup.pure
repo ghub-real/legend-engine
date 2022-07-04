@@ -1,0 +1,68 @@
+Class meta::external::query::graphQL::poc::model::Firm
+{
+  firmId: Integer[1];
+  name: String[1];
+  location: String[1];
+  // firmById(id: Integer[1]) {$this->filter(item|$item.firmId == $id)->toOne()}: meta::external::query::graphQL::poc::model::Firm[*];
+  // allFirms() {model::simple::Firm.all()}: meta::external::query::graphQL::poc::model::Firm[*];
+  persistFirm(obj: meta::external::query::graphQL::poc::model::Firm[1]) {^meta::external::query::graphQL::poc::model::Firm(firmId=1 , name='My Name' , location='London')}: meta::external::query::graphQL::poc::model::Firm[1];
+}
+
+
+function meta::external::query::graphQL::poc::testRuntime():meta::pure::runtime::Runtime[1]
+{
+  ^meta::pure::runtime::Runtime(connections = ^meta::relational::runtime::TestDatabaseConnection(
+        element = meta::external::query::graphQL::poc::database::h2,
+        type = meta::relational::runtime::DatabaseType.H2,
+        timeZone = 'GMT'));
+}
+
+###Relational
+Database meta::external::query::graphQL::poc::database::h2
+(
+  Table PERSON
+  (
+    NAME VARCHAR(200) PRIMARY KEY,
+    FIRMID INTEGER
+  )
+  Table FIRM
+  (
+    ID INTEGER PRIMARY KEY,
+    LEGALNAME VARCHAR(200) PRIMARY KEY,
+    LOCATION VARCHAR(200) NOT NULL
+  )
+  Join Firm_Person(PERSON.FIRMID = FIRM.ID)
+)
+
+//###Runtime
+//Runtime meta::external::query::graphQL::poc::runtime::modelh2
+//{
+//  mappings:
+//  [
+//    meta::external::query::graphQL::poc::mapping::modelh2
+//  ];
+//  connections:
+//  [
+//    meta::external::query::graphQL::poc::database::h2:
+//    [
+//      connection_1: meta::external::query::graphQL::poc::connection::h2
+//    ]
+//  ];
+//}
+
+###Mapping
+Mapping meta::external::query::graphQL::poc::mapping::modelh2
+(
+  *meta::external::query::graphQL::poc::model::Firm: Relational
+  {
+    ~primaryKey
+    (
+      [meta::external::query::graphQL::poc::database::h2]FIRM.ID,
+      [meta::external::query::graphQL::poc::database::h2]FIRM.LEGALNAME
+    )
+    ~mainTable [meta::external::query::graphQL::poc::database::h2]FIRM
+    firmId: [meta::external::query::graphQL::poc::database::h2]FIRM.ID,
+    name: [meta::external::query::graphQL::poc::database::h2]FIRM.LEGALNAME,
+    location: [meta::external::query::graphQL::poc::database::h2]FIRM.LOCATION
+  }
+)

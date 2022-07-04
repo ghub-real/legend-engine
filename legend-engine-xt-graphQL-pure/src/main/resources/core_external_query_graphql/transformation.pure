@@ -165,6 +165,7 @@ function <<access.private>> meta::external::query::graphQL::transformation::quer
 import meta::external::query::graphQL::transformation::queryToPure::*;
 import meta::pure::functions::io::*;
 import meta::pure::functions::collections::*;
+import meta::pure::functions::meta::*;
 
 function meta::external::query::graphQL::transformation::queryToPure::getPlansFromGraphQL(
                                                                           cl:Class<Any>[1],
@@ -175,10 +176,14 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
-  println($graphFetch);
-  let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
-  $res->map(r| println($r.second));
-  $res->map(r|
+  let opDefinition = $query.definitions
+        ->filter(d| $d->instanceOf(meta::external::query::graphQL::metamodel::executable::OperationDefinition));
+  println($opDefinition);
+  if ($opDefinition->toOne()->cast(@meta::external::query::graphQL::metamodel::executable::OperationDefinition)->filter(d| $d.type->toString()=='mutation')->size()>0, 
+    // we have at least 1 mutation in OpDefintion, so branch out to new code.
+    | [pair('My Mutation Response', meta::external::query::graphQL::poc::DummyExecutionPlan($mapping, $runtime, $extensions))],
+    | let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
+      $res->map(r|
               pair(
                 $r.first,
                 meta::pure::executionPlan::executionPlan(
@@ -189,6 +194,16 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
                 )
               )
         );
+  );
+}
+
+function meta::external::query::graphQL::poc::DummyExecutionPlan(
+  mapping:meta::pure::mapping::Mapping[1], 
+  runtime:meta::pure::runtime::Runtime[1],
+  extensions:meta::pure::router::extension::RouterExtension[*]): meta::pure::executionPlan::ExecutionPlan[1]
+{
+   meta::pure::executionPlan::executionPlan({|meta::external::query::graphQL::poc::model::Firm.all()->filter(p|$p.name == 'bla')}, 
+   $mapping, $runtime, $extensions);
 }
 
 Class meta::external::query::graphQL::transformation::queryToPure::GraphFetchResult
