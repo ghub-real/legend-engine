@@ -221,7 +221,7 @@ public class GraphQLGrammarComposer
             @Override
             public String visit(ObjectValue objValue)
             {
-                return "{" + ListIterate.collect(objValue.keyValuePairs, item ->  item.key + ": " + renderValue(item.value)).makeString(", ") + "}";
+                return "{" + ListIterate.collect(objValue.values, item ->  item.key + ": " + renderValue(item.value)).makeString(", ") + "}";
             }
 
             @Override

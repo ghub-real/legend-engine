@@ -458,7 +458,7 @@ public class GraphQLGrammarParser
         {
             ObjectValue objValue = new ObjectValue();
 
-            objValue.keyValuePairs = valueContext.objectValue().objectField().stream()
+            objValue.values = valueContext.objectValue().objectField().stream()
                     .map(item -> {
                         JSONKeyValue keyVal = new JSONKeyValue();
                         keyVal.key = item.name().getText().trim();

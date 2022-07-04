@@ -200,7 +200,7 @@ Class meta::external::query::graphQL::metamodel::typeSystem::ObjectTypeDefinitio
 
 Class meta::external::query::graphQL::metamodel::value::ObjectValue extends meta::external::query::graphQL::metamodel::value::Value
 {
-     keyValuePairs : meta::external::query::graphQL::metamodel::value::JSONKeyValue[*];
+     values : meta::external::query::graphQL::metamodel::value::JSONKeyValue[*];
 }
 
 Class meta::external::query::graphQL::metamodel::value::JSONKeyValue

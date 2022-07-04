@@ -131,7 +131,9 @@ function <<access.private>> meta::external::query::graphQL::transformation::quer
                                             parameters = $field.arguments->map(a|$a.value->match(
                                                                                             [
                                                                                               s:StringValue[1]| ^InstanceValue(multiplicity=PureOne, genericType=^GenericType(rawType=String), values=$s.value),
-                                                                                              b:BooleanValue[1]| ^InstanceValue(multiplicity=PureOne, genericType=^GenericType(rawType=Boolean), values=$b.value)
+                                                                                              b:BooleanValue[1]| ^InstanceValue(multiplicity=PureOne, genericType=^GenericType(rawType=Boolean), values=$b.value),
+                                                                                              i:IntValue[1]| ^InstanceValue(multiplicity=PureOne, genericType=^GenericType(rawType=Integer), values=$i.value),
+                                                                                              o:ObjectValue[1]| ^InstanceValue(multiplicity=PureOne, genericType=^GenericType(rawType=meta::external::query::graphQL::metamodel::value::ObjectValue), values=$o.values)
                                                                                             ]
                                                                                           )
                                                                            )
@@ -161,6 +163,8 @@ function <<access.private>> meta::external::query::graphQL::transformation::quer
 
 ###Pure
 import meta::external::query::graphQL::transformation::queryToPure::*;
+import meta::pure::functions::io::*;
+import meta::pure::functions::collections::*;
 
 function meta::external::query::graphQL::transformation::queryToPure::getPlansFromGraphQL(
                                                                           cl:Class<Any>[1],
@@ -171,7 +175,9 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
+  println($graphFetch);
   let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
+  $res->map(r| println($r.second));
   $res->map(r|
               pair(
                 $r.first,
