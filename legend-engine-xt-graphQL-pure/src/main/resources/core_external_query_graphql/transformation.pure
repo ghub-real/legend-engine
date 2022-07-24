@@ -166,9 +166,11 @@ import meta::external::query::graphQL::transformation::queryToPure::*;
 import meta::pure::functions::io::*;
 import meta::pure::functions::collections::*;
 import meta::pure::functions::meta::*;
+import meta::pure::graphFetch::*;
+import meta::external::query::graphQL::metamodel::value::*;
+import meta::json::*;
 
-function meta::external::query::graphQL::transformation::queryToPure::getPlansFromGraphQL(
-                                                                          cl:Class<Any>[1],
+function meta::external::query::graphQL::transformation::queryToPure::getQueryPlansFromGraphQL(cl:Class<Any>[1],
                                                                           mapping:meta::pure::mapping::Mapping[1],
                                                                           runtime:meta::pure::runtime::Runtime[1],
                                                                           query:meta::external::query::graphQL::metamodel::Document[1],
@@ -176,13 +178,9 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
-  let opDefinition = $query.definitions
-        ->filter(d| $d->instanceOf(meta::external::query::graphQL::metamodel::executable::OperationDefinition));
-  println($opDefinition);
-  if ($opDefinition->toOne()->cast(@meta::external::query::graphQL::metamodel::executable::OperationDefinition)->filter(d| $d.type->toString()=='mutation')->size()>0, 
-    // we have at least 1 mutation in OpDefintion, so branch out to new code.
-    | [pair('My Mutation Response', meta::external::query::graphQL::poc::DummyExecutionPlan($mapping, $runtime, $extensions))],
-    | let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
+  //let graphFetchString = $graphFetch->meta::pure::graphFetch::routing::asString(true);
+  //println($graphFetchString);
+  let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
       $res->map(r|
               pair(
                 $r.first,
@@ -194,16 +192,136 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
                 )
               )
         );
+}
+
+function meta::external::query::graphQL::transformation::queryToPure::getMutationPlansFromGraphQL(cl:Class<Any>[1],
+                                                                          mapping:meta::pure::mapping::Mapping[1],
+                                                                          runtime:meta::pure::runtime::Runtime[1],
+                                                                          query:meta::external::query::graphQL::metamodel::Document[1],
+                                                                          extensions:meta::pure::router::extension::RouterExtension[*]
+                                                                      ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
+{
+  let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
+  //println($graphFetch);
+  let mutationName = meta::external::query::graphQL::transformation::queryToPure::extractMutationName($graphFetch);
+  let inputObject = meta::external::query::graphQL::transformation::queryToPure::extractInputObject($graphFetch);
+ [];
+}
+
+Class meta::external::query::graphQL::transformation::queryToPure::persistFunction
+{
+  mutationFn: String[1];
+  argList: InstanceValue[*];
+}
+
+function meta::external::query::graphQL::transformation::queryToPure::extractMutationName(rgf: RootGraphFetchTree<Any>[1]): String[1]
+{
+  //println('-----------');
+  //println($rgf.subTrees->toOne()->cast(@PropertyGraphFetchTree).property.name);
+  //println('-----------');
+  $rgf.subTrees->toOne()->cast(@PropertyGraphFetchTree).property.name->toOne();
+}
+
+function {doc.doc = 'Check Raw type to confirm that it is of Object Value'} 
+meta::external::query::graphQL::transformation::queryToPure::hasObjectValue(genType:GenericType[1]):Boolean[1]
+{
+  $genType.rawType == meta::external::query::graphQL::metamodel::value::ObjectValue;
+}
+
+function meta::external::query::graphQL::transformation::queryToPure::convertValueToJSON(val: meta::external::query::graphQL::metamodel::value::Value[1]): meta::json::JSONElement[1] 
+{
+  $val->match([
+    i: meta::external::query::graphQL::metamodel::value::IntValue[1]| ^JSONNumber(value=$i.value),  
+    s: meta::external::query::graphQL::metamodel::value::StringValue[1]| ^JSONString(value=$s.value),
+    f: meta::external::query::graphQL::metamodel::value::FloatValue[1]| ^JSONNumber(value=$f.value),
+    b: meta::external::query::graphQL::metamodel::value::BooleanValue[1]| ^JSONBoolean(value=$b.value),
+    e: meta::external::query::graphQL::metamodel::value::EnumValue[1]| ^JSONString(value=$e.value),
+    l: meta::external::query::graphQL::metamodel::value::ListValue[1]| ^JSONArray(values=$l->map(item: meta::external::query::graphQL::metamodel::value::ListValue[1]|
+      meta::external::query::graphQL::transformation::queryToPure::convertValuesToJSON($item.values))),
+    n: meta::external::query::graphQL::metamodel::value::NullValue[1]| ^JSONNull(),
+    o: meta::external::query::graphQL::metamodel::value::ObjectValue[1]| ^JSONObject(keyValuePairs = $o.values->map(j: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]|
+      meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j))) 
+  
+  ])
+}
+
+function meta::external::query::graphQL::transformation::queryToPure::convertValuesToJSON(vals: meta::external::query::graphQL::metamodel::value::Value[*]): meta::json::JSONElement[*] 
+{
+  $vals->map(v|$v->meta::external::query::graphQL::transformation::queryToPure::convertValueToJSON())
+}
+
+// function meta::external::query::graphQL::transformation::queryToPure::convertKeyValToJSON(kv: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]): meta::json::JSONObject[1]
+// {
+// }
+
+function meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON(kv: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]): meta::json::JSONKeyValue[1]
+{
+  //println($kv.value);
+        meta::json::newJSONKeyValue($kv.key->toString(), $kv.value->match([
+          i: meta::external::query::graphQL::metamodel::value::IntValue[1]| ^JSONNumber(value=$i.value),
+          s: meta::external::query::graphQL::metamodel::value::StringValue[1]| ^JSONString(value=$s.value),
+          f: meta::external::query::graphQL::metamodel::value::FloatValue[1]| ^JSONNumber(value=$f.value),
+          b: meta::external::query::graphQL::metamodel::value::BooleanValue[1]| ^JSONBoolean(value=$b.value),
+          e: meta::external::query::graphQL::metamodel::value::EnumValue[1]| ^JSONString(value=$e.value),
+          l: meta::external::query::graphQL::metamodel::value::ListValue[1]| ^JSONArray(values=$l->map(item: meta::external::query::graphQL::metamodel::value::ListValue[1]|
+            meta::external::query::graphQL::transformation::queryToPure::convertValuesToJSON($item))),
+          n: meta::external::query::graphQL::metamodel::value::NullValue[1]| ^JSONNull(),
+          o: meta::external::query::graphQL::metamodel::value::ObjectValue[1]| ^JSONObject(keyValuePairs = $o.values->map(j: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]|
+            meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j)))
+        ]));
+}
+
+function meta::external::query::graphQL::transformation::queryToPure::extractInputObject(rgf: RootGraphFetchTree<Any>[1]): Pair<String, ObjectValue>[1]
+{
+  /// attribute name can be pulled from argument fields - not being converted to PURE at this point
+  println('---------');
+  let params = $rgf.subTrees->cast(@PropertyGraphFetchTree).parameters->evaluateAndDeactivate();
+  let jsonKeyValues = $params->filter(f|$f->instanceOf(InstanceValue) && $f.genericType->hasObjectValue())->cast(@InstanceValue).values;
+  let inpObject = ^JSONObject(keyValuePairs = $jsonKeyValues
+      ->map(j:meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]| 
+        meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j)));
+  println($inpObject->meta::json::toCompactJSONString());
+  println('---------');
+
+  pair('parameter', ^meta::external::query::graphQL::metamodel::value::ObjectValue(values=[
+      ^meta::external::query::graphQL::metamodel::value::JSONKeyValue(
+        key='firmId', 
+        value = ^meta::external::query::graphQL::metamodel::value::IntValue(value=10)),
+        ^meta::external::query::graphQL::metamodel::value::JSONKeyValue(
+        key='name', 
+        value = ^meta::external::query::graphQL::metamodel::value::StringValue(value='Renu'))  
+      ]));
+}
+
+
+function meta::external::query::graphQL::transformation::queryToPure::getPlansFromGraphQL(
+                                                                          cl:Class<Any>[1],
+                                                                          mapping:meta::pure::mapping::Mapping[1],
+                                                                          runtime:meta::pure::runtime::Runtime[1],
+                                                                          query:meta::external::query::graphQL::metamodel::Document[1],
+                                                                          extensions:meta::pure::router::extension::RouterExtension[*]
+                                                                      ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
+{
+  let opDefinition = $query.definitions
+        ->filter(d| $d->instanceOf(meta::external::query::graphQL::metamodel::executable::OperationDefinition))
+        ->cast(@meta::external::query::graphQL::metamodel::executable::OperationDefinition);
+  println('Operation: ' + $opDefinition->toOne().type->toString());
+  if ($opDefinition->toOne()->filter(d| $d.type->toString()=='query')->size()>0, 
+    | meta::external::query::graphQL::transformation::queryToPure::getQueryPlansFromGraphQL($cl, $mapping, $runtime, $query, $extensions),
+    | if ($opDefinition->toOne()->filter(d| $d.type->toString()=='mutation')->size()>0, 
+      | meta::external::query::graphQL::transformation::queryToPure::getMutationPlansFromGraphQL($cl, $mapping, $runtime, $query, $extensions),
+      | []
+      )
   );
 }
 
 function meta::external::query::graphQL::poc::DummyExecutionPlan(
+  f:FunctionDefinition<Any>[1],
   mapping:meta::pure::mapping::Mapping[1], 
   runtime:meta::pure::runtime::Runtime[1],
   extensions:meta::pure::router::extension::RouterExtension[*]): meta::pure::executionPlan::ExecutionPlan[1]
 {
-   meta::pure::executionPlan::executionPlan({|meta::external::query::graphQL::poc::model::Firm.all()->filter(p|$p.name == 'bla')}, 
-   $mapping, $runtime, $extensions);
+   meta::pure::executionPlan::executionPlan($f, $mapping, $runtime, $extensions);
 }
 
 Class meta::external::query::graphQL::transformation::queryToPure::GraphFetchResult

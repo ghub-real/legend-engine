@@ -1,3 +1,13 @@
+//Class model::simple::Firm
+//{
+//  firmId: Integer[1];
+//  name: String[1];
+//  location: String[1];
+//  firmById(id: Integer[1]) {$this->filter(item|$item.firmId == $id)->toOne()}: model::simple::Firm[*];
+//  allFirms() {model::simple::Firm.all()}: model::simple::Firm[*];
+//  persistFirm(obj: model::simple::Firm[1]) {^model::simple::Firm(firmId=1 , name='My Name' , location='London')}: model::simple::Firm[1];
+//}
+
 Class meta::external::query::graphQL::poc::model::Firm
 {
   firmId: Integer[1];
