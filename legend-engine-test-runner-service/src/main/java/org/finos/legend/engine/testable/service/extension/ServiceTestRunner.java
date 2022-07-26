@@ -1,5 +1,19 @@
-package org.finos.legend.engine.testable.service.extension;
+//  Copyright 2022 Goldman Sachs
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
 
+
+package org.finos.legend.engine.testable.service.extension;
 
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.factory.Lists;
@@ -28,9 +42,22 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecut
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.data.DataElement;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.EngineRuntime;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.IdentifiedConnection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.LegacyRuntime;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.PackageableRuntime;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.Runtime;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.*;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.*;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.RuntimePointer;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.StoreConnections;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.ConnectionTestData;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.KeyedExecutionParameter;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.ParameterValue;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.PureMultiExecution;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.PureSingleExecution;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.Service;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.ServiceTest;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.ServiceTestSuite;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service.TestData;
 import org.finos.legend.engine.protocol.pure.v1.model.test.AtomicTest;
 import org.finos.legend.engine.protocol.pure.v1.model.test.AtomicTestId;
 import org.finos.legend.engine.protocol.pure.v1.model.test.Test;
@@ -47,7 +74,7 @@ import org.finos.legend.engine.testable.service.connection.TestConnectionBuilder
 import org.finos.legend.engine.testable.service.helper.PrimitiveValueSpecificationToObjectVisitor;
 import org.finos.legend.engine.testable.service.result.MultiExecutionServiceTestResult;
 import org.finos.legend.pure.generated.Root_meta_legend_service_metamodel_Service;
-import org.finos.legend.pure.generated.Root_meta_pure_router_extension_RouterExtension;
+import org.finos.legend.pure.generated.Root_meta_pure_extension_Extension;
 import org.finos.legend.pure.generated.Root_meta_pure_test_AtomicTest;
 import org.finos.legend.pure.generated.Root_meta_pure_test_TestSuite;
 import org.slf4j.Logger;
@@ -59,6 +86,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.finos.legend.engine.language.pure.compiler.toPureGraph.HelperModelBuilder.getElementFullPath;
 
@@ -90,7 +119,7 @@ public class ServiceTestRunner implements TestRunner
     @Override
     public List<TestResult> executeTestSuite(Root_meta_pure_test_TestSuite testSuite, List<AtomicTestId> atomicTestIds, PureModel pureModel, PureModelContextData data)
     {
-        RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> routerExtensions = extensions.flatCollect(e -> e.getExtraRouterExtensions(pureModel));
+        RichIterable<? extends Root_meta_pure_extension_Extension> routerExtensions = extensions.flatCollect(e -> e.getExtraExtensions(pureModel));
         MutableList<PlanTransformer> planTransformers = extensions.flatCollect(PlanGeneratorExtension::getExtraPlanTransformers);
 
         Service service = ListIterate.detect(data.getElementsOfType(Service.class), ele -> ele.getPath().equals(getElementFullPath(pureService, pureModel.getExecutionSupport())));
@@ -137,7 +166,7 @@ public class ServiceTestRunner implements TestRunner
         }
     }
 
-    private List<org.finos.legend.engine.protocol.pure.v1.model.test.result.TestResult> executeSingleExecutionTestSuite(PureSingleExecution execution, ServiceTestSuite suite, List<String> testIds, PureModel pureModel, PureModelContextData data, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> routerExtensions, MutableList<PlanTransformer> planTransformers)
+    private List<org.finos.legend.engine.protocol.pure.v1.model.test.result.TestResult> executeSingleExecutionTestSuite(PureSingleExecution execution, ServiceTestSuite suite, List<String> testIds, PureModel pureModel, PureModelContextData data, RichIterable<? extends Root_meta_pure_extension_Extension> routerExtensions, MutableList<PlanTransformer> planTransformers)
     {
         List<org.finos.legend.engine.protocol.pure.v1.model.test.result.TestResult> results = Lists.mutable.empty();
         Pair<Runtime, List<Closeable>> runtimeWithCloseables = null;
@@ -167,13 +196,14 @@ public class ServiceTestRunner implements TestRunner
         }
         catch (Exception e)
         {
-            throw new RuntimeException("Exception occurred executing service test suites.\n" + e);
+            throw new RuntimeException("Exception occurred executing service test suites.\n", e);
         }
         finally
         {
             if (runtimeWithCloseables != null)
             {
-                runtimeWithCloseables.getTwo().forEach(closeable -> {
+                runtimeWithCloseables.getTwo().forEach(closeable ->
+                {
                     try
                     {
                         closeable.close();
@@ -244,6 +274,8 @@ public class ServiceTestRunner implements TestRunner
         AtomicTestId atomicTestId = new AtomicTestId();
         atomicTestId.atomicTestId = serviceTest.id;
 
+        SerializationFormat testSerializationFormat = getSerializationFormatForTest(serviceTest);
+
         try
         {
             Map<String, Object> parameters = Maps.mutable.empty();
@@ -260,7 +292,7 @@ public class ServiceTestRunner implements TestRunner
             boolean isResultReusable = executionPlan.rootExecutionNode.isResultPrimitiveType();
             if (isResultReusable && result instanceof StreamingResult)
             {
-                result = new ConstantResult(((StreamingResult) result).flush(((StreamingResult) result).getSerializer(SerializationFormat.RAW)));
+                result = new ConstantResult(((StreamingResult) result).flush(((StreamingResult) result).getSerializer(testSerializationFormat)));
             }
 
             org.finos.legend.engine.protocol.pure.v1.model.test.result.TestResult testResult;
@@ -268,7 +300,12 @@ public class ServiceTestRunner implements TestRunner
             List<AssertionStatus> assertionStatusList = Lists.mutable.empty();
             for (TestAssertion assertion : serviceTest.assertions)
             {
-                assertionStatusList.add(assertion.accept(new ServiceTestAssertionEvaluator(result)));
+                AssertionStatus status = assertion.accept(new ServiceTestAssertionEvaluator(result, testSerializationFormat));
+                if (status == null)
+                {
+                    throw new RuntimeException("Can't evaluate the test assertion: '" + assertion.id + "'");
+                }
+                assertionStatusList.add(status);
                 if (!isResultReusable)
                 {
                     result = this.planExecutor.execute(executionPlan, parameters);
@@ -300,6 +337,26 @@ public class ServiceTestRunner implements TestRunner
             testError.error = e.toString();
 
             return testError;
+        }
+    }
+
+    private static SerializationFormat getSerializationFormatForTest(ServiceTest serviceTest)
+    {
+        if (serviceTest.serializationFormat == null)
+        {
+            return SerializationFormat.defaultFormat;
+        }
+        else
+        {
+            try
+            {
+                return SerializationFormat.valueOf(serviceTest.serializationFormat);
+            }
+            catch (IllegalArgumentException exception)
+            {
+                throw new UnsupportedOperationException("Unsupported serialization format '" + serviceTest.serializationFormat
+                        + "'." + "Supported formats are:" + Stream.of(SerializationFormat.values()).map(SerializationFormat::name).collect(Collectors.joining(",")));
+            }
         }
     }
 

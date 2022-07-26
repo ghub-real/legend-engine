@@ -22,10 +22,12 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connect
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.ConnectionPointer;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.EngineRuntime;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.LegacyRuntime;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.PackageableRuntime;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.Runtime;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.RuntimePointer;
 import org.finos.legend.engine.shared.core.operational.errorManagement.EngineException;
 import org.finos.legend.pure.generated.Root_meta_external_shared_format_binding_Binding;
+import org.finos.legend.pure.generated.Root_meta_pure_runtime_PackageableRuntime;
 import org.finos.legend.pure.generated.Root_meta_pure_runtime_Runtime_Impl;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.modelToModel.PureInstanceSetImplementation;
@@ -151,7 +153,8 @@ public class HelperRuntimeBuilder
         });
         // convert EngineRuntime with connection as a map indexes by store to Pure runtime which only contains an array of connections
         org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime pureRuntime = new Root_meta_pure_runtime_Runtime_Impl("Root::meta::pure::runtime::Runtime");
-        ListIterate.forEach(connections, connection -> {
+        ListIterate.forEach(connections, connection ->
+        {
             final org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Connection pureConnection = connection.accept(new ConnectionFirstPassBuilder(context));
             connection.accept(new ConnectionSecondPassBuilder(context, pureConnection));
             pureRuntime._connectionsAdd(pureConnection);
@@ -183,5 +186,27 @@ public class HelperRuntimeBuilder
             return context.resolveRuntime(((RuntimePointer) runtime).runtime, ((RuntimePointer) runtime).sourceInformation);
         }
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * NOTE: this compatibility check is fairly simple and only do static analysis on the runtimes
+     * However, we could be more advanced and do some router analysis, etc.
+     */
+    public static List<Root_meta_pure_runtime_PackageableRuntime> getMappingCompatibleRuntimes(
+            Mapping mappingToCheck, List<PackageableRuntime> runtimes, PureModel pureModel)
+    {
+        return ListIterate.collect(runtimes, runtime -> pureModel.getPackageableRuntime(runtime.getPath(), null)).distinct()
+                .select(runtime -> isRuntimeCompatibleWithMapping(runtime, mappingToCheck));
+    }
+
+    public static boolean isRuntimeCompatibleWithMapping(Root_meta_pure_runtime_PackageableRuntime runtime, Mapping mappingToCheck)
+    {
+        return ListIterate.collect(runtime._runtimeValue()._mappings().toList(), mapping ->
+        {
+            Set<Mapping> mappings = new HashSet<>();
+            mappings.add(mapping);
+            mappings.addAll(HelperMappingBuilder.getAllIncludedMappings(mapping).toSet());
+            return mappings;
+        }).anySatisfy(mappings -> mappings.contains(mappingToCheck));
     }
 }

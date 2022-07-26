@@ -17,7 +17,15 @@ package org.finos.legend.engine.plan.execution.stores.relational.connection.mana
 import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.GCPApplicationDefaultCredentialsAuthenticationStrategy;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.OAuthProfile;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.*;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.ApiTokenAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.AuthenticationStrategyVisitor;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DefaultH2AuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DelegatedKerberosAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.GCPWorkloadIdentityFederationAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.MiddleTierUserNamePasswordAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.SnowflakePublicAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.TestDatabaseAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.UserNamePasswordAuthenticationStrategy;
 
 import java.util.List;
 
@@ -40,6 +48,13 @@ public class AuthenticationStrategyTransformer implements AuthenticationStrategy
                     delegatedKerberosAuthenticationStrategy.serverPrincipal
             );
         }
+        else if (authenticationStrategy instanceof MiddleTierUserNamePasswordAuthenticationStrategy)
+        {
+            MiddleTierUserNamePasswordAuthenticationStrategy middleTierUserNameAuthenticationStrategy = (MiddleTierUserNamePasswordAuthenticationStrategy) authenticationStrategy;
+            return new org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.MiddleTierUserNamePasswordAuthenticationStrategy(
+                    middleTierUserNameAuthenticationStrategy.vaultReference
+            );
+        }
         else if (authenticationStrategy instanceof UserNamePasswordAuthenticationStrategy)
         {
             UserNamePasswordAuthenticationStrategy userNamePasswordAuthenticationStrategy = (UserNamePasswordAuthenticationStrategy) authenticationStrategy;
@@ -58,14 +73,14 @@ public class AuthenticationStrategyTransformer implements AuthenticationStrategy
         }
         else if (authenticationStrategy instanceof ApiTokenAuthenticationStrategy)
         {
-            ApiTokenAuthenticationStrategy apiTokenStrategy = (ApiTokenAuthenticationStrategy)authenticationStrategy;
+            ApiTokenAuthenticationStrategy apiTokenStrategy = (ApiTokenAuthenticationStrategy) authenticationStrategy;
             return new org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.ApiTokenAuthenticationStrategy(
                     apiTokenStrategy.apiToken
             );
         }
         else if (authenticationStrategy instanceof SnowflakePublicAuthenticationStrategy)
         {
-            SnowflakePublicAuthenticationStrategy snowflakePublicAuthenticationStrategy = (SnowflakePublicAuthenticationStrategy)authenticationStrategy;
+            SnowflakePublicAuthenticationStrategy snowflakePublicAuthenticationStrategy = (SnowflakePublicAuthenticationStrategy) authenticationStrategy;
             return new org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.SnowflakePublicAuthenticationStrategy(
                     snowflakePublicAuthenticationStrategy.privateKeyVaultReference,
                     snowflakePublicAuthenticationStrategy.passPhraseVaultReference,

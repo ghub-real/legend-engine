@@ -16,7 +16,12 @@ package org.finos.legend.engine.external.language.java.generation;
 
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.factory.Sets;
-import org.finos.legend.pure.generated.*;
+import org.finos.legend.pure.generated.Root_meta_external_language_java_metamodel_Class;
+import org.finos.legend.pure.generated.Root_meta_external_language_java_metamodel_project_Project;
+import org.finos.legend.pure.generated.Root_meta_external_language_java_metamodel_project_ProjectDirectory;
+import org.finos.legend.pure.generated.Root_meta_external_language_java_serialization_Stringifier;
+import org.finos.legend.pure.generated.core_external_language_java_metamodel_factories;
+import org.finos.legend.pure.generated.core_external_language_java_metamodel_serialization;
 import org.finos.legend.pure.m3.serialization.filesystem.PureCodeStorage;
 import org.finos.legend.pure.m3.serialization.filesystem.repository.CodeRepository;
 import org.finos.legend.pure.m3.serialization.filesystem.repository.CodeRepositoryProviderHelper;
@@ -69,12 +74,12 @@ public abstract class GenerateJavaProject
     public void execute()
     {
         Root_meta_external_language_java_metamodel_project_Project project = doExecute(executionSupport);
-        Root_meta_external_language_java_serialization_Stringifier stringifier = core_java_metamodel_serialization.Root_meta_external_language_java_serialization_newStringifier_Project_1__Stringifier_1_(project, executionSupport);
+        Root_meta_external_language_java_serialization_Stringifier stringifier = core_external_language_java_metamodel_serialization.Root_meta_external_language_java_serialization_newStringifier_Project_1__Stringifier_1_(project, executionSupport);
 
         Root_meta_external_language_java_metamodel_project_ProjectDirectory javaDir = project._root()
-                                                                           ._subdirectories().detect(sd -> "src".equals(sd._name()))
-                                                                           ._subdirectories().detect(sd -> "main".equals(sd._name()))
-                                                                           ._subdirectories().detect(sd -> "java".equals(sd._name()));
+                ._subdirectories().detect(sd -> "src".equals(sd._name()))
+                ._subdirectories().detect(sd -> "main".equals(sd._name()))
+                ._subdirectories().detect(sd -> "java".equals(sd._name()));
         javaDir._subdirectories().forEach(dir -> processDir(dir, Paths.get(outputDirectory), stringifier));
     }
 
@@ -102,7 +107,7 @@ public abstract class GenerateJavaProject
         try
         {
             Path javaFilePath = dirPath.resolve(cls._simpleName() + ".java");
-            String code = core_java_metamodel_serialization.Root_meta_external_language_java_serialization_ofClass_Stringifier_1__Class_1__String_1_(stringifier, core_java_metamodel_factories.Root_meta_external_language_java_factory_inferImports_Class_1__Class_1_(cls, executionSupport), executionSupport);
+            String code = core_external_language_java_metamodel_serialization.Root_meta_external_language_java_serialization_ofClass_Stringifier_1__Class_1__String_1_(stringifier, core_external_language_java_metamodel_factories.Root_meta_external_language_java_factory_inferImports_Class_1__Class_1_(cls, executionSupport), executionSupport);
             Files.write(javaFilePath, code.getBytes(StandardCharsets.UTF_8));
         }
         catch (IOException e)

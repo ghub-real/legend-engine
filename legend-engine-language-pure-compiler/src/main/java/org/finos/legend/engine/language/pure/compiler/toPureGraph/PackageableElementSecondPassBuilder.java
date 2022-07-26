@@ -23,8 +23,12 @@ import org.finos.legend.engine.protocol.pure.v1.model.context.EngineErrorType;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElementVisitor;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.PackageableConnection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.data.DataElement;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.Association;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.Class;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.*;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.Enumeration;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.Function;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.Measure;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.Profile;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.mapping.Mapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.runtime.PackageableRuntime;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.section.SectionIndex;
@@ -35,6 +39,8 @@ import org.finos.legend.pure.generated.Root_meta_pure_data_DataElement;
 import org.finos.legend.pure.generated.Root_meta_pure_data_DataElementReference;
 import org.finos.legend.pure.generated.Root_meta_pure_data_EmbeddedData;
 import org.finos.legend.pure.generated.Root_meta_pure_metamodel_relationship_Generalization_Impl;
+import org.finos.legend.pure.generated.Root_meta_pure_runtime_EngineRuntime_Impl;
+import org.finos.legend.pure.generated.Root_meta_pure_runtime_PackageableRuntime;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.PackageableElement;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.function.property.QualifiedProperty;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.relationship.Generalization;
@@ -76,6 +82,7 @@ public class PackageableElementSecondPassBuilder implements PackageableElementVi
         return null;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public PackageableElement visit(Class srcClass)
     {
@@ -132,8 +139,8 @@ public class PackageableElementSecondPassBuilder implements PackageableElementVi
 
         org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.relationship.Association association = this.context.pureModel.getAssociation(this.context.pureModel.buildPackageString(srcAssociation._package, srcAssociation.name), srcAssociation.sourceInformation);
 
-        org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Class class1 = this.context.resolveClass(property0Ref, srcAssociation.properties.get(0).sourceInformation);
-        org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Class class2 = this.context.resolveClass(property1Ref, srcAssociation.properties.get(1).sourceInformation);
+        org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Class<?> class1 = this.context.resolveClass(property0Ref, srcAssociation.properties.get(0).sourceInformation);
+        org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Class<?> class2 = this.context.resolveClass(property1Ref, srcAssociation.properties.get(1).sourceInformation);
 
         MutableList<? extends org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.function.property.Property<?, ?>> properties = association._properties().toList();
         MutableList<? extends org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.function.property.Property<?, ?>> originalMilestonedProperties = association._originalMilestonedProperties().toList();
@@ -223,10 +230,12 @@ public class PackageableElementSecondPassBuilder implements PackageableElementVi
     @Override
     public PackageableElement visit(PackageableRuntime packageableRuntime)
     {
+        Root_meta_pure_runtime_PackageableRuntime metamodel = this.context.pureModel.getPackageableRuntime(this.context.pureModel.buildPackageString(packageableRuntime._package, packageableRuntime.name), packageableRuntime.sourceInformation);
         // NOTE: the whole point of this processing is to put the Pure Runtime in an index
         final org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime runtime = HelperRuntimeBuilder.buildEngineRuntime(packageableRuntime.runtimeValue, this.context);
         this.context.pureModel.runtimesIndex.put(this.context.pureModel.buildPackageString(packageableRuntime._package, packageableRuntime.name), runtime);
-        return null;
+        metamodel._runtimeValue(new Root_meta_pure_runtime_EngineRuntime_Impl("")._mappings(ListIterate.collect(packageableRuntime.runtimeValue.mappings, mappingPointer -> context.resolveMapping(mappingPointer.path, mappingPointer.sourceInformation))));
+        return metamodel;
     }
 
     @Override

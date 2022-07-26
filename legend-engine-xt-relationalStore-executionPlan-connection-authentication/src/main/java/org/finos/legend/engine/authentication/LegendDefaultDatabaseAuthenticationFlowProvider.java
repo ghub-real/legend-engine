@@ -16,8 +16,15 @@ package org.finos.legend.engine.authentication;
 
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.impl.factory.Lists;
-import org.finos.legend.engine.authentication.flows.*;
+import org.finos.legend.engine.authentication.demoflows.middletier.PostgresStaticWithMiddletierUserNamePasswordAuthenticationFlow;
+import org.finos.legend.engine.authentication.flows.BigQueryWithGCPApplicationDefaultCredentialsFlow;
+import org.finos.legend.engine.authentication.flows.BigQueryWithGCPWorkloadIdentityFederationFlow;
+import org.finos.legend.engine.authentication.flows.DatabricksWithApiTokenFlow;
 import org.finos.legend.engine.authentication.flows.H2StaticWithTestUserPasswordFlow;
+import org.finos.legend.engine.authentication.flows.PostgresStaticWithUserPasswordFlow;
+import org.finos.legend.engine.authentication.flows.RedshiftWithUserPasswordFlow;
+import org.finos.legend.engine.authentication.flows.SnowflakeWithKeyPairFlow;
+import org.finos.legend.engine.authentication.flows.SqlServerStaticWithUserPasswordFlow;
 import org.finos.legend.engine.authentication.provider.AbstractDatabaseAuthenticationFlowProvider;
 import org.finos.legend.engine.authentication.provider.DatabaseAuthenticationFlowProviderConfiguration;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.AuthenticationStrategy;
@@ -29,9 +36,11 @@ public final class LegendDefaultDatabaseAuthenticationFlowProvider extends Abstr
 
     public LegendDefaultDatabaseAuthenticationFlowProvider()
     {
+
     }
 
-    private ImmutableList<DatabaseAuthenticationFlow<? extends DatasourceSpecification, ? extends AuthenticationStrategy>> flows(){
+    private ImmutableList<DatabaseAuthenticationFlow<? extends DatasourceSpecification, ? extends AuthenticationStrategy>> flows()
+    {
         return Lists.immutable.of(
                 new BigQueryWithGCPApplicationDefaultCredentialsFlow(),
                 new BigQueryWithGCPWorkloadIdentityFederationFlow(databaseAuthenticationFlowProviderConfiguration),
@@ -39,13 +48,16 @@ public final class LegendDefaultDatabaseAuthenticationFlowProvider extends Abstr
                 new H2StaticWithTestUserPasswordFlow(),
                 new SnowflakeWithKeyPairFlow(),
                 new SqlServerStaticWithUserPasswordFlow(),
-                new RedshiftWithUserPasswordFlow()
+                new PostgresStaticWithUserPasswordFlow(),
+                new RedshiftWithUserPasswordFlow(),
+                new PostgresStaticWithMiddletierUserNamePasswordAuthenticationFlow(this.databaseAuthenticationFlowProviderConfiguration.getMiddleTierMACKeyVaultRefernce())
         );
     }
 
     @Override
-    public void configure(DatabaseAuthenticationFlowProviderConfiguration configuration) {
-        if(!(configuration instanceof LegendDefaultDatabaseAuthenticationFlowProviderConfiguration))
+    public void configure(DatabaseAuthenticationFlowProviderConfiguration configuration)
+    {
+        if (!(configuration instanceof LegendDefaultDatabaseAuthenticationFlowProviderConfiguration))
         {
             String message = "Mismatch in flow provider configuration. It should be an instance of " + LegendDefaultDatabaseAuthenticationFlowProviderConfiguration.class.getSimpleName();
             throw new RuntimeException(message);

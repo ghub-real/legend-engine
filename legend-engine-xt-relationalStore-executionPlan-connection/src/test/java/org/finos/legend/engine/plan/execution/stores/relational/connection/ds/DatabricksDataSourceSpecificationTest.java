@@ -28,7 +28,7 @@ public class DatabricksDataSourceSpecificationTest extends DatabricksDataSourceS
     public DatabricksDataSourceSpecificationTest()
     {
         super(new DatabricksDataSourceSpecificationKey(
-                "dummy",
+                        "dummy",
                         "dummy",
                         "dummy",
                         "dummy"
@@ -92,7 +92,7 @@ public class DatabricksDataSourceSpecificationTest extends DatabricksDataSourceS
 
         String url = extractURL(profile);
         Assert.assertEquals(
-                "jdbc:spark://hostname:443/default;transportMode=http;ssl=1;AuthMech=3;httpPath=/httpPath;",
+                "jdbc:databricks://hostname:443/default;transportMode=http;ssl=1;AuthMech=3;httpPath=/httpPath;UID=token",
                 url
         );
 

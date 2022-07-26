@@ -15,12 +15,15 @@
 import meta::relational::runtime::*;
 import meta::relational::translation::*;
 import meta::relational::functions::sqlQueryToString::*;
+import meta::relational::functions::sqlQueryToString::default::*;
 import meta::pure::executionPlan::*;
 import meta::pure::mapping::*;
 import meta::relational::metamodel::relation::*;
 import meta::relational::functions::pureToSqlQuery::*;
+import meta::relational::functions::pureToSqlQuery::metamodel::*;
 import meta::relational::postProcessor::*;
-import meta::pure::router::extension::*;
+import meta::pure::extension::*;
+import meta::relational::extension::*;
 import meta::pure::runtime::*;
 import meta::relational::metamodel::*;
 import meta::relational::mapping::*;
@@ -29,14 +32,9 @@ import meta::pure::alloy::connections::alloy::specification::*;
 
 function meta::relational::postProcessor::getCollectionThresholdLimitForDatabaseType(dbType:DatabaseType[1], isTestRun:Boolean[1]):Integer[0..1]
 {
-   let threshMap = newMap([pair(DatabaseType.DB2, 32767),
-                           pair(DatabaseType.MemSQL, 1048576),
-                           pair(DatabaseType.Snowflake, 16348),
-                           pair(DatabaseType.SybaseIQ, 250000)]);
-
    let thresholdForTests = 50;
 
-   if($isTestRun, | $thresholdForTests, | $threshMap->get($dbType));
+   if($isTestRun, | $thresholdForTests, | $dbType->createDbConfig([]).dbExtension.collectionThresholdLimit);
 }
 
 function <<access.private>> meta::relational::postProcessor::prefixForWrapperAllocationNodeName():String[1]
@@ -44,7 +42,7 @@ function <<access.private>> meta::relational::postProcessor::prefixForWrapperAll
    'inFilterClause_';
 }
 
-function meta::relational::postProcessor::processInOperation(query:SQLQuery[1], runtime:Runtime[1], store:Database[0..1], exeCtx:ExecutionContext[1], extensions:RouterExtension[*]):PostProcessorResult[1]
+function meta::relational::postProcessor::processInOperation(query:SQLQuery[1], runtime:Runtime[1], store:Database[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*]):PostProcessorResult[1]
 {
    let connection = $runtime->connectionByElement($store->toOne())->meta::relational::mapping::updateConnection($extensions)->cast(@DatabaseConnection);
    let dbThreshold = $connection.type->getCollectionThresholdLimitForDatabaseType(
@@ -92,7 +90,7 @@ function meta::relational::postProcessor::processInOperation(query:SQLQuery[1], 
    );
 }
 
-function meta::relational::postProcessor::generatePostProcessorResult(changedFunctions:Pair<RelationalOperationElement, RelationalOperationElement>[*], query:SQLQuery[1], connection:DatabaseConnection[1], dbThreshold:Integer[1], runtime:Runtime[1], store:Database[1], exeCtx:ExecutionContext[1], extensions:RouterExtension[*]):PostProcessorResult[1]
+function meta::relational::postProcessor::generatePostProcessorResult(changedFunctions:Pair<RelationalOperationElement, RelationalOperationElement>[*], query:SQLQuery[1], connection:DatabaseConnection[1], dbThreshold:Integer[1], runtime:Runtime[1], store:Database[1], exeCtx:ExecutionContext[1], extensions:Extension[*]):PostProcessorResult[1]
 {
    let getTypeLambda = {val:Any[1] |if($val->instanceOf(VarPlaceHolder), | $val->cast(@VarPlaceHolder).type, | $val->type())};
 

@@ -32,6 +32,8 @@ import org.finos.legend.engine.shared.core.deployment.DeploymentMode;
 import org.finos.legend.engine.shared.core.operational.errorManagement.EngineException;
 import org.finos.legend.engine.shared.core.operational.logs.LogInfo;
 import org.finos.legend.engine.shared.core.operational.logs.LoggingEventType;
+import org.finos.legend.pure.generated.Root_meta_pure_runtime_PackageableConnection;
+import org.finos.legend.pure.generated.Root_meta_pure_runtime_PackageableRuntime;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Enum;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Enumeration;
@@ -303,6 +305,16 @@ public class CompileContext
         return this.resolve(fullPath, sourceInformation, path -> this.pureModel.getMapping(path, sourceInformation));
     }
 
+    public Root_meta_pure_runtime_PackageableRuntime resolvePackageableRuntime(String fullPath, SourceInformation sourceInformation)
+    {
+        return this.resolve(fullPath, sourceInformation, path -> this.pureModel.getPackageableRuntime(path, sourceInformation));
+    }
+
+    public Root_meta_pure_runtime_PackageableConnection resolvePackagebleConnection(String fullPath, SourceInformation sourceInformation)
+    {
+        return this.resolve(fullPath, sourceInformation, path -> this.pureModel.getPackageableConnection(path, sourceInformation));
+    }
+
     public Runtime resolveRuntime(String fullPath)
     {
         return this.resolveRuntime(fullPath, SourceInformation.getUnknownSourceInformation());
@@ -435,7 +447,7 @@ public class CompileContext
         {
             String packageName = functionName.substring(0, functionName.lastIndexOf(this.PACKAGE_SEPARATOR));
             String name = functionName.substring(functionName.lastIndexOf(this.PACKAGE_SEPARATOR) + this.PACKAGE_SEPARATOR.length());
-            if(metaPackages.contains(packageName))
+            if (metaPackages.contains(packageName))
             {
                 extractedFunctionName = name;
             }

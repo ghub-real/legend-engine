@@ -55,21 +55,46 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.r
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.mappingTest.RelationalInputData;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.Database;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.Schema;
+import org.finos.legend.engine.protocol.pure.v1.model.test.assertion.TestAssertion;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.DatabaseInstance;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.executionContext.RelationalExecutionContext;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.executionContext.ExecutionContext;
 import org.finos.legend.engine.shared.core.function.Function4;
 import org.finos.legend.engine.shared.core.function.Procedure3;
 import org.finos.legend.engine.shared.core.operational.errorManagement.EngineException;
-import org.finos.legend.pure.generated.*;
-import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.*;
+import org.finos.legend.pure.generated.Root_meta_pure_alloy_connections_MapperPostProcessor;
+import org.finos.legend.pure.generated.Root_meta_pure_alloy_connections_PostProcessor;
+import org.finos.legend.pure.generated.Root_meta_pure_alloy_connections_RelationalDatabaseConnection;
+import org.finos.legend.pure.generated.Root_meta_pure_alloy_connections_RelationalDatabaseConnection_Impl;
+import org.finos.legend.pure.generated.Root_meta_pure_alloy_connections_alloy_authentication_AuthenticationStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_alloy_connections_alloy_specification_DatasourceSpecification;
+import org.finos.legend.pure.generated.Root_meta_pure_functions_collection_List_Impl;
+import org.finos.legend.engine.protocol.pure.v1.model.data.EmbeddedData;
+import org.finos.legend.pure.generated.Root_meta_pure_metamodel_type_generics_GenericType_Impl;
+import org.finos.legend.pure.generated.Root_meta_pure_metamodel_valuespecification_InstanceValue_Impl;
+import org.finos.legend.pure.generated.Root_meta_relational_mapping_GroupByMapping_Impl;
+import org.finos.legend.pure.generated.Root_meta_relational_mapping_RelationalAssociationImplementation_Impl;
+import org.finos.legend.pure.generated.Root_meta_relational_mapping_RootRelationalInstanceSetImplementation_Impl;
+import org.finos.legend.pure.generated.Root_meta_relational_metamodel_Database_Impl;
+import org.finos.legend.pure.generated.Root_meta_relational_metamodel_TableAlias_Impl;
+import org.finos.legend.pure.generated.Root_meta_relational_runtime_RelationalExecutionContext_Impl;
+import org.finos.legend.pure.generated.core_relational_relational_runtime_connection_postprocessor;
+import org.finos.legend.pure.generated.Root_meta_pure_data_EmbeddedData;
+import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.AssociationImplementation;
+import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.EmbeddedSetImplementation;
+import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
+import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.SetImplementation;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.aggregationAware.AggregationAwareSetImplementation;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.valuespecification.ValueSpecification;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.store.Store;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.mapping.EmbeddedRelationalInstanceSetImplementation;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.mapping.RelationalAssociationImplementation;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.mapping.RootRelationalInstanceSetImplementation;
-import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.*;
+import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.AliasAccessor;
+import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.Column;
+import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.RelationalOperationElement;
+import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.TableAlias;
+import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.TableAliasAccessor;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.NamedRelation;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.Relation;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.runtime.PostProcessorWithParameter;
@@ -258,7 +283,8 @@ public class RelationalCompilerExtension implements IRelationalCompilerExtension
                         if (agg.setImplementation instanceof RootRelationalClassMapping)
                         {
                             RootRelationalClassMapping classMapping = (RootRelationalClassMapping) agg.setImplementation;
-                            asi._aggregateSetImplementations().forEach(c -> {
+                            asi._aggregateSetImplementations().forEach(c ->
+                            {
                                 if (HelperRelationalBuilder.getClassMappingId(c._setImplementation()).equals(HelperMappingBuilder.getClassMappingId(classMapping, context)))
                                 {
                                     HelperRelationalBuilder.processRootRelationalClassMapping((RootRelationalInstanceSetImplementation) c._setImplementation(), classMapping, context);
@@ -475,20 +501,15 @@ public class RelationalCompilerExtension implements IRelationalCompilerExtension
     {
         return Collections.singletonList(registerElementForPathToElement ->
         {
-            registerElementForPathToElement.value("meta::relational::mapping", Lists.mutable.with(
+            registerElementForPathToElement.value("meta::relational::contract", Lists.mutable.with(
                     "supports_FunctionExpression_1__Boolean_1_",
                     "supportsStream_FunctionExpression_1__Boolean_1_",
-                    "planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__RouterExtension_MANY__DebugContext_1__ExecutionNode_1_"
-            ));
-            registerElementForPathToElement.value("meta::pure::mapping::aggregationAware", Lists.mutable.with(
-                    "supports_FunctionExpression_1__Boolean_1_",
-                    "planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__RouterExtension_MANY__DebugContext_1__ExecutionNode_1_",
-                    "execution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_1__Runtime_1__ExecutionContext_1__RouterExtension_MANY__DebugContext_1__Result_1_"
+                    "planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__Extension_MANY__DebugContext_1__ExecutionNode_1_"
             ));
 
             ImmutableList<String> versions = PureClientVersions.versionsSince("v1_20_0");
-            versions.forEach(v -> registerElementForPathToElement.value("meta::protocols::pure::"+v+"::extension", Lists.mutable.with("getRelationalExtension_String_1__SerializerExtension_1_")));
-         });
+            versions.forEach(v -> registerElementForPathToElement.value("meta::protocols::pure::" + v + "::extension", Lists.mutable.with("getRelationalExtension_String_1__SerializerExtension_1_")));
+        });
     }
 
     @Override
@@ -511,7 +532,8 @@ public class RelationalCompilerExtension implements IRelationalCompilerExtension
     @Override
     public List<Function2<PostProcessor, CompileContext, Pair<Root_meta_pure_alloy_connections_PostProcessor, PostProcessorWithParameter>>> getExtraConnectionPostProcessor()
     {
-        return Lists.mutable.with((processor, context) -> {
+        return Lists.mutable.with((processor, context) ->
+        {
             if (processor instanceof MapperPostProcessor)
             {
                 MapperPostProcessor mapper = (MapperPostProcessor) processor;
@@ -531,7 +553,8 @@ public class RelationalCompilerExtension implements IRelationalCompilerExtension
     @Override
     public List<Function2<DatasourceSpecification, CompileContext, Root_meta_pure_alloy_connections_alloy_specification_DatasourceSpecification>> getExtraDataSourceSpecificationProcessors()
     {
-        return Lists.mutable.with((spec, context) -> {
+        return Lists.mutable.with((spec, context) ->
+        {
             DatasourceSpecificationBuilder datasourceSpecificationVisitor = new DatasourceSpecificationBuilder(context);
             return spec.accept(datasourceSpecificationVisitor);
         });
@@ -540,7 +563,8 @@ public class RelationalCompilerExtension implements IRelationalCompilerExtension
     @Override
     public List<Function2<AuthenticationStrategy, CompileContext, Root_meta_pure_alloy_connections_alloy_authentication_AuthenticationStrategy>> getExtraAuthenticationStrategyProcessors()
     {
-        return Lists.mutable.with((strategy, context) -> {
+        return Lists.mutable.with((strategy, context) ->
+        {
             AuthenticationStrategyBuilder authenticationStrategyBuilder = new AuthenticationStrategyBuilder();
             return strategy.accept(authenticationStrategyBuilder);
         });
@@ -555,12 +579,20 @@ public class RelationalCompilerExtension implements IRelationalCompilerExtension
     @Override
     public List<Procedure2<InputData, CompileContext>> getExtraMappingTestInputDataProcessors()
     {
-        return Collections.singletonList(((inputData, compileContext) -> {
+        return Collections.singletonList(((inputData, compileContext) ->
+        {
             if (inputData instanceof RelationalInputData)
             {
-                RelationalInputData relationalInputData = (RelationalInputData)inputData;
+                RelationalInputData relationalInputData = (RelationalInputData) inputData;
                 compileContext.resolveStore(relationalInputData.database, relationalInputData.sourceInformation);
             }
         }));
     }
+
+    @Override
+    public List<Function3<EmbeddedData, CompileContext, ProcessingContext, Root_meta_pure_data_EmbeddedData>> getExtraEmbeddedDataProcessors()
+    {
+        return Collections.singletonList(RelationalEmbeddedDataCompiler::compileRelationalEmbeddedDataCompiler);
+    }
+
 }

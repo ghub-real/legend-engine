@@ -20,6 +20,92 @@ import org.junit.Test;
 public class TestDomainGrammarRoundtrip extends TestGrammarRoundtrip.TestGrammarRoundtripTestSuite
 {
     @Test
+    public void testAppliedFunctionAsParameters()
+    {
+        test("Class my::TestClass extends meta::pure::metamodel::type::Any\n" +
+                "[\n" +
+                "  myConstraint\n" +
+                "  (\n" +
+                "    ~function: eq($this.var2 / $this.var1, $this.var4 / $this.var3)\n" +
+                "    ~enforcementLevel: Error\n" +
+                "  )\n" +
+                "]\n" +
+                "{\n" +
+                "  var1: Float[1];\n" +
+                "  var2: Float[1];\n" +
+                "  var3: Float[1];\n" +
+                "  var4: Float[1];\n" +
+                "}\n");
+    }
+
+    @Test
+    public void testAppliedFunctionPrimitiveAsParameters()
+    {
+        test("Class my::TestClass extends meta::pure::metamodel::type::Any\n" +
+                "[\n" +
+                "  myConstraint\n" +
+                "  (\n" +
+                "    ~function: eq($this.var2 / $this.var1, 3)\n" +
+                "    ~enforcementLevel: Error\n" +
+                "  )\n" +
+                "]\n" +
+                "{\n" +
+                "  var1: Float[1];\n" +
+                "  var2: Float[1];\n" +
+                "}\n");
+    }
+
+    @Test
+    public void testPrimitiveAppliedFunctionAsParameters()
+    {
+        test("Class my::TestClass extends meta::pure::metamodel::type::Any\n" +
+                "[\n" +
+                "  myConstraint\n" +
+                "  (\n" +
+                "    ~function: 3->eq($this.var2 / $this.var1)\n" +
+                "    ~enforcementLevel: Error\n" +
+                "  )\n" +
+                "]\n" +
+                "{\n" +
+                "  var1: Float[1];\n" +
+                "  var2: Float[1];\n" +
+                "}\n");
+    }
+
+    @Test
+    public void testPrimitivesAsParameters()
+    {
+        test("Class my::TestClass extends meta::pure::metamodel::type::Any\n" +
+                "[\n" +
+                "  myConstraint\n" +
+                "  (\n" +
+                "    ~function: 3->eq(3) && 3->eq($this.var2 / $this.var1)\n" +
+                "    ~enforcementLevel: Error\n" +
+                "  )\n" +
+                "]\n" +
+                "{\n" +
+                "  var1: Float[1];\n" +
+                "  var2: Float[1];\n" +
+                "}\n");
+    }
+
+    @Test
+    public void testIsNotEmptyWithAppliedFunctionsAsParameters()
+    {
+        test("Class my::TestClass extends meta::pure::metamodel::type::Any\n" +
+                "[\n" +
+                "  myConstraint\n" +
+                "  (\n" +
+                "    ~function: isNotEmpty($this.var1 / 3)\n" +
+                "    ~enforcementLevel: Error\n" +
+                "  )\n" +
+                "]\n" +
+                "{\n" +
+                "  var1: Float[1];\n" +
+                "}\n");
+    }
+
+    @Test
     public void testClass()
     {
         test("Class <<temporal.businesstemporal>> {doc.doc = 'something'} A extends B\n" +
@@ -481,6 +567,7 @@ public class TestDomainGrammarRoundtrip extends TestGrammarRoundtrip.TestGrammar
                 "   let x = ^anything::goes2(v2=^anything::goes(v='value'))\n" +
                 "}\n");
     }
+
     @Test
     public void testMetaNewFunctionWithSingleParameter()
     {
@@ -681,17 +768,18 @@ public class TestDomainGrammarRoundtrip extends TestGrammarRoundtrip.TestGrammar
                 "}\n"
         );
     }
+
     @Test
     public void testUnderscores()
     {
-        test(   "function my::under_score::function_example(): Any[1]\n" +
+        test("function my::under_score::function_example(): Any[1]\n" +
                 "{\n" +
                 "   my::under_score::function_example2()\n" +
-                "}\n\n"+
+                "}\n\n" +
                 "function my::under_score::function_example2(): Any[1]\n" +
-                        "{\n" +
-                        "   'a'\n" +
-                        "}\n"
+                "{\n" +
+                "   'a'\n" +
+                "}\n"
         );
     }
 
@@ -700,8 +788,8 @@ public class TestDomainGrammarRoundtrip extends TestGrammarRoundtrip.TestGrammar
     {
         String code =
                 "function example::somethingElse(input: Integer[1]): Any[0..1]\n" +
-                        "{\n"+
-                        "   [1, $input]->meta::pure::functions::math::max()\n"+
+                        "{\n" +
+                        "   [1, $input]->meta::pure::functions::math::max()\n" +
                         "}\n";
         test(code);
     }

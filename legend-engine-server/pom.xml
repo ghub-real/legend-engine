@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.finos.legend.engine</groupId>
         <artifactId>legend-engine</artifactId>
-        <version>3.2.1-SNAPSHOT</version>
+        <version>3.9.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>legend-engine-server</artifactId>
@@ -69,9 +69,13 @@
                 <configuration>
                     <useSystemClassLoader>false</useSystemClassLoader>
                     <excludes>
+                        <!-- Exclude Base class also for db specific tests -->
+                        <exclude>**/Test_Relational_DbSpecific_UsingPureClientTestSuite.java</exclude>
                         <exclude>**/Test_Relational_DbSpecific_SqlServer_UsingPureClientTestSuite.java</exclude>
+                        <exclude>**/Test_Relational_DbSpecific_Databricks_UsingPureClientTestSuite.java</exclude>
                         <exclude>**/Test_Relational_DbSpecific_Redshift_UsingPureClientTestSuite.java</exclude>
                         <exclude>**/Test_Relational_DbSpecific_Snowflake_UsingPureClientTestSuite.java</exclude>
+                        <exclude>**/Test_Relational_DbSpecific_Postgres_UsingPureClientTestSuite.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -89,12 +93,17 @@
             <artifactId>legend-pure-runtime-java-engine-compiled</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.finos.legend.pure</groupId>
-            <artifactId>legend-pure-code-compiled-core</artifactId>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-pure-code-compiled-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-xt-relationalStore-pure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-relationalStore-sqlserver-pure</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <!-- PURE -->
 
@@ -154,12 +163,50 @@
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-language-pure-dsl-service</artifactId>
+            <artifactId>legend-engine-xt-persistence-cloud-grammar</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-language-pure-dsl-data-space</artifactId>
+            <artifactId>legend-engine-xt-text-compiler</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-text-grammar</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-diagram-compiler</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-diagram-grammar</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-diagram-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-data-space-compiler</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-data-space-grammar</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-data-space-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-language-pure-dsl-service</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -222,6 +269,10 @@
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-testable</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-external-shared-format-model</artifactId>
         </dependency>
         <dependency>
@@ -231,7 +282,7 @@
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-external-format-avro</artifactId>
+            <artifactId>legend-engine-xt-avro</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -241,7 +292,7 @@
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-external-format-rosetta</artifactId>
+            <artifactId>legend-engine-xt-rosetta</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -276,8 +327,16 @@
         </dependency>
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-external-language-morphir</artifactId>
+            <artifactId>legend-engine-xt-morphir</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-analytics-mapping-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-executionPlan-execution-authorizer</artifactId>
         </dependency>
         <!-- ENGINE -->
 
@@ -507,6 +566,32 @@
         <dependency>
             <groupId>org.finos.legend.pure</groupId>
             <artifactId>legend-pure-configuration-external</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.pure</groupId>
+            <artifactId>legend-pure-code-compiled-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-relationalStore-executionPlan-authorizer</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-relationalStore-postgres-execution-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-language-pure-grammar</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- TEST -->

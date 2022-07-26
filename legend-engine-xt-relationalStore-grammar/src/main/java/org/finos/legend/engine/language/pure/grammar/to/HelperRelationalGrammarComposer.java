@@ -16,23 +16,29 @@ package org.finos.legend.engine.language.pure.grammar.to;
 
 import org.eclipse.collections.impl.utility.LazyIterate;
 import org.eclipse.collections.impl.utility.ListIterate;
-import org.finos.legend.engine.language.pure.grammar.from.PureGrammarParserUtility;
-import org.finos.legend.engine.language.pure.grammar.from.datasource.DataSourceSpecificationSourceCode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.mapping.PropertyMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.ApiTokenAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DefaultH2AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DelegatedKerberosAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.GCPApplicationDefaultCredentialsAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.GCPWorkloadIdentityFederationAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.MiddleTierUserNamePasswordAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.SnowflakePublicAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.TestDatabaseAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.UserNamePasswordAuthenticationStrategy;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.GCPWorkloadIdentityFederationAuthenticationStrategy;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.*;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.postprocessor.Mapper;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.postprocessor.MapperPostProcessor;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.postprocessor.SchemaNameMapper;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.postprocessor.TableNameMapper;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.*;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.BigQueryDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.DatabricksDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.EmbeddedH2DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.LocalH2DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.RedshiftDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.SnowflakeDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.StaticDatasourceSpecification;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.EmbeddedRelationalPropertyMapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.FilterMapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.InlineEmbeddedPropertyMapping;
@@ -84,122 +90,135 @@ public class HelperRelationalGrammarComposer
     {
         if (op instanceof DynaFunc)
         {
-            return renderDynaFunc((DynaFunc)op, context);
+            return renderDynaFunc((DynaFunc) op, context);
         }
         else if (op instanceof TableAliasColumn)
         {
-            return renderTableAliasColumn((TableAliasColumn)op, context);
+            return renderTableAliasColumn((TableAliasColumn) op, context);
         }
         else if (op instanceof ElementWithJoins)
         {
-            return renderElementWithJoins((ElementWithJoins)op, context);
+            return renderElementWithJoins((ElementWithJoins) op, context);
         }
         else if (op instanceof LiteralList)
         {
-            return renderLiteralList((LiteralList)op, context);
+            return renderLiteralList((LiteralList) op, context);
         }
         else if (op instanceof Literal)
         {
-            return renderLiteral((Literal)op, context);
+            return renderLiteral((Literal) op, context);
         }
         return PureGrammarComposerUtility.unsupported(op.getClass(), "relational operation element type");
     }
 
     private static String renderDynaFunc(DynaFunc dynaFunc, RelationalGrammarComposerContext context)
     {
-        switch (dynaFunc.funcName)
+        if (context.getUseDynaFunctionName() && (!dynaFunc.funcName.equals("group")))  //we split this because mapping grammar expects dynafunction names while store grammar can handle notations
         {
-            case "group":
+            return defaultDynaFunctionRender(dynaFunc, context);
+        }
+        else
+        {
+            switch (dynaFunc.funcName)
             {
-                if (dynaFunc.parameters.size() != 1)
+                case "group":
                 {
-                    return "/* Unable to transform operation: exactly 1 parameter is expected for '(group)' operation */";
+                    if (dynaFunc.parameters.size() != 1)
+                    {
+                        return "/* Unable to transform operation: exactly 1 parameter is expected for '(group)' operation */";
+                    }
+                    return "(" + renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + ")";
                 }
-                return "(" + renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + ")";
-            }
-            case "or":
-            case "and":
-            {
-                return LazyIterate.collect(dynaFunc.parameters, param -> renderRelationalOperationElement(param, context)).makeString(" " + PureGrammarComposerUtility.convertIdentifier(dynaFunc.funcName) + " ");
-            }
-            case "isNull":
-            {
-                if (dynaFunc.parameters.size() != 1)
+                case "or":
+                case "and":
                 {
-                    return "/* Unable to transform operation: exactly 1 parameter is expected for 'is null' operation */";
+                    return LazyIterate.collect(dynaFunc.parameters, param -> renderRelationalOperationElement(param, context)).makeString(" " + PureGrammarComposerUtility.convertIdentifier(dynaFunc.funcName) + " ");
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " is null";
-            }
-            case "isNotNull":
-            {
-                if (dynaFunc.parameters.size() != 1)
+                case "isNull":
                 {
-                    return "/* Unable to transform operation: exactly 1 parameter is expected for 'is not null' operation */";
+                    if (dynaFunc.parameters.size() != 1)
+                    {
+                        return "/* Unable to transform operation: exactly 1 parameter is expected for 'is null' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " is null";
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " is not null";
-            }
-            case "equal":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "isNotNull":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '=' operation */";
+                    if (dynaFunc.parameters.size() != 1)
+                    {
+                        return "/* Unable to transform operation: exactly 1 parameter is expected for 'is not null' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " is not null";
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " = " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            case "greaterThan":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "equal":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '>' operation */";
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '=' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " = " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " > " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            case "lessThan":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "greaterThan":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '<' operation */";
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '>' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " > " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " < " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            case "greaterThanEqual":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "lessThan":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '>=' operation */";
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '<' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " < " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " >= " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            case "lessThanEqual":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "greaterThanEqual":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '<=' operation */";
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '>=' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " >= " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " <= " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            case "notEqual":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "lessThanEqual":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '!=' operation */";
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '<=' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " <= " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " != " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            case "notEqualAnsi":
-            {
-                if (dynaFunc.parameters.size() != 2)
+                case "notEqual":
                 {
-                    return "/* Unable to transform operation: exactly 2 parameters are expected for '<>' operation */";
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '!=' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " != " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
                 }
-                return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " <> " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
-            }
-            default:
-            {
-                return PureGrammarComposerUtility.convertIdentifier(dynaFunc.funcName) + "(" + LazyIterate.collect(dynaFunc.parameters, param -> renderRelationalOperationElement(param, context)).makeString(", ") + ")";
+                case "notEqualAnsi":
+                {
+                    if (dynaFunc.parameters.size() != 2)
+                    {
+                        return "/* Unable to transform operation: exactly 2 parameters are expected for '<>' operation */";
+                    }
+                    return renderRelationalOperationElement(dynaFunc.parameters.get(0), context) + " <> " + renderRelationalOperationElement(dynaFunc.parameters.get(1), context);
+                }
+                default:
+                {
+                    return defaultDynaFunctionRender(dynaFunc, context);
+                }
             }
         }
     }
+
+    private static String defaultDynaFunctionRender(DynaFunc dynaFunc, RelationalGrammarComposerContext context)
+    {
+        return PureGrammarComposerUtility.convertIdentifier(dynaFunc.funcName) + "(" + LazyIterate.collect(dynaFunc.parameters, param -> renderRelationalOperationElement(param, context)).makeString(", ") + ")";
+    }
+
 
     private static boolean isSelfJoin(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.operation.TableAliasColumn tableAliasColumn)
     {
@@ -238,7 +257,7 @@ public class HelperRelationalGrammarComposer
     {
         if (literal.value instanceof RelationalOperationElement)
         {
-            return renderRelationalOperationElement(((RelationalOperationElement)literal.value), context);
+            return renderRelationalOperationElement(((RelationalOperationElement) literal.value), context);
         }
         else if (literal.value instanceof String)
         {
@@ -306,19 +325,19 @@ public class HelperRelationalGrammarComposer
         builder.append(getTabString(baseIndentation)).append(column.name).append(" ");
         if (column.type instanceof Char)
         {
-            builder.append("CHAR(").append(((Char)column.type).size).append(")");
+            builder.append("CHAR(").append(((Char) column.type).size).append(")");
         }
         else if (column.type instanceof VarChar)
         {
-            builder.append("VARCHAR(").append(((VarChar)column.type).size).append(")");
+            builder.append("VARCHAR(").append(((VarChar) column.type).size).append(")");
         }
         else if (column.type instanceof Numeric)
         {
-            builder.append("NUMERIC(").append(((Numeric)column.type).precision).append(", ").append(((Numeric)column.type).scale).append(")");
+            builder.append("NUMERIC(").append(((Numeric) column.type).precision).append(", ").append(((Numeric) column.type).scale).append(")");
         }
         else if (column.type instanceof Decimal)
         {
-            builder.append("DECIMAL(").append(((Decimal)column.type).precision).append(", ").append(((Decimal)column.type).scale).append(")");
+            builder.append("DECIMAL(").append(((Decimal) column.type).precision).append(", ").append(((Decimal) column.type).scale).append(")");
         }
         else if (column.type instanceof org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.datatype.Float)
         {
@@ -358,11 +377,11 @@ public class HelperRelationalGrammarComposer
         }
         else if (column.type instanceof Binary)
         {
-            builder.append("BINARY(").append(((Binary)column.type).size).append(")");
+            builder.append("BINARY(").append(((Binary) column.type).size).append(")");
         }
         else if (column.type instanceof Varbinary)
         {
-            builder.append("VARBINARY(").append(((Varbinary)column.type).size).append(")");
+            builder.append("VARBINARY(").append(((Varbinary) column.type).size).append(")");
         }
         else if (column.type instanceof Bit)
         {
@@ -406,7 +425,7 @@ public class HelperRelationalGrammarComposer
     {
         if (milestoning instanceof BusinessMilestoning)
         {
-            BusinessMilestoning businessMilestoning = (BusinessMilestoning)milestoning;
+            BusinessMilestoning businessMilestoning = (BusinessMilestoning) milestoning;
             return getTabString(baseIndentation) + "business(" +
                     "BUS_FROM = " + businessMilestoning.from + ", " +
                     "BUS_THRU = " + businessMilestoning.thru +
@@ -416,12 +435,12 @@ public class HelperRelationalGrammarComposer
         }
         else if (milestoning instanceof BusinessSnapshotMilestoning)
         {
-            BusinessSnapshotMilestoning businessSnapshotMilestoning = (BusinessSnapshotMilestoning)milestoning;
+            BusinessSnapshotMilestoning businessSnapshotMilestoning = (BusinessSnapshotMilestoning) milestoning;
             return getTabString(baseIndentation) + "business(BUS_SNAPSHOT_DATE = " + businessSnapshotMilestoning.snapshotDate + ")";
         }
         else if (milestoning instanceof ProcessingMilestoning)
         {
-            ProcessingMilestoning processingMilestoning = (ProcessingMilestoning)milestoning;
+            ProcessingMilestoning processingMilestoning = (ProcessingMilestoning) milestoning;
             return getTabString(baseIndentation) + "processing(" +
                     "PROCESSING_IN = " + processingMilestoning.in + ", " +
                     "PROCESSING_OUT = " + processingMilestoning.out +
@@ -493,7 +512,7 @@ public class HelperRelationalGrammarComposer
         String firstJoin = joinSize > 0 ? renderJoinPointerForTheFirstFilterJoin(filterMapping.joins.get(0)) : "";
         List<JoinPointer> otherJoins = joinSize > 1 ? filterMapping.joins.subList(1, joinSize) : null;
         String body = firstJoin +
-                (otherJoins != null ? " > " + LazyIterate.collect(otherJoins, HelperRelationalGrammarComposer::renderJoinPointer).makeString(" > "): "" ) +
+                (otherJoins != null ? " > " + LazyIterate.collect(otherJoins, HelperRelationalGrammarComposer::renderJoinPointer).makeString(" > ") : "") +
                 (!filterMapping.joins.isEmpty() ? " | " : "") + renderDatabasePointer(filterMapping.filter.db);
 
         return "~filter " + (filterMapping.filter.db != null ? body : "") +
@@ -509,15 +528,15 @@ public class HelperRelationalGrammarComposer
     {
         if (propertyMapping instanceof RelationalPropertyMapping)
         {
-            return renderRelationalPropertyMapping((RelationalPropertyMapping)propertyMapping, context, renderSourceId);
+            return renderRelationalPropertyMapping((RelationalPropertyMapping) propertyMapping, context, renderSourceId);
         }
         else if (propertyMapping instanceof EmbeddedRelationalPropertyMapping)
         {
-            return renderEmbeddedRelationalPropertyMapping((EmbeddedRelationalPropertyMapping)propertyMapping, context);
+            return renderEmbeddedRelationalPropertyMapping((EmbeddedRelationalPropertyMapping) propertyMapping, context);
         }
         else if (propertyMapping instanceof InlineEmbeddedPropertyMapping)
         {
-            return renderInlineEmbeddedPropertyMapping((InlineEmbeddedPropertyMapping)propertyMapping, context);
+            return renderInlineEmbeddedPropertyMapping((InlineEmbeddedPropertyMapping) propertyMapping, context);
         }
         return unsupported(propertyMapping.getClass(), "relational property mapping type");
     }
@@ -537,7 +556,7 @@ public class HelperRelationalGrammarComposer
     {
         if (embeddedRelationalPropertyMapping instanceof OtherwiseEmbeddedRelationalPropertyMapping)
         {
-            return renderOtherwiseEmbeddedRelationalPropertyMapping((OtherwiseEmbeddedRelationalPropertyMapping)embeddedRelationalPropertyMapping, context);
+            return renderOtherwiseEmbeddedRelationalPropertyMapping((OtherwiseEmbeddedRelationalPropertyMapping) embeddedRelationalPropertyMapping, context);
         }
         StringBuilder builder = new StringBuilder();
         builder.append(context.getIndentationString()).append(PureGrammarComposerUtility.convertIdentifier(embeddedRelationalPropertyMapping.property.property)).append("\n");
@@ -582,7 +601,7 @@ public class HelperRelationalGrammarComposer
     {
         if (_spec instanceof LocalH2DatasourceSpecification)
         {
-            LocalH2DatasourceSpecification spec = (LocalH2DatasourceSpecification)_spec;
+            LocalH2DatasourceSpecification spec = (LocalH2DatasourceSpecification) _spec;
             int baseIndentation = 1;
             return "LocalH2\n" +
                     context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
@@ -592,7 +611,7 @@ public class HelperRelationalGrammarComposer
         }
         else if (_spec instanceof EmbeddedH2DatasourceSpecification)
         {
-            EmbeddedH2DatasourceSpecification spec = (EmbeddedH2DatasourceSpecification)_spec;
+            EmbeddedH2DatasourceSpecification spec = (EmbeddedH2DatasourceSpecification) _spec;
             int baseIndentation = 1;
             return "EmbeddedH2\n" +
                     context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
@@ -603,7 +622,7 @@ public class HelperRelationalGrammarComposer
         }
         else if (_spec instanceof StaticDatasourceSpecification)
         {
-            StaticDatasourceSpecification spec = (StaticDatasourceSpecification)_spec;
+            StaticDatasourceSpecification spec = (StaticDatasourceSpecification) _spec;
             int baseIndentation = 1;
             return "Static\n" +
                     context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
@@ -626,7 +645,7 @@ public class HelperRelationalGrammarComposer
         }
         else if (_spec instanceof SnowflakeDatasourceSpecification)
         {
-            SnowflakeDatasourceSpecification spec = (SnowflakeDatasourceSpecification)_spec;
+            SnowflakeDatasourceSpecification spec = (SnowflakeDatasourceSpecification) _spec;
             int baseIndentation = 1;
             return "Snowflake\n" +
                     context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
@@ -648,7 +667,7 @@ public class HelperRelationalGrammarComposer
         }
         else if (_spec instanceof BigQueryDatasourceSpecification)
         {
-            BigQueryDatasourceSpecification spec = (BigQueryDatasourceSpecification)_spec;
+            BigQueryDatasourceSpecification spec = (BigQueryDatasourceSpecification) _spec;
             int baseIndentation = 1;
             return "BigQuery\n" +
                     context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
@@ -688,13 +707,26 @@ public class HelperRelationalGrammarComposer
         }
         else if (_auth instanceof DelegatedKerberosAuthenticationStrategy)
         {
-            DelegatedKerberosAuthenticationStrategy auth = (DelegatedKerberosAuthenticationStrategy)_auth;
+            DelegatedKerberosAuthenticationStrategy auth = (DelegatedKerberosAuthenticationStrategy) _auth;
             int baseIndentation = 1;
             return "DelegatedKerberos" +
                     (auth.serverPrincipal != null
                             ? ("\n" +
                             context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
                             context.getIndentationString() + getTabString(baseIndentation + 1) + "serverPrincipal: " + convertString(auth.serverPrincipal, true) + ";\n" +
+                            context.getIndentationString() + getTabString(baseIndentation) + "}")
+                            : ""
+                    );
+        }
+        else if (_auth instanceof MiddleTierUserNamePasswordAuthenticationStrategy)
+        {
+            MiddleTierUserNamePasswordAuthenticationStrategy auth = (MiddleTierUserNamePasswordAuthenticationStrategy)_auth;
+            int baseIndentation = 1;
+            return "MiddleTierUserNamePassword" +
+                    (auth.vaultReference != null
+                            ? ("\n" +
+                            context.getIndentationString() + getTabString(baseIndentation) + "{\n" +
+                            context.getIndentationString() + getTabString(baseIndentation + 1) + "vaultReference: " + convertString(auth.vaultReference, true) + ";\n" +
                             context.getIndentationString() + getTabString(baseIndentation) + "}")
                             : ""
                     );
@@ -723,7 +755,7 @@ public class HelperRelationalGrammarComposer
         }
         else if (_auth instanceof SnowflakePublicAuthenticationStrategy)
         {
-            SnowflakePublicAuthenticationStrategy auth = (SnowflakePublicAuthenticationStrategy)_auth;
+            SnowflakePublicAuthenticationStrategy auth = (SnowflakePublicAuthenticationStrategy) _auth;
             int baseIndentation = 1;
             return "SnowflakePublic" +
                     "\n" +
@@ -736,7 +768,7 @@ public class HelperRelationalGrammarComposer
         }
         else if (_auth instanceof GCPApplicationDefaultCredentialsAuthenticationStrategy)
         {
-            GCPApplicationDefaultCredentialsAuthenticationStrategy auth = (GCPApplicationDefaultCredentialsAuthenticationStrategy)_auth;
+            GCPApplicationDefaultCredentialsAuthenticationStrategy auth = (GCPApplicationDefaultCredentialsAuthenticationStrategy) _auth;
             return "GCPApplicationDefaultCredentials";
         }
         else if (_auth instanceof GCPWorkloadIdentityFederationAuthenticationStrategy)
@@ -777,11 +809,11 @@ public class HelperRelationalGrammarComposer
     {
         if (mapper instanceof TableNameMapper)
         {
-            return visitTableMapper((TableNameMapper)mapper);
+            return visitTableMapper((TableNameMapper) mapper);
         }
         else if (mapper instanceof SchemaNameMapper)
         {
-            return visitSchemaMapper((SchemaNameMapper)mapper);
+            return visitSchemaMapper((SchemaNameMapper) mapper);
         }
 
         return unsupported(mapper.getClass(), "mapper type");

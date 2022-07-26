@@ -17,7 +17,6 @@ package org.finos.legend.engine.language.pure.dsl.service.generation;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.utility.ListIterate;
-import org.finos.legend.engine.protocol.pure.v1.model.executionOption.ExecutionOption;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.CompileContext;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.HelperRuntimeBuilder;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.HelperValueSpecificationBuilder;
@@ -25,6 +24,7 @@ import org.finos.legend.engine.language.pure.compiler.toPureGraph.PureModel;
 import org.finos.legend.engine.plan.generation.PlanGenerator;
 import org.finos.legend.engine.plan.generation.transformers.PlanTransformer;
 import org.finos.legend.engine.plan.platform.PlanPlatform;
+import org.finos.legend.engine.protocol.pure.v1.model.executionOption.ExecutionOption;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.CompositeExecutionPlan;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.ExecutionPlan;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecutionPlan;
@@ -35,7 +35,7 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.service
 import org.finos.legend.pure.generated.Root_meta_pure_executionPlan_ExecutionOption;
 import org.finos.legend.pure.generated.Root_meta_pure_executionPlan_ExecutionOptionContext;
 import org.finos.legend.pure.generated.Root_meta_pure_executionPlan_ExecutionOptionContext_Impl;
-import org.finos.legend.pure.generated.Root_meta_pure_router_extension_RouterExtension;
+import org.finos.legend.pure.generated.Root_meta_pure_extension_Extension;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.function.LambdaFunction;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.ExecutionContext;
@@ -48,17 +48,17 @@ import java.util.stream.Collectors;
 
 public class ServicePlanGenerator
 {
-    public static ExecutionPlan generateServiceExecutionPlan(Service service, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static ExecutionPlan generateServiceExecutionPlan(Service service, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         return generateServiceExecutionPlan(service, context, pureModel, clientVersion, platform, null, extensions, transformers);
     }
 
-    public static ExecutionPlan generateServiceExecutionPlan(Service service, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static ExecutionPlan generateServiceExecutionPlan(Service service, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         return generateExecutionPlan(service.execution, context, pureModel, clientVersion, platform, planId, extensions, transformers);
     }
 
-    public static ExecutionPlan generateExecutionPlan(Execution execution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static ExecutionPlan generateExecutionPlan(Execution execution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         if (execution instanceof PureSingleExecution)
         {
@@ -71,12 +71,12 @@ public class ServicePlanGenerator
         throw new IllegalArgumentException("Unsupported execution type: " + execution);
     }
 
-    public static SingleExecutionPlan generateSingleExecutionPlan(PureSingleExecution singleExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static SingleExecutionPlan generateSingleExecutionPlan(PureSingleExecution singleExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         return generateSingleExecutionPlan(singleExecution, context, pureModel, clientVersion, platform, null, extensions, transformers);
     }
 
-    public static SingleExecutionPlan generateSingleExecutionPlan(PureSingleExecution singleExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static SingleExecutionPlan generateSingleExecutionPlan(PureSingleExecution singleExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         Mapping mapping = pureModel.getMapping(singleExecution.mapping);
         Runtime runtime = HelperRuntimeBuilder.buildPureRuntime(singleExecution.runtime, pureModel.getContext());
@@ -84,9 +84,9 @@ public class ServicePlanGenerator
         return getSingleExecutionPlan(singleExecution.executionOptions, context, pureModel, clientVersion, platform, planId, extensions, transformers, mapping, runtime, lambda);
     }
 
-    private static SingleExecutionPlan getSingleExecutionPlan(List<ExecutionOption> executionOptions, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers, Mapping mapping, Runtime runtime, LambdaFunction<?> lambda)
+    private static SingleExecutionPlan getSingleExecutionPlan(List<ExecutionOption> executionOptions, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers, Mapping mapping, Runtime runtime, LambdaFunction<?> lambda)
     {
-        if(executionOptions != null)
+        if (executionOptions != null)
         {
             return PlanGenerator.generateExecutionPlan(lambda, mapping, runtime, getExecutionOptionContext(executionOptions, pureModel), pureModel, clientVersion, platform, planId, extensions, transformers);
         }
@@ -107,12 +107,12 @@ public class ServicePlanGenerator
                 .orElseThrow(() -> new UnsupportedOperationException("Unsupported execution option type '" + executionOption.getClass() + "'"));
     }
 
-    public static CompositeExecutionPlan generateCompositeExecutionPlan(PureMultiExecution multiExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static CompositeExecutionPlan generateCompositeExecutionPlan(PureMultiExecution multiExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         return generateCompositeExecutionPlan(multiExecution, context, pureModel, clientVersion, platform, null, extensions, transformers);
     }
 
-    public static CompositeExecutionPlan generateCompositeExecutionPlan(PureMultiExecution multiExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension> extensions, MutableList<PlanTransformer> transformers)
+    public static CompositeExecutionPlan generateCompositeExecutionPlan(PureMultiExecution multiExecution, ExecutionContext context, PureModel pureModel, String clientVersion, PlanPlatform platform, String planId, RichIterable<? extends Root_meta_pure_extension_Extension> extensions, MutableList<PlanTransformer> transformers)
     {
         LambdaFunction<?> lambda = HelperValueSpecificationBuilder.buildLambda(multiExecution.func.body, multiExecution.func.parameters, pureModel.getContext());
         Map<String, SingleExecutionPlan> plans = multiExecution.executionParameters.stream().collect(Collectors.toMap(

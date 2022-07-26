@@ -17,7 +17,6 @@ package org.finos.legend.engine.language.pure.grammar.test.roundtrip;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.legend.engine.language.pure.grammar.from.domain.DomainParser;
 import org.finos.legend.engine.language.pure.grammar.to.DEPRECATED_PureGrammarComposerCore;
-import org.finos.legend.engine.language.pure.grammar.to.PureGrammarComposerContext;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.Lambda;
 import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.junit.Assert;
@@ -26,6 +25,16 @@ import org.junit.Test;
 public class TestLambdaRoundtrip
 {
     private static final ObjectMapper objectMapper = ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports();
+
+    @Test
+    public void testLambdaWithINFIXoperations()
+    {
+        testLambda("|eq($this.var2 / $this.var1, $this.var4 / $this.var3)");
+        testLambda("|eq($this.var2 / $this.var1, 3)");
+        testLambda("|3->eq($this.var2 / $this.var1)");
+        testLambda("|3->eq(3) && 3->eq($this.var2 / $this.var1)");
+        testLambda("|isNotEmpty($this.var1 / 3)");
+    }
 
     @Test
     public void testLambdaWithBodyWithNonStringTokenOnly()

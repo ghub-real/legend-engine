@@ -40,8 +40,21 @@ import org.finos.legend.engine.plan.platform.PlanPlatform;
 import org.finos.legend.engine.protocol.graphQL.metamodel.Definition;
 import org.finos.legend.engine.protocol.graphQL.metamodel.DefinitionVisitor;
 import org.finos.legend.engine.protocol.graphQL.metamodel.Document;
-import org.finos.legend.engine.protocol.graphQL.metamodel.executable.*;
-import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.*;
+import org.finos.legend.engine.protocol.graphQL.metamodel.executable.ExecutableDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.executable.Field;
+import org.finos.legend.engine.protocol.graphQL.metamodel.executable.FragmentDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.executable.OperationDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.executable.OperationType;
+import org.finos.legend.engine.protocol.graphQL.metamodel.executable.Selection;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.DirectiveDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.EnumTypeDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.InterfaceTypeDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.ObjectTypeDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.ScalarTypeDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.SchemaDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.Type;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.TypeSystemDefinition;
+import org.finos.legend.engine.protocol.graphQL.metamodel.typeSystem.UnionTypeDefinition;
 import org.finos.legend.engine.protocol.pure.PureClientVersions;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.ExecutionPlan;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecutionPlan;
@@ -53,7 +66,10 @@ import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.finos.legend.engine.shared.core.kerberos.ProfileManagerHelper;
 import org.finos.legend.engine.shared.core.operational.errorManagement.ExceptionTool;
 import org.finos.legend.engine.shared.core.operational.logs.LoggingEventType;
-import org.finos.legend.pure.generated.*;
+import org.finos.legend.pure.generated.core_external_query_graphql_transformation;
+import org.finos.legend.pure.generated.core_external_query_graphql_introspection_transformation;
+import org.finos.legend.pure.generated.Root_meta_pure_executionPlan_ExecutionPlan;
+import org.finos.legend.pure.generated.core_pure_executionPlan_executionPlan_print;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.functions.collection.Pair;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.pac4j.core.profile.CommonProfile;
@@ -61,7 +77,11 @@ import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.jax.rs.annotations.Pac4JProfileManager;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -71,6 +91,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.finos.legend.engine.shared.core.operational.http.InflateInterceptor.APPLICATION_ZLIB;
+import static org.finos.legend.pure.generated.core_relational_relational_extensions_extension.Root_meta_relational_extension_relationalExtensions__Extension_MANY_;
 
 @Api(tags = "GraphQL - Execution")
 @Path("graphQL/v1/execution")
@@ -118,14 +139,15 @@ public class GraphQLExecute extends GraphQL
             }
             else
             {
-                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__RouterExtension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
-                Collection<PlansResult.PlanUnit> plans = Iterate.collect(purePlans, p -> {
-                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()));
+                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
+                Collection<PlansResult.PlanUnit> plans = Iterate.collect(purePlans, p ->
+                        {
+                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
                             try
                             {
                                 return new PlansResult.PlanUnit(p._first(),
-                                        ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().readValue(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()), this.transformers), ExecutionPlan.class),
-                                        core_pure_executionPlan_executionPlan_print.Root_meta_pure_executionPlan_toString_planToString_ExecutionPlan_1__Boolean_1__RouterExtension_MANY__String_1_(nPlan, true, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport())
+                                        ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().readValue(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), this.transformers), ExecutionPlan.class),
+                                        core_pure_executionPlan_executionPlan_print.Root_meta_pure_executionPlan_toString_planToString_ExecutionPlan_1__Boolean_1__Extension_MANY__String_1_(nPlan, true, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport())
                                 );
                             }
                             catch (JsonProcessingException e)
@@ -176,10 +198,11 @@ public class GraphQLExecute extends GraphQL
             {
                 Mapping mapping = pureModel.getMapping(mappingPath);
                 org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime runtime = pureModel.getRuntime(runtimePath);
-                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__RouterExtension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
-                Collection<org.eclipse.collections.api.tuple.Pair<String, SingleExecutionPlan>> plans = Iterate.collect(purePlans, p -> {
-                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()));
-                            return Tuples.pair(p._first(), PlanGenerator.stringToPlan(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()), this.transformers)));
+                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
+                Collection<org.eclipse.collections.api.tuple.Pair<String, SingleExecutionPlan>> plans = Iterate.collect(purePlans, p ->
+                        {
+                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
+                            return Tuples.pair(p._first(), PlanGenerator.stringToPlan(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), this.transformers)));
                         }
                 );
 
@@ -195,7 +218,8 @@ public class GraphQLExecute extends GraphQL
                                 generator.writeFieldName("data");
                                 generator.writeStartObject();
 
-                                plans.forEach(p -> {
+                                plans.forEach(p ->
+                                {
                                     JsonStreamingResult result = null;
                                     try
                                     {

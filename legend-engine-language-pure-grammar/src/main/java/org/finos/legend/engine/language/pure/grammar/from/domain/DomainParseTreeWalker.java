@@ -145,9 +145,16 @@ public class DomainParseTreeWalker
         Profile profile = new Profile();
         profile.name = PureGrammarParserUtility.fromIdentifier(ctx.qualifiedName().identifier());
         profile._package = ctx.qualifiedName().packagePath() == null ? "" : PureGrammarParserUtility.fromPath(ctx.qualifiedName().packagePath().identifier());
-        profile.stereotypes = ctx.stereotypeDefinitions() == null ? Lists.mutable.empty() : ListIterate.collect(ctx.stereotypeDefinitions().identifier(), PureGrammarParserUtility::fromIdentifier);
-        profile.tags = ctx.tagDefinitions() == null ? Lists.mutable.empty() : ListIterate.collect(ctx.tagDefinitions().identifier(), PureGrammarParserUtility::fromIdentifier);
         profile.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
+
+        // stereotypes
+        DomainParserGrammar.StereotypeDefinitionsContext stereotypeDefinitionsContext = PureGrammarParserUtility.validateAndExtractOptionalField(ctx.stereotypeDefinitions(), "stereotypes", profile.sourceInformation);
+        profile.stereotypes = stereotypeDefinitionsContext != null ? ListIterate.collect(stereotypeDefinitionsContext.identifier(), PureGrammarParserUtility::fromIdentifier) : Lists.mutable.empty();
+
+        // tags
+        DomainParserGrammar.TagDefinitionsContext tagDefinitionsContext = PureGrammarParserUtility.validateAndExtractOptionalField(ctx.tagDefinitions(), "tags", profile.sourceInformation);
+        profile.tags = tagDefinitionsContext != null ? ListIterate.collect(tagDefinitionsContext.identifier(), PureGrammarParserUtility::fromIdentifier) : Lists.mutable.empty();
+
         return profile;
     }
 
@@ -557,11 +564,11 @@ public class DomainParseTreeWalker
 
     public ValueSpecification primitiveValue(DomainParserGrammar.PrimitiveValueContext ctx, String exprName, List<String> typeParametersNames, LambdaContext lambdaContext, String space, boolean wrapFlag, boolean addLines)
     {
-        if(ctx.primitiveValueAtomic() != null)
+        if (ctx.primitiveValueAtomic() != null)
         {
-           return this.primitiveValueAtomic(ctx.primitiveValueAtomic(), exprName, typeParametersNames, lambdaContext, space, wrapFlag, addLines);
+            return this.primitiveValueAtomic(ctx.primitiveValueAtomic(), exprName, typeParametersNames, lambdaContext, space, wrapFlag, addLines);
         }
-        else if(ctx.primitiveValueVector() != null)
+        else if (ctx.primitiveValueVector() != null)
         {
             List<ValueSpecification> parameters = Lists.mutable.of();
             for (DomainParserGrammar.PrimitiveValueAtomicContext paramCtx : ctx.primitiveValueVector().primitiveValueAtomic())
@@ -575,11 +582,11 @@ public class DomainParseTreeWalker
 
     private ValueSpecification primitiveValueAtomic(DomainParserGrammar.PrimitiveValueAtomicContext ctx, String exprName, List<String> typeParametersNames, LambdaContext lambdaContext, String space, boolean wrapFlag, boolean addLines)
     {
-        if(ctx.instanceLiteral() != null)
+        if (ctx.instanceLiteral() != null)
         {
             return this.instanceLiteral(ctx.instanceLiteral(), exprName, typeParametersNames, lambdaContext, space, wrapFlag, addLines);
         }
-        else if(ctx.enumReference() != null)
+        else if (ctx.enumReference() != null)
         {
             return this.enumReference(ctx.enumReference(), exprName, typeParametersNames, lambdaContext, space, wrapFlag, addLines);
         }
@@ -598,7 +605,7 @@ public class DomainParseTreeWalker
     private ValueSpecification instanceLiteral(DomainParserGrammar.InstanceLiteralContext ctx, String exprName, List<String> typeParametersNames, LambdaContext lambdaContext, String space, boolean wrapFlag, boolean addLines)
     {
         ValueSpecification result;
-        if(ctx.instanceLiteralToken() != null)
+        if (ctx.instanceLiteralToken() != null)
         {
             result = this.instanceLiteralToken(ctx.instanceLiteralToken(), wrapFlag);
         }
@@ -811,7 +818,8 @@ public class DomainParseTreeWalker
         }
         else if (ctx.functionExpressionLatestMilestoningDateParameter() != null)
         {
-            ctx.functionExpressionLatestMilestoningDateParameter().LATEST_DATE().forEach(lDate -> {
+            ctx.functionExpressionLatestMilestoningDateParameter().LATEST_DATE().forEach(lDate ->
+            {
                 CLatestDate date = new CLatestDate();
                 date.multiplicity = getMultiplicityOneOne();
                 parameters.add(date);
@@ -1344,12 +1352,13 @@ public class DomainParseTreeWalker
         else if (ctx.allFunctionWithMilestoning() != null)
         {
             appliedFunction.function = "getAll";
-            appliedFunction.parameters.addAll(ListIterate.collect(ctx.allFunctionWithMilestoning().buildMilestoningVariableExpression(), b -> {
-                if(b.variable() != null)
+            appliedFunction.parameters.addAll(ListIterate.collect(ctx.allFunctionWithMilestoning().buildMilestoningVariableExpression(), b ->
+            {
+                if (b.variable() != null)
                 {
                     return variable(b.variable());
                 }
-                else if(b.DATE() != null)
+                else if (b.DATE() != null)
                 {
                     return new DateParseTreeWalker(b.DATE(), this.walkerSourceInformation).visitDefinition();
                 }

@@ -45,7 +45,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.domain.
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.ValueSpecification;
 import org.finos.legend.engine.shared.javaCompiler.EngineJavaCompiler;
 import org.finos.legend.engine.shared.javaCompiler.JavaCompileException;
-import org.finos.legend.pure.generated.core_relational_relational_router_router_extension;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,6 +61,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+
+import static org.finos.legend.pure.generated.core_relational_relational_extensions_extension.Root_meta_relational_extension_relationalExtensions__Extension_MANY_;
 
 public class TestPlanExecutionWithGraphFetchCrossKeyCache extends AlloyTestServer
 {
@@ -549,7 +550,7 @@ public class TestPlanExecutionWithGraphFetchCrossKeyCache extends AlloyTestServe
 
     private String executePlan(SingleExecutionPlan plan, PlanExecutionContext context)
     {
-        JsonStreamingResult result = (JsonStreamingResult)planExecutor.execute(plan, Collections.emptyMap(), null, context);
+        JsonStreamingResult result = (JsonStreamingResult) planExecutor.execute(plan, Collections.emptyMap(), null, context);
         return result.flush(new JsonStreamToPureFormatSerializer(result));
     }
 
@@ -577,7 +578,7 @@ public class TestPlanExecutionWithGraphFetchCrossKeyCache extends AlloyTestServe
                 "vX_X_X",
                 PlanPlatform.JAVA,
                 null,
-                core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()),
+                Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()),
                 LegendPlanTransformers.transformers
         );
     }
@@ -612,14 +613,17 @@ public class TestPlanExecutionWithGraphFetchCrossKeyCache extends AlloyTestServe
     {
         Map<String, Integer> stats = Maps.mutable.of("requestCount", 0, "hitCount", 0, "missCount", 0, "size", 0);
 
-        return new ExecutionCache<K, V>() {
+        return new ExecutionCache<K, V>()
+        {
             @Override
-            public V get(K key, Callable<? extends V> valueLoader) {
+            public V get(K key, Callable<? extends V> valueLoader)
+            {
                 throw new UnsupportedOperationException("Not supported!");
             }
 
             @Override
-            public V getIfPresent(K key) {
+            public V getIfPresent(K key)
+            {
                 V v = map.get(key);
                 stats.put("requestCount", stats.get("requestCount") + 1);
                 if (v != null)
@@ -634,102 +638,123 @@ public class TestPlanExecutionWithGraphFetchCrossKeyCache extends AlloyTestServe
             }
 
             @Override
-            public Map<? extends K, ? extends V> getAllPresent(Iterable<? extends K> keys) {
+            public Map<? extends K, ? extends V> getAllPresent(Iterable<? extends K> keys)
+            {
                 throw new UnsupportedOperationException("Not supported!");
             }
 
             @Override
-            public void put(K key, V value) {
+            public void put(K key, V value)
+            {
                 map.put(key, value);
                 stats.put("size", map.size());
             }
 
             @Override
-            public void putAll(Map<? extends K, ? extends V> keyValues) {
+            public void putAll(Map<? extends K, ? extends V> keyValues)
+            {
                 map.putAll(keyValues);
                 stats.put("size", map.size());
             }
 
             @Override
-            public void invalidate(K key) {
+            public void invalidate(K key)
+            {
                 throw new UnsupportedOperationException("Not supported!");
             }
 
             @Override
-            public void invalidateAll(Iterable<? extends K> keys) {
+            public void invalidateAll(Iterable<? extends K> keys)
+            {
                 throw new UnsupportedOperationException("Not supported!");
             }
 
             @Override
-            public void invalidateAll() {
+            public void invalidateAll()
+            {
                 throw new UnsupportedOperationException("Not supported!");
             }
 
             @Override
-            public long estimatedSize() {
+            public long estimatedSize()
+            {
                 return map.size();
             }
 
             @Override
-            public ExecutionCacheStats stats() {
-                return new ExecutionCacheStats() {
+            public ExecutionCacheStats stats()
+            {
+                return new ExecutionCacheStats()
+                {
                     @Override
-                    public long requestCount() {
+                    public long requestCount()
+                    {
                         return stats.get("requestCount");
                     }
 
                     @Override
-                    public long hitCount() {
+                    public long hitCount()
+                    {
                         return stats.get("hitCount");
                     }
 
                     @Override
-                    public long missCount() {
+                    public long missCount()
+                    {
                         return stats.get("missCount");
                     }
 
                     @Override
-                    public long loadCount() {
+                    public long loadCount()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
 
                     @Override
-                    public long loadSuccessCount() {
+                    public long loadSuccessCount()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
 
                     @Override
-                    public long loadFailureCount() {
+                    public long loadFailureCount()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
 
                     @Override
-                    public long evictionCount() {
+                    public long evictionCount()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
 
                     @Override
-                    public double hitRate() {
-                        return hitCount()/(requestCount() * 1.0);
+                    public double hitRate()
+                    {
+                        return hitCount() / (requestCount() * 1.0);
                     }
 
                     @Override
-                    public double missRate() {
-                        return missCount()/(requestCount() * 1.0);
+                    public double missRate()
+                    {
+                        return missCount() / (requestCount() * 1.0);
                     }
 
                     @Override
-                    public double loadFailureRate() {
+                    public double loadFailureRate()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
 
                     @Override
-                    public double averageLoadPenalty() {
+                    public double averageLoadPenalty()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
 
                     @Override
-                    public long totalLoadTime() {
+                    public long totalLoadTime()
+                    {
                         throw new UnsupportedOperationException("Not supported!");
                     }
                 };

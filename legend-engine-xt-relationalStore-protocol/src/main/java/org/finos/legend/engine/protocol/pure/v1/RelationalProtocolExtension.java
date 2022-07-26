@@ -17,13 +17,27 @@ package org.finos.legend.engine.protocol.pure.v1;
 import org.eclipse.collections.api.block.function.Function0;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.factory.Maps;
-import org.eclipse.collections.impl.list.mutable.FastList;
-import org.eclipse.collections.impl.tuple.Tuples;
 import org.finos.legend.engine.protocol.pure.v1.extension.ProtocolSubTypeInfo;
 import org.finos.legend.engine.protocol.pure.v1.extension.PureProtocolExtension;
+import org.finos.legend.engine.protocol.pure.v1.model.data.EmbeddedData;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.RelationResultType;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.*;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.*;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.CreateAndPopulateTempTableExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalBlockExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalClassInstantiationExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalDataTypeInstantiationExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalRelationDataInstantiationExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalTdsInstantiationExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SQLExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalClassQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalCrossRootGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalCrossRootQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalPrimitiveQueryGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalRootGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalRootQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalTempTableGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.result.ResultType;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection;
@@ -32,11 +46,34 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.mapping
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.mapping.PropertyMapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.mapping.mappingTest.InputData;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.RelationalDatabaseConnection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.*;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.ApiTokenAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.AuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DefaultH2AuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DelegatedKerberosAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.GCPApplicationDefaultCredentialsAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.GCPWorkloadIdentityFederationAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.MiddleTierUserNamePasswordAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.SnowflakePublicAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.TestDatabaseAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.UserNamePasswordAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.postprocessor.MapperPostProcessor;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.postprocessor.PostProcessor;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.*;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.*;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.BigQueryDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.DatabricksDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.EmbeddedH2DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.LocalH2DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.RedshiftDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.SnowflakeDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.StaticDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.data.RelationalCSVData;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.EmbeddedRelationalPropertyMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.InlineEmbeddedPropertyMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.OtherwiseEmbeddedRelationalPropertyMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.RelationalAssociationMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.RelationalClassMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.RelationalPropertyMapping;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.RootRelationalClassMapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.mapping.mappingTest.RelationalInputData;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.Database;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.BusinessMilestoning;
@@ -56,130 +93,106 @@ public class RelationalProtocolExtension implements PureProtocolExtension
     @Override
     public List<Function0<List<ProtocolSubTypeInfo<?>>>> getExtraProtocolSubTypeInfoCollectors()
     {
-        return Lists.mutable.with(() -> Lists.mutable.with(
+        return Lists.fixedSize.with(() -> Lists.fixedSize.with(
                 // Packageable element
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(PackageableElement.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(Database.class, "relational")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(PackageableElement.class)
+                        .withSubtype(Database.class, "relational")
+                        .build(),
                 // Value specification
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(ValueSpecification.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(DatabaseInstance.class, "databaseInstance")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(ValueSpecification.class)
+                        .withSubtype(DatabaseInstance.class, "databaseInstance")
+                        .build(),
                 // Class mapping
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(ClassMapping.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RootRelationalClassMapping.class, "relational"),
-                                Tuples.pair(RelationalClassMapping.class, "embedded")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(ClassMapping.class)
+                        .withSubtype(RootRelationalClassMapping.class, "relational")
+                        .withSubtype(RelationalClassMapping.class, "embedded")
+                        .build(),
                 // Mapping Test InputData
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(InputData.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationalInputData.class, "relational")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(InputData.class)
+                        .withSubtype(RelationalInputData.class, "relational")
+                        .build(),
                 // Association mapping
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(AssociationMapping.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationalAssociationMapping.class, "relational")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(AssociationMapping.class)
+                        .withSubtype(RelationalAssociationMapping.class, "relational")
+                        .build(),
                 // Property mapping
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(PropertyMapping.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationalPropertyMapping.class, "relationalPropertyMapping"),
-                                Tuples.pair(EmbeddedRelationalPropertyMapping.class, "embeddedPropertyMapping"),
-                                Tuples.pair(InlineEmbeddedPropertyMapping.class, "inlineEmbeddedPropertyMapping"),
-                                Tuples.pair(OtherwiseEmbeddedRelationalPropertyMapping.class, "otherwiseEmbeddedPropertyMapping")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(PropertyMapping.class)
+                        .withSubtype(RelationalPropertyMapping.class, "relationalPropertyMapping")
+                        .withSubtype(EmbeddedRelationalPropertyMapping.class, "embeddedPropertyMapping")
+                        .withSubtype(InlineEmbeddedPropertyMapping.class, "inlineEmbeddedPropertyMapping")
+                        .withSubtype(OtherwiseEmbeddedRelationalPropertyMapping.class, "otherwiseEmbeddedPropertyMapping")
+                        .build(),
                 // Connection
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(Connection.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationalDatabaseConnection.class, "RelationalDatabaseConnection")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(Connection.class)
+                        .withSubtype(RelationalDatabaseConnection.class, "RelationalDatabaseConnection")
+                        .build(),
                 // Execution context
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(ExecutionContext.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationalExecutionContext.class, "RelationalExecutionContext")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(ExecutionContext.class)
+                        .withSubtype(RelationalExecutionContext.class, "RelationalExecutionContext")
+                        .build(),
                 // Execution plan result type
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(ResultType.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationResultType.class, "relation")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(ResultType.class)
+                        .withSubtype(RelationResultType.class, "relation")
+                        .build(),
+            // Embedded Data
+            ProtocolSubTypeInfo.newBuilder(EmbeddedData.class)
+                .withSubtype(RelationalCSVData.class, "relationalCSVData")
+                .build(),
                 // Execution plan node
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(ExecutionNode.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(RelationalExecutionNode.class, "relational"),
-                                Tuples.pair(RelationalTdsInstantiationExecutionNode.class, "relationalTdsInstantiation"),
-                                Tuples.pair(RelationalClassInstantiationExecutionNode.class, "relationalClassInstantiation"),
-                                Tuples.pair(RelationalRelationDataInstantiationExecutionNode.class, "relationalRelationDataInstantiation"),
-                                Tuples.pair(RelationalDataTypeInstantiationExecutionNode.class, "relationalDataTypeInstantiation"),
-                                Tuples.pair(RelationalRootGraphFetchExecutionNode.class, "relationalRootGraphFetchExecutionNode"),
-                                Tuples.pair(RelationalCrossRootGraphFetchExecutionNode.class, "relationalCrossRootGraphFetchExecutionNode"),
-                                Tuples.pair(RelationalTempTableGraphFetchExecutionNode.class, "relationalTempTableGraphFetchExecutionNode"),
-                                Tuples.pair(RelationalGraphFetchExecutionNode.class, "relationalGraphFetchExecutionNode"),
-                                Tuples.pair(RelationalBlockExecutionNode.class, "relationalBlock"),
-                                Tuples.pair(CreateAndPopulateTempTableExecutionNode.class, "createAndPopulateTempTable"),
-                                Tuples.pair(SQLExecutionNode.class, "sql"),
-                                Tuples.pair(RelationalPrimitiveQueryGraphFetchExecutionNode.class, "relationalPrimitiveQueryGraphFetch"),
-                                Tuples.pair(RelationalClassQueryTempTableGraphFetchExecutionNode.class, "relationalClassQueryTempTableGraphFetch"),
-                                Tuples.pair(RelationalRootQueryTempTableGraphFetchExecutionNode.class, "relationalRootQueryTempTableGraphFetch"),
-                                Tuples.pair(RelationalCrossRootQueryTempTableGraphFetchExecutionNode.class, "relationalCrossRootQueryTempTableGraphFetch")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(ExecutionNode.class)
+                        .withSubtype(RelationalExecutionNode.class, "relational")
+                        .withSubtype(RelationalTdsInstantiationExecutionNode.class, "relationalTdsInstantiation")
+                        .withSubtype(RelationalClassInstantiationExecutionNode.class, "relationalClassInstantiation")
+                        .withSubtype(RelationalRelationDataInstantiationExecutionNode.class, "relationalRelationDataInstantiation")
+                        .withSubtype(RelationalDataTypeInstantiationExecutionNode.class, "relationalDataTypeInstantiation")
+                        .withSubtype(RelationalRootGraphFetchExecutionNode.class, "relationalRootGraphFetchExecutionNode")
+                        .withSubtype(RelationalCrossRootGraphFetchExecutionNode.class, "relationalCrossRootGraphFetchExecutionNode")
+                        .withSubtype(RelationalTempTableGraphFetchExecutionNode.class, "relationalTempTableGraphFetchExecutionNode")
+                        .withSubtype(RelationalGraphFetchExecutionNode.class, "relationalGraphFetchExecutionNode")
+                        .withSubtype(RelationalBlockExecutionNode.class, "relationalBlock")
+                        .withSubtype(CreateAndPopulateTempTableExecutionNode.class, "createAndPopulateTempTable")
+                        .withSubtype(SQLExecutionNode.class, "sql")
+                        .withSubtype(RelationalPrimitiveQueryGraphFetchExecutionNode.class, "relationalPrimitiveQueryGraphFetch")
+                        .withSubtype(RelationalClassQueryTempTableGraphFetchExecutionNode.class, "relationalClassQueryTempTableGraphFetch")
+                        .withSubtype(RelationalRootQueryTempTableGraphFetchExecutionNode.class, "relationalRootQueryTempTableGraphFetch")
+                        .withSubtype(RelationalCrossRootQueryTempTableGraphFetchExecutionNode.class, "relationalCrossRootQueryTempTableGraphFetch")
+                        .build(),
 
                 //DatasourceSpecification
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(DatasourceSpecification.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(LocalH2DatasourceSpecification.class, "h2Local"),
-                                Tuples.pair(StaticDatasourceSpecification.class, "static"),
-                                Tuples.pair(EmbeddedH2DatasourceSpecification.class, "h2Embedded"),
-                                Tuples.pair(SnowflakeDatasourceSpecification.class, "snowflake"),
-                                Tuples.pair(BigQueryDatasourceSpecification.class, "bigQuery"),
-                                Tuples.pair(DatabricksDatasourceSpecification.class, "databricks"),
-                                Tuples.pair(RedshiftDatasourceSpecification.class, "redshift")
-
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(DatasourceSpecification.class)
+                        .withSubtype(LocalH2DatasourceSpecification.class, "h2Local")
+                        .withSubtype(StaticDatasourceSpecification.class, "static")
+                        .withSubtype(EmbeddedH2DatasourceSpecification.class, "h2Embedded")
+                        .withSubtype(SnowflakeDatasourceSpecification.class, "snowflake")
+                        .withSubtype(BigQueryDatasourceSpecification.class, "bigQuery")
+                        .withSubtype(DatabricksDatasourceSpecification.class, "databricks")
+                        .withSubtype(RedshiftDatasourceSpecification.class, "redshift")
+                        .build(),
 
                 // AuthenticationStrategy
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(AuthenticationStrategy.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(DefaultH2AuthenticationStrategy.class, "h2Default"),
-                                Tuples.pair(TestDatabaseAuthenticationStrategy.class, "test"),
-                                Tuples.pair(DelegatedKerberosAuthenticationStrategy.class, "delegatedKerberos"),
-                                Tuples.pair(UserNamePasswordAuthenticationStrategy.class, "userNamePassword"),
-                                Tuples.pair(SnowflakePublicAuthenticationStrategy.class, "snowflakePublic"),
-                                Tuples.pair(GCPApplicationDefaultCredentialsAuthenticationStrategy.class, "gcpApplicationDefaultCredentials"),
-                                Tuples.pair(ApiTokenAuthenticationStrategy.class, "apiToken"),
-                                Tuples.pair(GCPWorkloadIdentityFederationAuthenticationStrategy.class, "gcpWorkloadIdentityFederation")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(AuthenticationStrategy.class)
+                        .withSubtype(DefaultH2AuthenticationStrategy.class, "h2Default")
+                        .withSubtype(TestDatabaseAuthenticationStrategy.class, "test")
+                        .withSubtype(DelegatedKerberosAuthenticationStrategy.class, "delegatedKerberos")
+                        .withSubtype(UserNamePasswordAuthenticationStrategy.class, "userNamePassword")
+                        .withSubtype(SnowflakePublicAuthenticationStrategy.class, "snowflakePublic")
+                        .withSubtype(GCPApplicationDefaultCredentialsAuthenticationStrategy.class, "gcpApplicationDefaultCredentials")
+                        .withSubtype(ApiTokenAuthenticationStrategy.class, "apiToken")
+                        .withSubtype(GCPWorkloadIdentityFederationAuthenticationStrategy.class, "gcpWorkloadIdentityFederation")
+                        .withSubtype(MiddleTierUserNamePasswordAuthenticationStrategy.class, "middleTierUserNamePassword")
+                        .build(),
 
                 //Post Processor
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(PostProcessor.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(MapperPostProcessor.class, "mapper")
-                        )).build(),
+                ProtocolSubTypeInfo.newBuilder(PostProcessor.class)
+                        .withSubtype(MapperPostProcessor.class, "mapper")
+                        .build(),
 
                 //Post Processor Parameter
-                ProtocolSubTypeInfo.Builder
-                        .newInstance(Milestoning.class)
-                        .withSubtypes(FastList.newListWith(
-                                Tuples.pair(BusinessMilestoning.class, "businessMilestoning"),
-                                Tuples.pair(BusinessSnapshotMilestoning.class, "businessSnapshotMilestoning"),
-                                Tuples.pair(ProcessingMilestoning.class, "processingMilestoning")
-                        )).build()
+                ProtocolSubTypeInfo.newBuilder(Milestoning.class)
+                        .withSubtype(BusinessMilestoning.class, "businessMilestoning")
+                        .withSubtype(BusinessSnapshotMilestoning.class, "businessSnapshotMilestoning")
+                        .withSubtype(ProcessingMilestoning.class, "processingMilestoning")
+                        .build()
         ));
     }
 
@@ -188,5 +201,4 @@ public class RelationalProtocolExtension implements PureProtocolExtension
     {
         return Maps.mutable.with(Database.class, "meta::relational::metamodel::Database");
     }
-
 }

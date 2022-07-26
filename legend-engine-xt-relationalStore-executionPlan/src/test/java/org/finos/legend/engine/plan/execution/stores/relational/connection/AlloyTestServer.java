@@ -1,3 +1,17 @@
+//  Copyright 2022 Goldman Sachs
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+
 package org.finos.legend.engine.plan.execution.stores.relational.connection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +36,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.r
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.Lambda;
 import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.finos.legend.engine.shared.core.port.DynamicPortGenerator;
-import org.finos.legend.pure.generated.core_relational_relational_router_router_extension;
 import org.h2.tools.Server;
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +52,7 @@ import java.util.Enumeration;
 import java.util.Map;
 
 import static org.finos.legend.engine.plan.execution.stores.relational.TestExecutionScope.buildTestExecutor;
+import static org.finos.legend.pure.generated.core_relational_relational_extensions_extension.Root_meta_relational_extension_relationalExtensions__Extension_MANY_;
 
 public abstract class AlloyTestServer
 {
@@ -85,7 +99,7 @@ public abstract class AlloyTestServer
     public void setupServer() throws Exception
     {
         boolean successful = false;
-        for (int attempts=0; !successful && attempts<3; attempts++)
+        for (int attempts = 0; !successful && attempts < 3; attempts++)
         {
             try
             {
@@ -134,13 +148,13 @@ public abstract class AlloyTestServer
 
     protected String executePlan(SingleExecutionPlan singleExecutionPlan)
     {
-        return  executePlan(singleExecutionPlan, Collections.emptyMap());
+        return executePlan(singleExecutionPlan, Collections.emptyMap());
     }
 
 
     protected String executePlan(SingleExecutionPlan plan, Map<String, ?> params)
     {
-        RelationalResult result = (RelationalResult)planExecutor.execute(plan, params, null);
+        RelationalResult result = (RelationalResult) planExecutor.execute(plan, params, null);
         return result.flush(new RelationalResultToJsonDefaultSerializer(result));
     }
 
@@ -156,7 +170,7 @@ public abstract class AlloyTestServer
         Function fetchFunctionExpressions = contextData.getElementsOfType(Function.class).get(0);
 
         return PlanGenerator.generateExecutionPlan(
-                HelperValueSpecificationBuilder.buildLambda(((Lambda)fetchFunctionExpressions.body.get(0)).body, ((Lambda)fetchFunctionExpressions.body.get(0)).parameters, pureModel.getContext()),
+                HelperValueSpecificationBuilder.buildLambda(((Lambda) fetchFunctionExpressions.body.get(0)).body, ((Lambda) fetchFunctionExpressions.body.get(0)).parameters, pureModel.getContext()),
                 pureModel.getMapping("test::Map"),
                 pureModel.getRuntime("test::Runtime"),
                 null,
@@ -164,7 +178,7 @@ public abstract class AlloyTestServer
                 "vX_X_X",
                 PlanPlatform.JAVA,
                 null,
-                core_relational_relational_router_router_extension.Root_meta_pure_router_extension_defaultRelationalExtensions__RouterExtension_MANY_(pureModel.getExecutionSupport()),
+                Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()),
                 LegendPlanTransformers.transformers
         );
 
@@ -178,7 +192,7 @@ public abstract class AlloyTestServer
 
     private void updateRuntimeWithTimeZone(PackageableRuntime runtime, String timeZone)
     {
-        ((DatabaseConnection)runtime.runtimeValue.connections.get(0).storeConnections.get(0).connection).timeZone = timeZone;
+        ((DatabaseConnection) runtime.runtimeValue.connections.get(0).storeConnections.get(0).connection).timeZone = timeZone;
     }
 
 }

@@ -82,9 +82,9 @@ public class TestGrammarParser
             }
         }
 
-        protected static void test(String val)
+        protected static PureModelContextData test(String val)
         {
-            PureGrammarParser.newInstance().parseModel(val);
+            return PureGrammarParser.newInstance().parseModel(val);
         }
 
         protected static void test(String val, String expectedErrorMsg)
@@ -139,10 +139,10 @@ public class TestGrammarParser
     {
         test("Class false::me\n" +
                 "{\n" +
-                "}\n", "PARSER error at [1:7-11]: Unexpected token");
+                "}\n", "PARSER error at [1:7-11]: Unexpected token 'false'");
         test("Class true::me\n" +
                 "{\n" +
-                "}\n", "PARSER error at [1:7-10]: Unexpected token");
+                "}\n", "PARSER error at [1:7-10]: Unexpected token 'true'");
     }
 
     public static void testFromJson(Class<?> _class, String path, String code)

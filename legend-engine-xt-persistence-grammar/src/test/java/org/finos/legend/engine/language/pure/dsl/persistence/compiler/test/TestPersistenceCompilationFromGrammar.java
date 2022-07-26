@@ -18,15 +18,53 @@ import org.eclipse.collections.api.tuple.Pair;
 import org.finos.legend.engine.language.pure.compiler.test.TestCompilationFromGrammar;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.PureModel;
 import org.finos.legend.engine.protocol.pure.v1.model.context.PureModelContextData;
-import org.finos.legend.pure.generated.*;
+import org.finos.legend.pure.generated.Root_meta_external_shared_format_binding_Binding;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_trigger_Trigger;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_Persister;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_notifier_Notifier;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_Persistence;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_sink_Sink;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_targetshape_TargetShape;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_deduplication_DeduplicationStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_ingestmode_IngestMode;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_trigger_ManualTrigger;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_transactionmilestoning_TransactionMilestoning;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_transactionmilestoning_derivation_TransactionDerivation;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_validitymilestoning_ValidityMilestoning;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_validitymilestoning_derivation_ValidityDerivation;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_notifier_Notifyee;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_targetshape_MultiFlatTargetPart;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_ingestmode_delta_merge_MergeStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_BatchPersister;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_sink_RelationalSink;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_ingestmode_delta_UnitemporalDelta;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_ingestmode_delta_merge_NoDeletesMergeStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_transactionmilestoning_DateTimeTransactionMilestoning;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_transactionmilestoning_derivation_SourceSpecifiesTransactionInDate;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_targetshape_FlatTarget;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_deduplication_NoDeduplicationStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_notifier_EmailNotifyee;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_notifier_PagerDutyNotifyee;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_sink_ObjectStorageSink;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_ingestmode_delta_BitemporalDelta;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_ingestmode_delta_merge_DeleteIndicatorMergeStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_transactionmilestoning_BatchIdAndDateTimeTransactionMilestoning;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_transactionmilestoning_derivation_SourceSpecifiesTransactionInAndOutDate;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_validitymilestoning_DateTimeValidityMilestoning;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_validitymilestoning_derivation_SourceSpecifiesValidFromAndThruDate;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_targetshape_MultiFlatTarget;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_deduplication_MaxVersionDeduplicationStrategy;
+import org.finos.legend.pure.generated.Root_meta_pure_persistence_metamodel_persister_deduplication_DuplicateCountDeduplicationStrategy;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.PackageableElement;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Class;
-import org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Connection;
+import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.Database;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGrammar.TestCompilationFromGrammarTestSuite
 {
@@ -48,6 +86,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: Relational\n" +
                 "    {\n" +
+                "      database: test::Database;\n" +
                 "    }\n" +
                 "    targetShape: Flat\n" +
                 "    {\n" +
@@ -66,7 +105,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
     @Override
     protected String getDuplicatedElementTestExpectedErrorMessage()
     {
-        return "COMPILATION error at [7:1-28:1]: Duplicated element 'test::TestPersistence'";
+        return "COMPILATION error at [7:1-29:1]: Duplicated element 'test::TestPersistence'";
     }
 
     @Test
@@ -86,14 +125,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    sink: ObjectStorage\n" +
                 "    {\n" +
                 "      binding: test::Binding;\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::Person;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
                 "    }\n" +
                 "    targetShape: Flat\n" +
                 "    {\n" +
@@ -106,11 +137,72 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      filterDuplicates: false;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [5:1-35:1]: Persistence refers to a service 'test::Service' that is not defined");
+                "}\n", "COMPILATION error at [5:1-27:1]: Service 'test::Service' is not defined");
     }
 
     @Test
     public void bindingUndefined()
+    {
+        test("Class test::Person\n" +
+                "{\n" +
+                "  name: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::ServiceResult {}\n" +
+                "\n" +
+                "###Mapping\n" +
+                "Mapping test::Mapping ()\n" +
+                "\n" +
+                "###Service\n" +
+                "Service test::Service \n" +
+                "{\n" +
+                "  pattern: 'test';\n" +
+                "  documentation: 'test';\n" +
+                "  autoActivateUpdates: true;\n" +
+                "  execution: Single\n" +
+                "  {\n" +
+                "    query: src: test::Person[1]|$src.name;\n" +
+                "    mapping: test::Mapping;\n" +
+                "    runtime:\n" +
+                "    #{\n" +
+                "      connections: [];\n" +
+                "    }#;\n" +
+                "  }\n" +
+                "  test: Single\n" +
+                "  {\n" +
+                "    data: 'test';\n" +
+                "    asserts: [];\n" +
+                "  }\n" +
+                "}\n" +
+                "###Persistence\n" +
+                "\n" +
+                "Persistence test::TestPersistence \n" +
+                "{\n" +
+                "  doc: 'This is test documentation.';\n" +
+                "  trigger: Manual;\n" +
+                "  service: test::Service;\n" +
+                "  persister: Batch\n" +
+                "  {\n" +
+                "    sink: ObjectStorage\n" +
+                "    {\n" +
+                "      binding: test::Binding;\n" +
+                "    }\n" +
+                "    targetShape: Flat\n" +
+                "    {\n" +
+                "      targetName: 'TestDataset1';\n" +
+                "      modelClass: test::ServiceResult;\n" +
+                "    }\n" +
+                "    ingestMode: AppendOnly\n" +
+                "    {\n" +
+                "      auditing: None;\n" +
+                "      filterDuplicates: false;\n" +
+                "    }\n" +
+                "  }\n" +
+                "}\n", "COMPILATION error at [41:11-44:5]: Binding 'test::Binding' is not defined");
+    }
+
+    @Test
+    public void databaseUndefined()
     {
         test("Class test::Person\n" +
                 "{\n" +
@@ -152,17 +244,9 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  service: test::Service;\n" +
                 "  persister: Batch\n" +
                 "  {\n" +
-                "    sink: ObjectStorage\n" +
+                "    sink: Relational\n" +
                 "    {\n" +
-                "      binding: test::Binding;\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::ServiceResult;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
+                "      database: test::Database;" +
                 "    }\n" +
                 "    targetShape: Flat\n" +
                 "    {\n" +
@@ -175,7 +259,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      filterDuplicates: false;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [41:11-52:5]: Binding 'test::Binding' is not defined");
+                "}\n", "COMPILATION error at [41:11-43:36]: Database 'test::Database' is not defined");
     }
 
     @Test
@@ -210,6 +294,17 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    asserts: [];\n" +
                 "  }\n" +
                 "}\n" +
+                "\n" +
+                "###Relational\n" +
+                "Database test::Database\n" +
+                "(\n" +
+                "  Table personTable\n" +
+                "  (\n" +
+                "    ID INTEGER PRIMARY KEY,\n" +
+                "    NAME VARCHAR(100)\n" +
+                "  )\n" +
+                ")" +
+                "\n" +
                 "###Persistence\n" +
                 "\n" +
                 "Persistence test::TestPersistence \n" +
@@ -221,6 +316,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: Relational\n" +
                 "    {\n" +
+                "      database: test::Database;" +
                 "    }\n" +
                 "    targetShape: Flat\n" +
                 "    {\n" +
@@ -233,7 +329,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      filterDuplicates: false;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [32:1-53:1]: Error in 'test::TestPersistence': Can't find class 'test::ServiceResult'");
+                "}\n", "COMPILATION error at [42:1-63:1]: Error in 'test::TestPersistence': Can't find class 'test::ServiceResult'");
     }
 
     @Test
@@ -288,14 +384,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    sink: ObjectStorage\n" +
                 "    {\n" +
                 "      binding: test::Binding;\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::Person;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
                 "    }\n" +
                 "    targetShape: MultiFlat\n" +
                 "    {\n" +
@@ -315,7 +403,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      filterDuplicates: false;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [40:1-77:1]: Error in 'test::TestPersistence': Can't find class 'test::ServiceResult'");
+                "}\n", "COMPILATION error at [40:1-69:1]: Error in 'test::TestPersistence': Can't find class 'test::ServiceResult'");
     }
 
     @Test
@@ -352,6 +440,17 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    asserts: [];\n" +
                 "  }\n" +
                 "}\n" +
+                "\n" +
+                "###Relational\n" +
+                "Database test::Database\n" +
+                "(\n" +
+                "  Table personTable\n" +
+                "  (\n" +
+                "    ID INTEGER PRIMARY KEY,\n" +
+                "    NAME VARCHAR(100)\n" +
+                "  )\n" +
+                ")" +
+                "\n" +
                 "###Persistence\n" +
                 "\n" +
                 "Persistence test::TestPersistence\n" +
@@ -363,6 +462,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: Relational\n" +
                 "    {\n" +
+                "      database: test::Database;" +
                 "    }\n" +
                 "    targetShape: MultiFlat\n" +
                 "    {\n" +
@@ -382,7 +482,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      filterDuplicates: false;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [34:1-62:1]: Error in 'test::TestPersistence': Can't find property 'property1' in class 'test::ServiceResult'");
+                "}\n", "COMPILATION error at [44:1-72:1]: Error in 'test::TestPersistence': Can't find property 'property1' in class 'test::ServiceResult'");
     }
 
     @Test
@@ -422,6 +522,17 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    asserts: [];\n" +
                 "  }\n" +
                 "}\n" +
+                "\n" +
+                "###Relational\n" +
+                "Database test::Database\n" +
+                "(\n" +
+                "  Table personTable\n" +
+                "  (\n" +
+                "    ID INTEGER PRIMARY KEY,\n" +
+                "    NAME VARCHAR(100)\n" +
+                "  )\n" +
+                ")" +
+                "\n" +
                 "###Persistence\n" +
                 "\n" +
                 "Persistence test::TestPersistence\n" +
@@ -433,14 +544,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: Relational\n" +
                 "    {\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::Person;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
+                "      database: test::Database;" +
                 "    }\n" +
                 "    targetShape: MultiFlat\n" +
                 "    {\n" +
@@ -460,7 +564,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      filterDuplicates: false;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [61:9-64:9]: Target shape modelProperty 'property1' must refer to a class.");
+                "}\n", "COMPILATION error at [63:9-66:9]: Target shape modelProperty 'property1' must refer to a class.");
     }
 
     @Test
@@ -500,6 +604,17 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    asserts: [];\n" +
                 "  }\n" +
                 "}\n" +
+                "\n" +
+                "###Relational\n" +
+                "Database test::Database\n" +
+                "(\n" +
+                "  Table personTable\n" +
+                "  (\n" +
+                "    ID INTEGER PRIMARY KEY,\n" +
+                "    NAME VARCHAR(100)\n" +
+                "  )\n" +
+                ")" +
+                "\n" +
                 "###Persistence\n" +
                 "\n" +
                 "Persistence test::TestPersistence\n" +
@@ -511,6 +626,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: Relational\n" +
                 "    {\n" +
+                "      database: test::Database;" +
                 "    }\n" +
                 "    targetShape: MultiFlat\n" +
                 "    {\n" +
@@ -587,14 +703,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    sink: ObjectStorage\n" +
                 "    {\n" +
                 "      binding: test::Binding;\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::Person;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
                 "    }\n" +
                 "    ingestMode: NontemporalDelta\n" +
                 "    {\n" +
@@ -611,7 +719,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      modelClass: test::ServiceResult;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "COMPILATION error at [42:1-76:1]: Error in 'test::TestPersistence': Property 'deleted' must exist in class 'test::ServiceResult'");
+                "}\n", "COMPILATION error at [42:1-68:1]: Error in 'test::TestPersistence': Property 'deleted' must exist in class 'test::ServiceResult'");
     }
 
     @Test
@@ -677,12 +785,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    org::dxl::Person\n" +
                 "  ];\n" +
                 "}\n" +
-                "###Connection\n" +
-                "JsonModelConnection test::TestConnection\n" +
-                "{\n" +
-                "  class : org::dxl::Person;" +
-                "  url : 'my_url1';\n" +
-                "}\n" +
                 "###Persistence\n" +
                 "Persistence org::dxl::ZooPersistence\n" +
                 "{\n" +
@@ -694,7 +796,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    sink: ObjectStorage\n" +
                 "    {\n" +
                 "      binding: test::Binding;\n" +
-                "      connection: test::TestConnection;\n" +
                 "    }\n" +
                 "    ingestMode: BitemporalDelta\n" +
                 "    {\n" +
@@ -750,9 +851,9 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      {\n" +
                 "        url: 'https://x.com';\n" +
                 "      }\n" +
-                "    ]\n" +
+                "    ];\n" +
                 "  }\n" +
-                "}", "COMPILATION error at [67:1-135:1]: Error in 'org::dxl::ZooPersistence': Property 'deleted' must exist in class 'org::dxl::Person'");
+                "}", "COMPILATION error at [62:1-129:1]: Error in 'org::dxl::ZooPersistence': Property 'deleted' must exist in class 'org::dxl::Person'");
     }
 
     @Test
@@ -803,14 +904,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: ObjectStorage\n" +
                 "    {\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::Person;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
                 "    }\n" +
                 "    ingestMode: NontemporalSnapshot\n" +
                 "    {\n" +
@@ -822,11 +915,11 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      modelClass: test::ServiceResult;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n", "PARSER error at [44:11-54:5]: Field 'binding' is required");
+                "}\n", "PARSER error at [44:11-46:5]: Field 'binding' is required");
     }
 
     @Test
-    public void objectStorageSinkNoConnection()
+    public void relationalSinkNoDatabase()
     {
         test("Class test::Person\n" +
                 "{\n" +
@@ -862,77 +955,17 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    asserts: [];\n" +
                 "  }\n" +
                 "}\n" +
-                "###ExternalFormat\n" +
-                "Binding test::Binding\n" +
-                "{\n" +
-                "  contentType: 'application/json';\n" +
-                "  modelIncludes: [\n" +
-                "    test::Person\n" +
-                "  ];\n" +
-                "}\n" +
-                "###Persistence\n" +
                 "\n" +
-                "Persistence test::TestPersistence \n" +
-                "{\n" +
-                "  doc: 'This is test documentation.';\n" +
-                "  trigger: Manual;\n" +
-                "  service: test::Service;\n" +
-                "  persister: Batch\n" +
-                "  {\n" +
-                "    sink: ObjectStorage\n" +
-                "    {\n" +
-                "      binding: test::Binding;\n" +
-                "    }\n" +
-                "    ingestMode: NontemporalSnapshot\n" +
-                "    {\n" +
-                "      auditing: None;\n" +
-                "    }\n" +
-                "    targetShape: Flat\n" +
-                "    {\n" +
-                "      targetName: 'TestDataset1';\n" +
-                "      modelClass: test::ServiceResult;\n" +
-                "    }\n" +
-                "  }\n" +
-                "}\n", "PARSER error at [52:11-55:5]: Field 'connection' is required");
-    }
-
-    @Test
-    public void relationalSinkNoConnection()
-    {
-        test("Class test::Person\n" +
-                "{\n" +
-                "  name: String[1];\n" +
-                "}\n" +
+                "###Relational\n" +
+                "Database test::Database\n" +
+                "(\n" +
+                "  Table personTable\n" +
+                "  (\n" +
+                "    ID INTEGER PRIMARY KEY,\n" +
+                "    NAME VARCHAR(100)\n" +
+                "  )\n" +
+                ")" +
                 "\n" +
-                "Class test::ServiceResult\n" +
-                "{\n" +
-                "   deleted: String[1];\n" +
-                "}\n" +
-                "\n" +
-                "###Mapping\n" +
-                "Mapping test::Mapping ()\n" +
-                "\n" +
-                "###Service\n" +
-                "Service test::Service \n" +
-                "{\n" +
-                "  pattern : 'test';\n" +
-                "  documentation : 'test';\n" +
-                "  autoActivateUpdates: true;\n" +
-                "  execution: Single\n" +
-                "  {\n" +
-                "    query: src: test::Person[1]|$src.name;\n" +
-                "    mapping: test::Mapping;\n" +
-                "    runtime:\n" +
-                "    #{\n" +
-                "      connections: [];\n" +
-                "    }#;\n" +
-                "  }\n" +
-                "  test: Single\n" +
-                "  {\n" +
-                "    data: 'test';\n" +
-                "    asserts: [];\n" +
-                "  }\n" +
-                "}\n" +
                 "###Persistence\n" +
                 "\n" +
                 "Persistence test::TestPersistence \n" +
@@ -955,7 +988,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "      modelClass: test::ServiceResult;\n" +
                 "    }\n" +
                 "  }\n" +
-                "}\n");
+                "}\n", "PARSER error at [54:11-56:5]: Field 'database' is required");
     }
 
     @Test
@@ -996,6 +1029,17 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "    asserts: [];\n" +
                 "  }\n" +
                 "}\n" +
+                "\n" +
+                "###Relational\n" +
+                "Database test::Database\n" +
+                "(\n" +
+                "  Table personTable\n" +
+                "  (\n" +
+                "    ID INTEGER PRIMARY KEY,\n" +
+                "    NAME VARCHAR(100)\n" +
+                "  )\n" +
+                ")" +
+                "\n" +
                 "###Persistence\n" +
                 "\n" +
                 "Persistence test::TestPersistence \n" +
@@ -1007,14 +1051,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                 "  {\n" +
                 "    sink: Relational\n" +
                 "    {\n" +
-                "      connection:\n" +
-                "      #{\n" +
-                "        JsonModelConnection\n" +
-                "        {\n" +
-                "          class: test::Person;\n" +
-                "          url: 'my_url2';\n" +
-                "        }\n" +
-                "      }#\n" +
+                "      database: test::Database;" +
                 "    }\n" +
                 "    ingestMode: UnitemporalDelta\n" +
                 "    {\n" +
@@ -1070,11 +1107,8 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
         assertTrue(sink instanceof Root_meta_pure_persistence_metamodel_persister_sink_RelationalSink);
         Root_meta_pure_persistence_metamodel_persister_sink_RelationalSink relationalSink = (Root_meta_pure_persistence_metamodel_persister_sink_RelationalSink) sink;
 
-        //TODO: ledav -- use a connection applicable for a real use case
-        // connection
-        Connection connection = relationalSink._connection();
-        assertNotNull(connection);
-        assertTrue(connection instanceof Root_meta_pure_mapping_modelToModel_JsonModelConnection);
+        //TODO: ledav -- assert database
+        Database database = relationalSink._database();
 
         // ingest mode
         Root_meta_pure_persistence_metamodel_persister_ingestmode_IngestMode ingestMode = batchPersister._ingestMode();
@@ -1187,12 +1221,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                         "    org::dxl::Person\n" +
                         "  ];\n" +
                         "}\n" +
-                        "###Connection\n" +
-                        "JsonModelConnection test::TestConnection\n" +
-                        "{\n" +
-                        "  class : org::dxl::Person;" +
-                        "  url : 'my_url1';\n" +
-                        "}\n" +
                         "###Persistence\n" +
                         "Persistence org::dxl::ZooPersistence\n" +
                         "{\n" +
@@ -1204,7 +1232,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                         "    sink: ObjectStorage\n" +
                         "    {\n" +
                         "      binding: test::Binding;\n" +
-                        "      connection: test::TestConnection;\n" +
                         "    }\n" +
                         "    ingestMode: BitemporalDelta\n" +
                         "    {\n" +
@@ -1274,7 +1301,7 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
                         "      {\n" +
                         "        url: 'https://x.com';\n" +
                         "      }\n" +
-                        "    ]\n" +
+                        "    ];\n" +
                         "  }\n" +
                         "}");
 
@@ -1327,12 +1354,6 @@ public class TestPersistenceCompilationFromGrammar extends TestCompilationFromGr
         Root_meta_external_shared_format_binding_Binding binding = objectStorageSink._binding();
         assertNotNull(binding);
         assertEquals("application/json", binding._contentType());
-
-        //TODO: ledav -- use a connection applicable for a real use case
-        // connection
-        Connection connection = objectStorageSink._connection();
-        assertNotNull(connection);
-        assertTrue(connection instanceof Root_meta_pure_mapping_modelToModel_JsonModelConnection);
 
         // ingest mode
         Root_meta_pure_persistence_metamodel_persister_ingestmode_IngestMode ingestMode = batchPersister._ingestMode();

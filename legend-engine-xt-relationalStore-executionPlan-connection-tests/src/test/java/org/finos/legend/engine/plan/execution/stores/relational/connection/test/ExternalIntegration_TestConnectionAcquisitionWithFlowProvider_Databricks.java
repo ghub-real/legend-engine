@@ -17,8 +17,6 @@ package org.finos.legend.engine.plan.execution.stores.relational.connection.test
 import org.finos.legend.engine.authentication.DatabaseAuthenticationFlow;
 import org.finos.legend.engine.authentication.LegendDefaultDatabaseAuthenticationFlowProvider;
 import org.finos.legend.engine.authentication.LegendDefaultDatabaseAuthenticationFlowProviderConfiguration;
-import org.finos.legend.engine.authentication.provider.DatabaseAuthenticationFlowProvider;
-import org.finos.legend.engine.authentication.provider.DatabaseAuthenticationFlowProviderSelector;
 import org.finos.legend.engine.plan.execution.stores.relational.config.TemporaryTestDbConfiguration;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManagerSelector;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseType;
@@ -27,7 +25,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.r
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.DatabricksDatasourceSpecification;
 import org.finos.legend.engine.shared.core.vault.EnvironmentVaultImplementation;
 import org.finos.legend.engine.shared.core.vault.Vault;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -45,8 +42,7 @@ public class ExternalIntegration_TestConnectionAcquisitionWithFlowProvider_Datab
     private ConnectionManagerSelector connectionManagerSelector;
     private static final ResourceBundle env = ResourceBundle.getBundle("environment");
 
-    // To make test work, please ensure connection details are specified in /environment.properties
-    // and environment variable DATABRICKS_API_TOKEN with a valid API token
+    // To make test work, please enable environment variable DATABRICKS_API_TOKEN with a valid API token
 
     @Override
     protected Subject getSubject()
@@ -68,7 +64,7 @@ public class ExternalIntegration_TestConnectionAcquisitionWithFlowProvider_Datab
         assertDatabricksApiTokenFlowIsAvailable(flowProvider);
         this.connectionManagerSelector = new ConnectionManagerSelector(new TemporaryTestDbConfiguration(-1), Collections.emptyList());
     }
-    
+
     public void assertDatabricksApiTokenFlowIsAvailable(LegendDefaultDatabaseAuthenticationFlowProvider flowProvider)
     {
         DatabricksDatasourceSpecification datasourceSpecification = new DatabricksDatasourceSpecification();
@@ -82,17 +78,17 @@ public class ExternalIntegration_TestConnectionAcquisitionWithFlowProvider_Datab
     public void testDatabricksConnection_subject() throws Exception
     {
         RelationalDatabaseConnection systemUnderTest = this.databricksSpec();
-        Connection connection = this.connectionManagerSelector.getDatabaseConnection((Subject)null, systemUnderTest);
+        Connection connection = this.connectionManagerSelector.getDatabaseConnection((Subject) null, systemUnderTest);
         testConnection(connection, "SELECT 'supported' AS databricks");
     }
 
     private RelationalDatabaseConnection databricksSpec() throws Exception
     {
         DatabricksDatasourceSpecification dsSpecs = new DatabricksDatasourceSpecification();
-        dsSpecs.hostname = env.getString("databricks.hostname");
-        dsSpecs.port = env.getString("databricks.port");
-        dsSpecs.protocol = env.getString("databricks.protocol");
-        dsSpecs.httpPath = env.getString("databricks.httpPath");
+        dsSpecs.hostname = "dbc-f0687849-717f.cloud.databricks.com";
+        dsSpecs.port = "443";
+        dsSpecs.protocol = "https";
+        dsSpecs.httpPath = "sql/protocolv1/o/448477574000404/0228-234110-ve0xbrtk";
         ApiTokenAuthenticationStrategy authSpec = new ApiTokenAuthenticationStrategy();
         authSpec.apiToken = "DATABRICKS_API_TOKEN";
         return new RelationalDatabaseConnection(dsSpecs, authSpec, DatabaseType.Databricks);

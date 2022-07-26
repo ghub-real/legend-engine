@@ -21,12 +21,28 @@ import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.utility.ListIterate;
 import org.finos.legend.engine.plan.dependencies.store.serviceStore.IServiceParametersResolutionExecutionNodeSpecifics;
+import org.finos.legend.engine.plan.execution.nodes.ExecutionNodeExecutor;
 import org.finos.legend.engine.plan.execution.nodes.helpers.platform.ExecutionNodeJavaPlatformHelper;
 import org.finos.legend.engine.plan.execution.nodes.state.ExecutionState;
 import org.finos.legend.engine.plan.execution.result.ConstantResult;
 import org.finos.legend.engine.plan.execution.result.Result;
+import org.finos.legend.engine.plan.execution.result.object.StreamingObjectResult;
 import org.finos.legend.engine.plan.execution.stores.service.ServiceExecutor;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.*;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AggregationAwareExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AllocationExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ConstantExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ErrorExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNodeVisitor;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.FreeMarkerConditionalExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.FunctionParametersValidationNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.GraphFetchM2MExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.LimitExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.MultiResultSequenceExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.PureExpressionPlatformExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RestServiceExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SequenceExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ServiceParametersResolutionExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
@@ -75,10 +91,6 @@ public class ServiceExecutionNodeExecutor implements ExecutionNodeVisitor<Result
                 {
                     requiredSources.addAll(ListIterate.collect(node.requiredVariableInputs, s -> s.name));
                 }
-                if (node.propertyInputMap != null)
-                {
-                    requiredSources.addAll(node.propertyInputMap.values()); //TODO: TO BE REMOVED
-                }
 
                 Map<String, Object> outputMap = nodeSpecifics.resolveServiceParameters(getInputMapForSources(requiredSources));
                 outputMap.forEach((key, value) -> this.executionState.addParameterValue(key, value));
@@ -89,6 +101,26 @@ public class ServiceExecutionNodeExecutor implements ExecutionNodeVisitor<Result
             }
             return new ConstantResult("success");
         }
+        else if (executionNode instanceof LimitExecutionNode)
+        {
+            LimitExecutionNode limitExecutionNode = (LimitExecutionNode) executionNode;
+
+            Result childResult = limitExecutionNode.executionNodes.get(0).accept(new ExecutionNodeExecutor(this.profiles, this.executionState));
+
+            Result result;
+            if (childResult instanceof StreamingObjectResult)
+            {
+                StreamingObjectResult<?> streamingChildResult = (StreamingObjectResult<?>) childResult;
+                result = new StreamingObjectResult<>(streamingChildResult.getObjectStream().limit(limitExecutionNode.limit), streamingChildResult.getResultBuilder(), streamingChildResult.getChildResult());
+            }
+            else
+            {
+                childResult.close();
+                throw new UnsupportedOperationException("Expected StreamingObjectResult. Found - " + childResult.getClass());
+            }
+
+            return result;
+        }
         else
         {
             return null;
@@ -98,7 +130,8 @@ public class ServiceExecutionNodeExecutor implements ExecutionNodeVisitor<Result
     private Map<String, Object> getInputMapForSources(List<String> sources)
     {
         Map<String, Object> inputMap = Maps.mutable.empty();
-        sources.forEach(v -> {
+        sources.forEach(v ->
+        {
             Result res = this.executionState.getResult(v);
             if (res == null)
             {

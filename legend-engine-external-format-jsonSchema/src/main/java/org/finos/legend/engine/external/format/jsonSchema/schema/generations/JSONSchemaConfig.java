@@ -20,7 +20,7 @@ import org.eclipse.collections.impl.utility.ListIterate;
 import org.finos.legend.engine.external.shared.format.generations.GenerationConfiguration;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.PureModel;
 import org.finos.legend.pure.generated.Root_meta_json_schema_generation_JSONSchemaConfig;
-import org.finos.legend.pure.generated.core_json_jsonSchema;
+import org.finos.legend.pure.generated.core_external_format_json_jsonSchema;
 import org.finos.legend.pure.generated.core_pure_corefunctions_metaExtension;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.PackageableElement;
 
@@ -40,12 +40,10 @@ public class JSONSchemaConfig extends GenerationConfiguration
     public Boolean createSchemaCollection;
 
 
-
     public Root_meta_json_schema_generation_JSONSchemaConfig process(PureModel pureModel)
     {
-        Root_meta_json_schema_generation_JSONSchemaConfig generationConfiguration = core_json_jsonSchema.Root_meta_json_schema_generation_defaultConfig__JSONSchemaConfig_1_(pureModel.getExecutionSupport());
+        Root_meta_json_schema_generation_JSONSchemaConfig generationConfiguration = core_external_format_json_jsonSchema.Root_meta_json_schema_generation_defaultConfig__JSONSchemaConfig_1_(pureModel.getExecutionSupport());
         List<PackageableElement> scopeElements = ListIterate.collect(this.generationScope(), e -> core_pure_corefunctions_metaExtension.Root_meta_pure_functions_meta_pathToElement_String_1__PackageableElement_1_(e, pureModel.getExecutionSupport()));
-
 
         if (useConstraints != null)
         {
@@ -55,22 +53,19 @@ public class JSONSchemaConfig extends GenerationConfiguration
         {
             generationConfiguration._includeAllRelatedTypes(includeAllRelatedTypes);
         }
-
         if (generateConstraintFunctionSchemas != null)
         {
             generationConfiguration._generateConstraintFunctionSchemas(generateConstraintFunctionSchemas);
         }
 
-        if( schemaSpecification != null)
+        if (schemaSpecification != null)
         {
-
             switch (schemaSpecification)
             {
                 case "meta::json::schema::generation::JSONSchemaSpecification.OPEN_API_V3_0_3":
                 case "meta::json::schema::generation::JSONSchemaSpecification.OPEN_API_V3_0_3_YAML":
                 case "meta::json::schema::generation::JSONSchemaSpecification.JSON_SCHEMA_DRAFT_07":
                 case "meta::json::schema::generation::JSONSchemaSpecification.OPEN_API_V3_0_3_YAML_PLAIN":
-
                     generationConfiguration._schemaSpecification(pureModel.getEnumValue("meta::json::schema::generation::JSONSchemaSpecification", schemaSpecification.split("[.]")[1]));
                     break;
                 case "OPEN_API_V3_0_3":
@@ -82,7 +77,7 @@ public class JSONSchemaConfig extends GenerationConfiguration
             }
         }
         generationConfiguration._scopeElements((RichIterable<? extends PackageableElement>) scopeElements);
-        if( createSchemaCollection != null)
+        if (createSchemaCollection != null)
         {
             generationConfiguration._createSchemaCollection(createSchemaCollection);
         }

@@ -31,6 +31,9 @@ import org.eclipse.collections.impl.utility.Iterate;
 import org.eclipse.collections.impl.utility.ListIterate;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.finos.legend.engine.api.analytics.DataSpaceAnalytics;
+import org.finos.legend.engine.api.analytics.DiagramAnalytics;
+import org.finos.legend.engine.api.analytics.MappingAnalytics;
 import org.finos.legend.engine.application.query.api.ApplicationQuery;
 import org.finos.legend.engine.application.query.configuration.ApplicationQueryConfiguration;
 import org.finos.legend.engine.authentication.LegendDefaultDatabaseAuthenticationFlowProviderConfiguration;
@@ -64,7 +67,6 @@ import org.finos.legend.engine.plan.execution.stores.relational.plugin.Relationa
 import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.service.plugin.ServiceStore;
 import org.finos.legend.engine.plan.generation.extension.PlanGeneratorExtension;
-import org.finos.legend.engine.plan.generation.transformers.LegendPlanTransformers;
 import org.finos.legend.engine.protocol.pure.v1.PureProtocolObjectMapperFactory;
 import org.finos.legend.engine.query.graphQL.api.debug.GraphQLDebug;
 import org.finos.legend.engine.query.graphQL.api.execute.GraphQLExecute;
@@ -86,7 +88,8 @@ import org.finos.legend.engine.shared.core.url.EngineUrlStreamHandlerFactory;
 import org.finos.legend.engine.shared.core.vault.Vault;
 import org.finos.legend.engine.shared.core.vault.VaultConfiguration;
 import org.finos.legend.engine.shared.core.vault.VaultFactory;
-import org.finos.legend.pure.generated.Root_meta_pure_router_extension_RouterExtension;
+import org.finos.legend.engine.testable.api.Testable;
+import org.finos.legend.pure.generated.Root_meta_pure_extension_Extension;
 import org.finos.legend.server.pac4j.LegendPac4jBundle;
 import org.finos.legend.server.shared.bundles.ChainFixingFilterHandler;
 import org.finos.legend.server.shared.bundles.HostnameHeaderBundle;
@@ -104,12 +107,14 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Alloy Execution Server");
 
+    protected RelationalStoreExecutor relationalStoreExecutor;
+
     private Environment environment;
 
     public static void main(String[] args) throws Exception
     {
         EngineUrlStreamHandlerFactory.initialize();
-        new Server().run(args);
+        new Server().run(args.length == 0 ? new String[]{"server", "legend-engine-server/src/test/resources/org/finos/legend/engine/server/test/userTestConfig.json"} : args);
     }
 
     @Override
@@ -133,7 +138,9 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         VaultFactory.withVaultConfigurationExtensions(bootstrap.getObjectMapper());
         ObjectMapperFactory.withStandardConfigurations(bootstrap.getObjectMapper());
 
-        bootstrap.getObjectMapper().registerSubtypes(new NamedType(LegendDefaultDatabaseAuthenticationFlowProviderConfiguration.class, "legendDefault"));
+        bootstrap.getObjectMapper().registerSubtypes(
+                new NamedType(LegendDefaultDatabaseAuthenticationFlowProviderConfiguration.class, "legendDefault")
+                );
     }
 
     @Override
@@ -149,7 +156,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         ChainFixingFilterHandler.apply(environment.getApplicationContext(), serverConfiguration.filterPriorities);
 
-        RelationalStoreExecutor relationalStoreExecutor = (RelationalStoreExecutor) Relational.build(serverConfiguration.relationalexecution);
+        relationalStoreExecutor = (RelationalStoreExecutor) Relational.build(serverConfiguration.relationalexecution);
         PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(relationalStoreExecutor, ServiceStore.build(), InMemory.build());
 
         // Session Management
@@ -195,7 +202,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         // Execution
         MutableList<PlanGeneratorExtension> generatorExtensions = Lists.mutable.withAll(ServiceLoader.load(PlanGeneratorExtension.class));
-        Function<PureModel, RichIterable<? extends Root_meta_pure_router_extension_RouterExtension>> routerExtensions = (PureModel pureModel) -> generatorExtensions.flatCollect(e -> e.getExtraRouterExtensions(pureModel));
+        Function<PureModel, RichIterable<? extends Root_meta_pure_extension_Extension>> routerExtensions = (PureModel pureModel) -> generatorExtensions.flatCollect(e -> e.getExtraExtensions(pureModel));
         environment.jersey().register(new Execute(modelManager, planExecutor, routerExtensions, generatorExtensions.flatCollect(PlanGeneratorExtension::getExtraPlanTransformers)));
         environment.jersey().register(new ExecutePlanStrategic(planExecutor));
         environment.jersey().register(new ExecutePlanLegacy(planExecutor));
@@ -217,6 +224,14 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         // External Format
         environment.jersey().register(new ExternalFormats(modelManager));
+
+        // Analytics
+        environment.jersey().register(new MappingAnalytics(modelManager));
+        environment.jersey().register(new DiagramAnalytics(modelManager));
+        environment.jersey().register(new DataSpaceAnalytics(modelManager));
+
+        // Testable
+        environment.jersey().register(new Testable(modelManager));
 
         enableCors(environment);
     }

@@ -15,10 +15,13 @@
 package org.finos.legend.engine.language.pure.compiler.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.tuple.Pair;
+import org.finos.legend.engine.language.pure.compiler.toPureGraph.HelperRelationalBuilder;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.PureModel;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.Warning;
+import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
 import org.finos.legend.engine.protocol.pure.v1.model.context.PureModelContextData;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.mapping.RootRelationalInstanceSetImplementation;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.Column;
@@ -237,8 +240,50 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
     @Test
     public void testRelationalDatabase()
     {
-        test(DB_INC);
-        test(DB + DB_INC);
+        PureModel dbIncModel = test(DB_INC).getTwo();
+        PureModel dbModel = test(DB + DB_INC).getTwo();
+
+        Database dbInc = (Database) dbIncModel.getStore("model::relational::tests::dbInc");
+        Database db = (Database) dbModel.getStore("model::relational::tests::db");
+
+        String[] tablesDb = HelperRelationalBuilder.getAllTables(db, SourceInformation.getUnknownSourceInformation()).collect(x -> x._schema()._name() + '.' + x._name()).toSortedList().toArray(new String[0]);
+        String[] productSchemaTablesDb = HelperRelationalBuilder.getAllTablesInSchema(db, "productSchema", SourceInformation.getUnknownSourceInformation()).collect(x -> x._schema()._name() + '.' + x._name()).toSortedList().toArray(new String[0]);
+        String[] defaultTablesDbInc = HelperRelationalBuilder.getAllTablesInSchema(dbInc, "default", SourceInformation.getUnknownSourceInformation()).collect(x -> x._schema()._name() + '.' + x._name()).toSortedList().toArray(new String[0]);
+
+        Assert.assertArrayEquals(new String[]{
+                "default.accountTable",
+                "default.addressTable",
+                "default.differentPersonTable",
+                "default.firmTable",
+                "default.interactionTable",
+                "default.locationTable",
+                "default.orderFactTable",
+                "default.orderTable",
+                "default.otherFirmTable",
+                "default.otherNamesTable",
+                "default.personTable",
+                "default.placeOfInterestTable",
+                "default.salesPersonTable",
+                "default.tradeEventTable",
+                "default.tradeTable",
+                "productSchema.productTable",
+                "productSchema.synonymTable"
+        }, tablesDb);
+
+        Assert.assertArrayEquals(new String[]{
+                "default.addressTable",
+                "default.differentPersonTable",
+                "default.firmTable",
+                "default.locationTable",
+                "default.otherFirmTable",
+                "default.personTable",
+                "default.placeOfInterestTable"
+        }, defaultTablesDbInc);
+
+        Assert.assertArrayEquals(new String[]{
+                "productSchema.productTable",
+                "productSchema.synonymTable"
+        }, productSchemaTablesDb);
     }
 
     @Test
@@ -256,16 +301,16 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
     {
         // PROCESSING_IN missing
         test("###Relational\n" +
-                "Database app::db\n" +
-                "(\n" +
-                "    Table personTable" +
-                "    (" +
-                "       milestoning(processing(PROCESSING_IN = dummyIn, PROCESSING_OUT = dummyOut))" +
-                "       ID INT PRIMARY KEY, MANAGERID INT, dummyOut TIMESTAMP\n" +
-                "    )\n" +
-                ")",
+                        "Database app::db\n" +
+                        "(\n" +
+                        "    Table personTable" +
+                        "    (" +
+                        "       milestoning(processing(PROCESSING_IN = dummyIn, PROCESSING_OUT = dummyOut))" +
+                        "       ID INT PRIMARY KEY, MANAGERID INT, dummyOut TIMESTAMP\n" +
+                        "    )\n" +
+                        ")",
                 "COMPILATION error at [4:47-108]: Milestone column 'dummyIn' not found on table definition"
-            );
+        );
 
         // PROCESSING_OUT missing
         test("###Relational\n" +
@@ -981,7 +1026,8 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
     }
 
     @Test
-    public void testFilterMappingWithInnerJoin() {
+    public void testFilterMappingWithInnerJoin()
+    {
         test("import other::*;\n" +
                 "\n" +
                 "Class other::Person\n" +
@@ -1008,7 +1054,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "    id INT PRIMARY KEY,\n" +
                 "    legalName VARCHAR(200)\n" +
                 "   )\n" +
-                "   View personFirmView\n"+
+                "   View personFirmView\n" +
                 "   (\n" +
                 "    id : personTable.id,\n" +
                 "    firstName : personTable.firstName,\n" +
@@ -1031,7 +1077,8 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
     }
 
     @Test
-    public void testInnerJoinReferenceInRelationalMapping() {
+    public void testInnerJoinReferenceInRelationalMapping()
+    {
         String model = "Class simple::Person\n" +
                 "{\n" +
                 "  firstName: String[1];\n" +
@@ -1076,9 +1123,9 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  Join Firm_Person(firmTable.ID = personTable.FIRMID)\n" +
                 ")\n" +
                 "\n" +
-                "\n" ;
+                "\n";
 
-        test( model +
+        test(model +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1090,7 +1137,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "\n" +
                 ")");
 
-        test( model +
+        test(model +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1162,7 +1209,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  ];\n" +
                 "}\n";
 
-        test( model +
+        test(model +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1175,7 +1222,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  }\n" +
                 ")\n", "COMPILATION error at [45:8-68]: Binding transformer can be used with complex properties only. Property 'age' return type is 'Integer'");
 
-        test( model +
+        test(model +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1189,7 +1236,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  }\n" +
                 ")\n", "COMPILATION error at [46:12-73]: Class: simple::Person should be included in modelUnit for binding: simple::TestBinding");
 
-        test( model +
+        test(model +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1203,7 +1250,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  }\n" +
                 ")\n");
 
-        test( model +
+        test(model +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1285,7 +1332,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
     @Test
     public void testUnknownSetImplementationIdWarning() throws Exception
     {
-        Pair<PureModelContextData, PureModel>  res = test("Class simple::Person\n" +
+        Pair<PureModelContextData, PureModel> res = test("Class simple::Person\n" +
                 "{\n" +
                 "  lastName: String[1];\n" +
                 "  firm: simple::Firm[1];\n" +
@@ -1306,7 +1353,7 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  )\n" +
                 "\n" +
                 "  Join personSelfJoin(personTable.ID = {target}.ID)\n" +
-                ")\n"+
+                ")\n" +
                 "###Mapping\n" +
                 "Mapping simple::simpleRelationalMappingInc\n" +
                 "(\n" +
@@ -1318,8 +1365,53 @@ public class TestRelationalCompilationFromGrammar extends TestCompilationFromGra
                 "  }\n" +
                 ")\n");
 
-        MutableList<Warning> warnings =  res.getTwo().getWarnings();
+        MutableList<Warning> warnings = res.getTwo().getWarnings();
         Assert.assertEquals(1, warnings.size());
         Assert.assertEquals("{\"sourceInformation\":{\"sourceId\":\"simple::simpleRelationalMappingInc\",\"startLine\":30,\"startColumn\":12,\"endLine\":30,\"endColumn\":43},\"message\":\"Error 'x' can't be found in the mapping simple::simpleRelationalMappingInc\"}", new ObjectMapper().writeValueAsString(warnings.get(0)));
+    }
+
+    @Test
+    public void testRelationalMappingForTableNameInQuotesWithDots() throws Exception
+    {
+        PureModel model = test(
+                "###Pure\n" +
+                    "Class simple::Item\n" +
+                    "{\n" +
+                    "   id: Integer[0..1];\n" +
+                    "}\n" +
+                    "###Relational\n" +
+                    "Database simple::DB\n" +
+                    "(\n" +
+                    "   Table \"tableNameInQuotes.With.Dots\"\n" +
+                    "   (\n" +
+                    "       ID INTEGER PRIMARY KEY\n" +
+                    "   )\n" +
+                    ")\n" +
+                    "###Mapping\n" +
+                    "Mapping simple::ItemMapping\n" +
+                    "(\n" +
+                        "simple::Item: Relational\n" +
+                        "  {\n" +
+                        "    ~primaryKey\n" +
+                        "    (\n" +
+                        "       [simple::DB]\"tableNameInQuotes.With.Dots\".ID\n" +
+                        "    )\n" +
+                        "    ~mainTable [simple::DB]\"tableNameInQuotes.With.Dots\"\n" +
+                        "    id: [simple::DB]\"tableNameInQuotes.With.Dots\".ID\n" +
+                        "  }\n" +
+                    ")"
+        ).getTwo();
+        org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping mmMapping = model.getMapping("simple::ItemMapping");
+        RootRelationalInstanceSetImplementation rootRelationalInstanceSetImplementation = ((RootRelationalInstanceSetImplementation) mmMapping._classMappings().getFirst());
+        RelationalOperationElement primaryKey = rootRelationalInstanceSetImplementation._primaryKey().getFirst();
+        // mainTable
+        Table table = (Table) rootRelationalInstanceSetImplementation._mainTableAlias()._relationalElement();
+        Assert.assertEquals(table._name(), "\"tableNameInQuotes.With.Dots\"");
+        // primaryKey
+        Column col = ((TableAliasColumn) primaryKey)._column();
+        Assert.assertEquals(col._name(), "ID");
+        Assert.assertEquals(((Table) col._owner())._name(), "\"tableNameInQuotes.With.Dots\"");
+        // classMappingId
+        Assert.assertEquals(rootRelationalInstanceSetImplementation._id(), "simple_Item");
     }
 }
