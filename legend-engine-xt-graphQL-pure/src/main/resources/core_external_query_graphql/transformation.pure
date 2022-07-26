@@ -239,9 +239,9 @@ function meta::external::query::graphQL::transformation::queryToPure::convertVal
     l: meta::external::query::graphQL::metamodel::value::ListValue[1]| ^JSONArray(values=$l->map(item: meta::external::query::graphQL::metamodel::value::ListValue[1]|
       meta::external::query::graphQL::transformation::queryToPure::convertValuesToJSON($item.values))),
     n: meta::external::query::graphQL::metamodel::value::NullValue[1]| ^JSONNull(),
-    o: meta::external::query::graphQL::metamodel::value::ObjectValue[1]| ^JSONObject(keyValuePairs = $o.values->map(j: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]|
-      meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j))) 
-  
+    o: meta::external::query::graphQL::metamodel::value::ObjectValue[1]| ^JSONObject(keyValuePairs = $o.values->map(
+      j: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]|
+      meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j)))  
   ])
 }
 
@@ -250,47 +250,25 @@ function meta::external::query::graphQL::transformation::queryToPure::convertVal
   $vals->map(v|$v->meta::external::query::graphQL::transformation::queryToPure::convertValueToJSON())
 }
 
-// function meta::external::query::graphQL::transformation::queryToPure::convertKeyValToJSON(kv: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]): meta::json::JSONObject[1]
-// {
-// }
-
 function meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON(kv: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]): meta::json::JSONKeyValue[1]
 {
-  //println($kv.value);
-        meta::json::newJSONKeyValue($kv.key->toString(), $kv.value->match([
-          i: meta::external::query::graphQL::metamodel::value::IntValue[1]| ^JSONNumber(value=$i.value),
-          s: meta::external::query::graphQL::metamodel::value::StringValue[1]| ^JSONString(value=$s.value),
-          f: meta::external::query::graphQL::metamodel::value::FloatValue[1]| ^JSONNumber(value=$f.value),
-          b: meta::external::query::graphQL::metamodel::value::BooleanValue[1]| ^JSONBoolean(value=$b.value),
-          e: meta::external::query::graphQL::metamodel::value::EnumValue[1]| ^JSONString(value=$e.value),
-          l: meta::external::query::graphQL::metamodel::value::ListValue[1]| ^JSONArray(values=$l->map(item: meta::external::query::graphQL::metamodel::value::ListValue[1]|
-            meta::external::query::graphQL::transformation::queryToPure::convertValuesToJSON($item))),
-          n: meta::external::query::graphQL::metamodel::value::NullValue[1]| ^JSONNull(),
-          o: meta::external::query::graphQL::metamodel::value::ObjectValue[1]| ^JSONObject(keyValuePairs = $o.values->map(j: meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]|
-            meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j)))
-        ]));
+  meta::json::newJSONKeyValue($kv.key, $kv.value->meta::external::query::graphQL::transformation::queryToPure::convertValueToJSON());
 }
 
-function meta::external::query::graphQL::transformation::queryToPure::extractInputObject(rgf: RootGraphFetchTree<Any>[1]): Pair<String, ObjectValue>[1]
+function meta::external::query::graphQL::transformation::queryToPure::extractInputObject(rgf: RootGraphFetchTree<Any>[1]): Pair<String, JSONObject>[1]
 {
   /// attribute name can be pulled from argument fields - not being converted to PURE at this point
-  println('---------');
   let params = $rgf.subTrees->cast(@PropertyGraphFetchTree).parameters->evaluateAndDeactivate();
   let jsonKeyValues = $params->filter(f|$f->instanceOf(InstanceValue) && $f.genericType->hasObjectValue())->cast(@InstanceValue).values;
-  let inpObject = ^JSONObject(keyValuePairs = $jsonKeyValues
-      ->map(j:meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]| 
-        meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j)));
+  //println($jsonKeyValues);
+  let metaJsonKeyValues = $jsonKeyValues
+    ->map(t| $t->cast(@meta::external::query::graphQL::metamodel::value::JSONKeyValue))
+    ->map(j:meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]| 
+        meta::external::query::graphQL::transformation::queryToPure::convertKeyValsToJSON($j));
+  let inpObject = meta::json::newJSONObject($metaJsonKeyValues);
   println($inpObject->meta::json::toCompactJSONString());
-  println('---------');
-
-  pair('parameter', ^meta::external::query::graphQL::metamodel::value::ObjectValue(values=[
-      ^meta::external::query::graphQL::metamodel::value::JSONKeyValue(
-        key='firmId', 
-        value = ^meta::external::query::graphQL::metamodel::value::IntValue(value=10)),
-        ^meta::external::query::graphQL::metamodel::value::JSONKeyValue(
-        key='name', 
-        value = ^meta::external::query::graphQL::metamodel::value::StringValue(value='Renu'))  
-      ]));
+  //hardcode attribute name to input
+  pair('input', $inpObject);
 }
 
 
