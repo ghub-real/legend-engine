@@ -105,6 +105,10 @@
             <artifactId>legend-engine-xt-relationalStore-sqlserver-pure</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-language-pure-grammar</artifactId>
+        </dependency>
         <!-- PURE -->
 
         <!-- ENGINE -->
@@ -584,11 +588,11 @@
             <artifactId>legend-engine-xt-relationalStore-postgres-execution-tests</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-language-pure-grammar</artifactId>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.finos.legend.engine</groupId>-->
+<!--            <artifactId>legend-engine-language-pure-grammar</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>

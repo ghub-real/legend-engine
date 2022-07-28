@@ -124,16 +124,21 @@
             <artifactId>legend-pure-runtime-java-engine-compiled</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-pure-code-compiled-core</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.finos.legend.pure</groupId>
             <artifactId>legend-pure-code-compiled-platform-java</artifactId>
             <scope>runtime</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.finos.legend.pure</groupId>
+            <artifactId>legend-pure-m2-store-relational</artifactId>
+        </dependency>
+        <!-- legend pure -->
+        <!-- legend-engine -->
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-pure-code-compiled-core</artifactId>
+        </dependency>
+        <!-- legend-engine -->
 
         <dependency>
             <groupId>org.eclipse.collections</groupId>

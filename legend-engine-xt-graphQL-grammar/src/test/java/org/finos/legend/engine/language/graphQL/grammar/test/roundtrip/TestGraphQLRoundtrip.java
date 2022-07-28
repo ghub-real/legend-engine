@@ -14,7 +14,6 @@
 
 package org.finos.legend.engine.language.graphQL.grammar.test.roundtrip;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.legend.engine.language.graphQL.grammar.from.GraphQLGrammarParser;
 import org.finos.legend.engine.language.graphQL.grammar.from.GraphQLParserException;
 import org.finos.legend.engine.language.graphQL.grammar.to.GraphQLGrammarComposer;
@@ -350,9 +349,21 @@ public class TestGraphQLRoundtrip
     }
 
     @Test
-    public void testMutationPayLoad() throws Exception {
+    public void testMutationPayLoad() throws Exception
+    {
         check("mutation MyMutation {\n" +
                 "  persistFirm(input: {firmId: 10, name: \"renu\"})\n" +
+                "}");
+    }
+
+    @Test
+    public void testSimpleQuery() throws Exception
+    {
+        check("query myQuery {\n" +
+                "  allFirms {\n" +
+                "    name\n" +
+                "    location\n" +
+                "  }\n" +
                 "}");
     }
 

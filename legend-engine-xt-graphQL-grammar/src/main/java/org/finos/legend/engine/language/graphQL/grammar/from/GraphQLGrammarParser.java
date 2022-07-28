@@ -23,7 +23,6 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.eclipse.collections.api.factory.Lists;
@@ -31,7 +30,6 @@ import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.utility.ListIterate;
 import org.finos.legend.engine.language.graphQL.grammar.from.antlr4.GraphQLLexer;
 import org.finos.legend.engine.language.graphQL.grammar.from.antlr4.GraphQLParser;
-import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
 import org.finos.legend.engine.protocol.graphQL.metamodel.Definition;
 import org.finos.legend.engine.protocol.graphQL.metamodel.Document;
 import org.finos.legend.engine.protocol.graphQL.metamodel.ExecutableDocument;
@@ -63,8 +61,10 @@ import org.finos.legend.engine.protocol.graphQL.metamodel.value.BooleanValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.EnumValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.FloatValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.IntValue;
+import org.finos.legend.engine.protocol.graphQL.metamodel.value.JSONKeyValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.ListValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.NullValue;
+import org.finos.legend.engine.protocol.graphQL.metamodel.value.ObjectValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.StringValue;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.Value;
 import org.finos.legend.engine.protocol.graphQL.metamodel.value.Variable;
@@ -73,7 +73,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GraphQLGrammarParser
 {
@@ -501,12 +500,14 @@ public class GraphQLGrammarParser
             ObjectValue objValue = new ObjectValue();
 
             objValue.values = valueContext.objectValue().objectField().stream()
-                    .map(item -> {
+                    .map(item ->
+                    {
                         JSONKeyValue keyVal = new JSONKeyValue();
                         keyVal.key = item.name().getText().trim();
                         keyVal.value = this.visitValue(item.value());
                         return keyVal;
-                    }).collect(Collectors.toList());
+                    }
+                    ).collect(Collectors.toList());
             return objValue;
         }
         throw new RuntimeException("Error");

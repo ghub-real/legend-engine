@@ -14,7 +14,11 @@
 
 package org.finos.legend.engine.shared.core.kerberos;
 
-import org.apache.http.auth.*;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.KerberosCredentials;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -29,7 +33,12 @@ import org.apache.http.impl.auth.SPNegoScheme;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.protocol.HttpContext;
-import org.ietf.jgss.*;
+import org.ietf.jgss.GSSContext;
+import org.ietf.jgss.GSSCredential;
+import org.ietf.jgss.GSSException;
+import org.ietf.jgss.GSSManager;
+import org.ietf.jgss.GSSName;
+import org.ietf.jgss.Oid;
 
 import java.io.IOException;
 import java.security.Principal;

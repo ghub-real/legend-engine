@@ -179,8 +179,9 @@ function meta::external::query::graphQL::transformation::queryToPure::getQueryPl
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
   //let graphFetchString = $graphFetch->meta::pure::graphFetch::routing::asString(true);
-  //println($graphFetchString);
+  println($graphFetch);
   let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
+  println($res);
       $res->map(r|
               pair(
                 $r.first,
@@ -198,21 +199,15 @@ function meta::external::query::graphQL::transformation::queryToPure::getMutatio
                                                                           mapping:meta::pure::mapping::Mapping[1],
                                                                           runtime:meta::pure::runtime::Runtime[1],
                                                                           query:meta::external::query::graphQL::metamodel::Document[1],
-                                                                          extensions:meta::pure::router::extension::RouterExtension[*]
+                                                                          extensions:meta::pure::extension::Extension[*]
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
-  //println($graphFetch);
   let mutationName = meta::external::query::graphQL::transformation::queryToPure::extractMutationName($graphFetch);
   let inputObject = meta::external::query::graphQL::transformation::queryToPure::extractInputObject($graphFetch);
  [];
 }
 
-Class meta::external::query::graphQL::transformation::queryToPure::persistFunction
-{
-  mutationFn: String[1];
-  argList: InstanceValue[*];
-}
 
 function meta::external::query::graphQL::transformation::queryToPure::extractMutationName(rgf: RootGraphFetchTree<Any>[1]): String[1]
 {
@@ -260,7 +255,6 @@ function meta::external::query::graphQL::transformation::queryToPure::extractInp
   /// attribute name can be pulled from argument fields - not being converted to PURE at this point
   let params = $rgf.subTrees->cast(@PropertyGraphFetchTree).parameters->evaluateAndDeactivate();
   let jsonKeyValues = $params->filter(f|$f->instanceOf(InstanceValue) && $f.genericType->hasObjectValue())->cast(@InstanceValue).values;
-  //println($jsonKeyValues);
   let metaJsonKeyValues = $jsonKeyValues
     ->map(t| $t->cast(@meta::external::query::graphQL::metamodel::value::JSONKeyValue))
     ->map(j:meta::external::query::graphQL::metamodel::value::JSONKeyValue[1]| 
@@ -277,7 +271,7 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
                                                                           mapping:meta::pure::mapping::Mapping[1],
                                                                           runtime:meta::pure::runtime::Runtime[1],
                                                                           query:meta::external::query::graphQL::metamodel::Document[1],
-                                                                          extensions:meta::pure::router::extension::RouterExtension[*]
+                                                                          extensions:meta::pure::extension::Extension[*]
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
 {
   let opDefinition = $query.definitions
@@ -293,14 +287,14 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
   );
 }
 
-function meta::external::query::graphQL::poc::DummyExecutionPlan(
-  f:FunctionDefinition<Any>[1],
-  mapping:meta::pure::mapping::Mapping[1], 
-  runtime:meta::pure::runtime::Runtime[1],
-  extensions:meta::pure::router::extension::RouterExtension[*]): meta::pure::executionPlan::ExecutionPlan[1]
-{
-   meta::pure::executionPlan::executionPlan($f, $mapping, $runtime, $extensions);
-}
+// function meta::external::query::graphQL::poc::DummyExecutionPlan(
+//   f:FunctionDefinition<Any>[1],
+//   mapping:meta::pure::mapping::Mapping[1], 
+//   runtime:meta::pure::runtime::Runtime[1],
+//   extensions:meta::pure::extension::Extension[*]): meta::pure::executionPlan::ExecutionPlan[1]
+// {
+//    meta::pure::executionPlan::executionPlan($f, $mapping, $runtime, $extensions);
+// }
 
 Class meta::external::query::graphQL::transformation::queryToPure::GraphFetchResult
 {
