@@ -142,7 +142,23 @@ public class GraphQLExecute extends GraphQL
                 // Handle mutation here
                 RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getMutationPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
 
-                return Response.ok(purePlans).build();
+                Collection<PlansResult.PlanUnit> plans = Iterate.collect(purePlans, p ->
+                        {
+                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
+                            try
+                            {
+                                return new PlansResult.PlanUnit(p._first(),
+                                        ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().readValue(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), this.transformers), ExecutionPlan.class),
+                                        core_pure_executionPlan_executionPlan_print.Root_meta_pure_executionPlan_toString_planToString_ExecutionPlan_1__Boolean_1__Extension_MANY__String_1_(nPlan, true, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport())
+                                );
+                            }
+                            catch (JsonProcessingException e)
+                            {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                );
+                return Response.ok(new PlansResult(plans)).build();
             }
             else
             {
