@@ -178,22 +178,27 @@ function meta::external::query::graphQL::transformation::queryToPure::getQueryPl
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
-  //let graphFetchString = $graphFetch->meta::pure::graphFetch::routing::asString(true);
-  println($graphFetch);
   let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree();
-  println($res);
-      $res->map(r|
-              pair(
-                $r.first,
-                meta::pure::executionPlan::executionPlan(
-                  $r.second,
-                  $mapping,
-                  $runtime,
-                  $extensions
-                )
-              )
-        );
+  // println('----Query Res 1---');
+  // println($res.first);
+  // println('-------------------');
+  println('----Expression Seq---');
+  println($res.second.expressionSequence);
+  println('-------------------');
+  $res->map(r|
+    pair(
+        $r.first,
+        meta::pure::executionPlan::executionPlan(
+            $r.second,
+            $mapping,
+            $runtime,
+            $extensions
+            )
+            )
+            );
 }
+
+
 
 function meta::external::query::graphQL::transformation::queryToPure::getMutationPlansFromGraphQL(cl:Class<Any>[1],
                                                                           mapping:meta::pure::mapping::Mapping[1],
@@ -201,11 +206,27 @@ function meta::external::query::graphQL::transformation::queryToPure::getMutatio
                                                                           query:meta::external::query::graphQL::metamodel::Document[1],
                                                                           extensions:meta::pure::extension::Extension[*]
                                                                       ):Pair<String, meta::pure::executionPlan::ExecutionPlan>[*]
+                                                                      //:Pair<String, meta::pure::metamodel::function::FunctionDefinition<{->meta::pure::metamodel::type::Any[*]}>>[*]
 {
   let graphFetch = meta::external::query::graphQL::transformation::queryToPure::graphQLExecutableToPure($query, $cl);
+  let res = $graphFetch->meta::pure::graphFetch::domain::extractDomainTypeClassFromMutationTree();
+  println('--Expr Sequence');
+  println($res.second.expressionSequence);
+  println('---------------');
   let mutationName = meta::external::query::graphQL::transformation::queryToPure::extractMutationName($graphFetch);
   let inputObject = meta::external::query::graphQL::transformation::queryToPure::extractInputObject($graphFetch);
- [];
+  //$res;
+  $res->map(r|
+    pair(
+        $r.first,
+        meta::pure::executionPlan::executionPlan(
+            $r.second,
+            $mapping,
+            $runtime,
+            $extensions
+            )
+            )
+            );
 }
 
 
@@ -265,7 +286,7 @@ function meta::external::query::graphQL::transformation::queryToPure::extractInp
   pair('input', $inpObject);
 }
 
-
+/*
 function meta::external::query::graphQL::transformation::queryToPure::getPlansFromGraphQL(
                                                                           cl:Class<Any>[1],
                                                                           mapping:meta::pure::mapping::Mapping[1],
@@ -285,7 +306,7 @@ function meta::external::query::graphQL::transformation::queryToPure::getPlansFr
       | []
       )
   );
-}
+}*/
 
 // function meta::external::query::graphQL::poc::DummyExecutionPlan(
 //   f:FunctionDefinition<Any>[1],
