@@ -69,6 +69,9 @@ import org.finos.legend.engine.plan.execution.stores.service.plugin.ServiceStore
 import org.finos.legend.engine.plan.generation.extension.PlanGeneratorExtension;
 import org.finos.legend.engine.protocol.pure.v1.PureProtocolObjectMapperFactory;
 import org.finos.legend.engine.query.graphQL.api.debug.GraphQLDebug;
+import org.finos.legend.engine.query.graphQL.api.dynamodb.DynamoDbResource;
+import org.finos.legend.engine.query.graphQL.api.dynamodb.LocalDynamoDbClient;
+import org.finos.legend.engine.query.graphQL.api.dynamodb.LocalDynamoDbServer;
 import org.finos.legend.engine.query.graphQL.api.execute.GraphQLExecute;
 import org.finos.legend.engine.query.graphQL.api.grammar.GraphQLGrammar;
 import org.finos.legend.engine.query.pure.api.Execute;
@@ -207,9 +210,15 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new ExecutePlanStrategic(planExecutor));
         environment.jersey().register(new ExecutePlanLegacy(planExecutor));
 
+        // goncah DynamoDb
+        LocalDynamoDbServer dynamoDbServer = new LocalDynamoDbServer();
+        LocalDynamoDbClient dynamoDbClient = new LocalDynamoDbClient(dynamoDbServer.getRunningPort());
+        environment.jersey().register(new DynamoDbResource(dynamoDbClient));
+
         // GraphQL
         environment.jersey().register(new GraphQLGrammar());
-        environment.jersey().register(new GraphQLExecute(modelManager, planExecutor, serverConfiguration.metadataserver, generatorExtensions.flatCollect(PlanGeneratorExtension::getExtraPlanTransformers)));
+        environment.jersey().register(new GraphQLExecute(modelManager, planExecutor, serverConfiguration.metadataserver,
+                generatorExtensions.flatCollect(PlanGeneratorExtension::getExtraPlanTransformers), dynamoDbClient));
         environment.jersey().register(new GraphQLDebug(modelManager, serverConfiguration.metadataserver));
 
         // Service

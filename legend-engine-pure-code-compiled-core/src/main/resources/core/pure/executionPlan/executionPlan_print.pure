@@ -54,12 +54,39 @@ function <<access.public>> meta::pure::executionPlan::toString::planNodeToString
          e:FunctionParametersValidationNode[1] | 'FunctionParametersValidationNode\n'+ $space+ '(' + '\n'+ $space +'  functionParameters = '+  $e.functionParameters->map(p|$p.name+':'+$p.type->elementToPath()+ '[' + printMultiplicity($p.multiplicity->toOne()) + ']')->makeString('[',', ',']')+'\n'+$space+')\n',
          g:meta::pure::graphFetch::executionPlan::GlobalGraphFetchExecutionNode[1] | $g->meta::pure::graphFetch::executionPlan::globalGraphFetchExecutionNodeToString($space, $extensions),
          g:meta::pure::mapping::modelToModel::graphFetch::executionPlan::StoreStreamReadingExecutionNode[1] | $g->meta::pure::mapping::modelToModel::graphFetch::executionPlan::storeStreamReadingExecutionNodeToString($space, $extensions),
-         i:	meta::pure::mapping::modelToModel::graphFetch::executionPlan::InMemoryGraphFetchExecutionNode[1] | $i->meta::pure::mapping::modelToModel::graphFetch::executionPlan::inMemoryGraphFetchExecutionNodeToString($space, $extensions)
-
+         i:	meta::pure::mapping::modelToModel::graphFetch::executionPlan::InMemoryGraphFetchExecutionNode[1] | $i->meta::pure::mapping::modelToModel::graphFetch::executionPlan::inMemoryGraphFetchExecutionNodeToString($space, $extensions),
+         gw: meta::pure::graphFetch::executionPlan::GraphWriteExecutionNode[1] | $gw->meta::pure::executionPlan::toString::graphWriteExecutionNodeToString($space, $extensions)
       ])->toOneMany()
    );
    $space + $root;
 }
+
+// HG: edits
+
+function meta::pure::executionPlan::toString::graphWriteExecutionNodeToString(g:meta::pure::graphFetch::executionPlan::GraphWriteExecutionNode[1], space:String[1], extensions:meta::pure::extension::Extension[*]):String[1]
+{
+
+  // class: Class<Any>[1];
+  //  action: GraphWriteAction[1];
+  //  payload: JSONObject[1];
+  //  selectionSet: String[*];
+
+  'GraphWriteExecutionNode\n' + 
+      $space + '(' + header($g, $space, $extensions) + '\n'+
+      $space + '  node = ' + $g.node->meta::pure::executionPlan::toString::graphWriteNodeToString($space, $extensions) + '\n'+
+      $space + ')\n';
+}
+
+function meta::pure::executionPlan::toString::graphWriteNodeToString(g:meta::pure::graphFetch::executionPlan::GraphWriteNode[1], space:String[1], extensions:meta::pure::extension::Extension[*]):String[1]
+{
+'GraphWriteNode\n' + 
+      $space + '  class = ' + $g.class->toString() + '\n'+
+      $space + '  action = ' + $g.action->toString() + '\n'+
+      $space + '  payload = ' + $g.payload->meta::json::toPrettyJSONString() + '\n'+
+        $space + '  payloadStr = ' + $g.payloadStr + '\n'+
+      $space + ')\n';
+}
+
 
 function <<access.public>> meta::pure::executionPlan::toString::printImplementation(e:PlatformImplementation[0..1], key:String[1], space:String[1], extensions:meta::pure::extension::Extension[*]):String[1]
 {

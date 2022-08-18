@@ -26,6 +26,30 @@ import meta::pure::mapping::modelToModel::*;
 import meta::pure::mapping::modelToModel::graphFetch::executionPlan::*;
 import meta::pure::runtime::*;
 
+import meta::json::*;
+
+// HG: GraphWriteNodes
+
+Enum meta::pure::graphFetch::executionPlan::GraphWriteAction {
+PERSIST,
+UPDATE,
+DELETE
+}
+
+Class meta::pure::graphFetch::executionPlan::GraphWriteExecutionNode extends ExecutionNode
+{
+   node : GraphWriteNode[1];
+}
+
+Class meta::pure::graphFetch::executionPlan::GraphWriteNode
+{
+   class: Class<Any>[1];
+   action: GraphWriteAction[1];
+   payload: JSONObject[1];
+   payloadStr: String[1];
+   selectionSet: String[*];
+}
+
 Class <<doc.deprecated>> meta::pure::graphFetch::executionPlan::GraphFetchExecutionNode extends ExecutionNode
 {
    graphFetchTree : ClusteredGraphFetchTree[1];

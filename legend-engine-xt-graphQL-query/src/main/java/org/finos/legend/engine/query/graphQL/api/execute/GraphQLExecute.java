@@ -17,7 +17,9 @@ package org.finos.legend.engine.query.graphQL.api.execute;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.opentracing.Scope;
 import io.opentracing.util.GlobalTracer;
 import io.swagger.annotations.Api;
@@ -59,6 +61,8 @@ import org.finos.legend.engine.protocol.pure.PureClientVersions;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.ExecutionPlan;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecutionPlan;
 import org.finos.legend.engine.query.graphQL.api.GraphQL;
+import org.finos.legend.engine.query.graphQL.api.dynamodb.DynamoDbTableUtils;
+import org.finos.legend.engine.query.graphQL.api.dynamodb.LocalDynamoDbClient;
 import org.finos.legend.engine.query.graphQL.api.execute.model.PlansResult;
 import org.finos.legend.engine.query.graphQL.api.execute.model.Query;
 import org.finos.legend.engine.query.graphQL.api.execute.model.error.GraphQLErrorMain;
@@ -66,15 +70,13 @@ import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.finos.legend.engine.shared.core.kerberos.ProfileManagerHelper;
 import org.finos.legend.engine.shared.core.operational.errorManagement.ExceptionTool;
 import org.finos.legend.engine.shared.core.operational.logs.LoggingEventType;
-import org.finos.legend.pure.generated.Root_meta_pure_executionPlan_ExecutionPlan;
-import org.finos.legend.pure.generated.core_external_query_graphql_introspection_transformation;
-import org.finos.legend.pure.generated.core_external_query_graphql_transformation;
-import org.finos.legend.pure.generated.core_pure_executionPlan_executionPlan_print;
+import org.finos.legend.pure.generated.*;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.functions.collection.Pair;
 import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.jax.rs.annotations.Pac4JProfileManager;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -89,6 +91,8 @@ import javax.ws.rs.core.StreamingOutput;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.finos.legend.engine.shared.core.operational.http.InflateInterceptor.APPLICATION_ZLIB;
 import static org.finos.legend.pure.generated.core_relational_relational_extensions_extension.Root_meta_relational_extension_relationalExtensions__Extension_MANY_;
@@ -100,12 +104,16 @@ public class GraphQLExecute extends GraphQL
 {
     private final PlanExecutor planExecutor;
     private final MutableList<PlanTransformer> transformers;
-
-    public GraphQLExecute(ModelManager modelManager, PlanExecutor planExecutor, MetaDataServerConfiguration metadataserver, MutableList<PlanTransformer> transformers)
+    private final DynamoDbTableUtils dynamoDbTableUtils;
+    public GraphQLExecute(ModelManager modelManager, PlanExecutor planExecutor,
+                          MetaDataServerConfiguration metadataserver,
+                          MutableList<PlanTransformer> transformers,
+                          LocalDynamoDbClient localDynamoDbClient)
     {
         super(modelManager, metadataserver);
         this.planExecutor = planExecutor;
         this.transformers = transformers;
+        this.dynamoDbTableUtils = new DynamoDbTableUtils(localDynamoDbClient.getDynamoDbClient());
     }
 
     @POST
@@ -217,16 +225,21 @@ public class GraphQLExecute extends GraphQL
                         "  \"data\":" + core_external_query_graphql_introspection_transformation.Root_meta_external_query_graphQL_introspection_graphQLIntrospectionQuery_Class_1__Document_1__String_1_(_class, queryDoc, pureModel.getExecutionSupport()) +
                         "}").type(MediaType.TEXT_HTML_TYPE).build();
             }
-            else if (isMutationQuery(findQuery(document)))
-            {
-                // Handle mutation here
-                return Response.ok(new GraphQLErrorMain("Mutation not supported yet")).build();
-            }
+
+
             else
             {
                 Mapping mapping = pureModel.getMapping(mappingPath);
                 org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime runtime = pureModel.getRuntime(runtimePath);
-                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getQueryPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
+                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
+
+                if (isMutationQuery(findQuery(document)))
+            {
+                // Handle mutation here
+//                return Response.ok(new GraphQLErrorMain("Mutation not supported yet")).build();
+                return handleMutationPlans(purePlans);
+            }
+
                 Collection<org.eclipse.collections.api.tuple.Pair<String, SingleExecutionPlan>> plans = Iterate.collect(purePlans, p ->
                         {
                             Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
@@ -239,7 +252,7 @@ public class GraphQLExecute extends GraphQL
                         {
                             try (JsonGenerator generator = new JsonFactory().createGenerator(outputStream)
                                     .disable(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT)
-                                    .enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN);)
+                                    .enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN))
                             {
                                 generator.writeStartObject();
                                 generator.setCodec(new ObjectMapper());
@@ -274,6 +287,49 @@ public class GraphQLExecute extends GraphQL
         {
             return Response.ok(new GraphQLErrorMain(ex.getMessage())).build();
         }
+    }
+
+    private Response handleMutationPlans(RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> executionPlans)
+    {
+        Root_meta_pure_executionPlan_ExecutionPlan plan = executionPlans.getFirst()._second();
+
+
+        Root_meta_pure_graphFetch_executionPlan_GraphWriteExecutionNode gwen = (Root_meta_pure_graphFetch_executionPlan_GraphWriteExecutionNode) plan._rootExecutionNode();
+        org.finos.legend.pure.generated.Root_meta_pure_graphFetch_executionPlan_GraphWriteNode gwn = gwen._node();
+        ObjectMapper mapper = new ObjectMapper();
+        String stringPayload = gwn._payloadStr();
+
+
+        //        Root_meta_pure_graphFetch_executionPlan_GraphWriteNode classPackage = (Root_meta_pure_graphFetch_executionPlan_GraphWriteNode) gwn._class();
+//        ((Root_meta_pure_metamodel_type_Class_LazyImpl) ((Root_meta_pure_graphFetch_executionPlan_GraphWriteNode_Impl)gwn)._class).getVal
+//        Package_LazyImpl ref = (Package_LazyImpl) ((Root_meta_pure_metamodel_type_Class_LazyImpl) ((Root_meta_pure_graphFetch_executionPlan_GraphWriteNode_Impl)gwn)._class).getValueForMetaPropertyToOne("package");
+//        ref.getFullSystemPath()
+        // TODO: figure out how to get the full path as we should probably add this or some hash of to avoid collisions of
+        // same Firm in different pure paths/projects
+
+        String className = gwn._class().getName();
+        String id = UUID.randomUUID().toString();
+        String uuid = className + "#" + id;
+        DynamoDbTableUtils.PersistedMutationReturn insertedMutation = null;
+
+        try {
+            ObjectNode actualObj = (ObjectNode) mapper.readTree(stringPayload);
+            JsonNode jsonPayload = mapper.readTree(stringPayload);
+
+            Map<String, AttributeValue> itemAttributes =  this.dynamoDbTableUtils.getItemAttributes(actualObj);
+            AttributeValue uuidVal = AttributeValue.builder().s(uuid).build();
+            itemAttributes.put("PK", uuidVal);
+            itemAttributes.put("SK", uuidVal);
+
+            DynamoDbTableUtils.PersistedItemReturn insertedItem = this.dynamoDbTableUtils.putItem("GenericTable", itemAttributes);
+            insertedMutation = DynamoDbTableUtils.PersistedMutationReturn.builder().persistedItem(insertedItem).id(id)
+                    .rootClass(className).json(jsonPayload).build();
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return Response.ok(insertedMutation).build();
     }
 
     private boolean isMutationQuery(OperationDefinition query)
