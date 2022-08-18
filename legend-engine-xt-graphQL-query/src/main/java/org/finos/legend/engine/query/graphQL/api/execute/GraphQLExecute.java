@@ -75,6 +75,7 @@ import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.jax.rs.annotations.Pac4JProfileManager;
+import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -100,6 +101,7 @@ public class GraphQLExecute extends GraphQL
 {
     private final PlanExecutor planExecutor;
     private final MutableList<PlanTransformer> transformers;
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(GraphQLExecute.class);
 
     public GraphQLExecute(ModelManager modelManager, PlanExecutor planExecutor, MetaDataServerConfiguration metadataserver, MutableList<PlanTransformer> transformers)
     {
@@ -220,7 +222,17 @@ public class GraphQLExecute extends GraphQL
             else if (isMutationQuery(findQuery(document)))
             {
                 // Handle mutation here
-                return Response.ok(new GraphQLErrorMain("Mutation not supported yet")).build();
+                Mapping mapping = pureModel.getMapping(mappingPath);
+                org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime runtime = pureModel.getRuntime(runtimePath);
+                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getMutationPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
+                Collection<org.eclipse.collections.api.tuple.Pair<String, SingleExecutionPlan>> plans = Iterate.collect(purePlans, p ->
+                        {
+                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
+                            return Tuples.pair(p._first(), PlanGenerator.stringToPlan(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), this.transformers)));
+                        }
+                );
+                plans.forEach(p -> LOGGER.info(p.getOne() + " : " + p.getTwo().toString()));
+                return Response.ok("Not executed").build();
             }
             else
             {
