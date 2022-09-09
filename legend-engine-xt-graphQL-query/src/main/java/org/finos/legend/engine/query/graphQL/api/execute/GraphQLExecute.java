@@ -76,6 +76,7 @@ import org.finos.legend.pure.m3.coreinstance.meta.pure.mapping.Mapping;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.jax.rs.annotations.Pac4JProfileManager;
+import org.slf4j.Logger;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import javax.servlet.http.HttpServletRequest;
@@ -104,6 +105,9 @@ public class GraphQLExecute extends GraphQL
 {
     private final PlanExecutor planExecutor;
     private final MutableList<PlanTransformer> transformers;
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(GraphQLExecute.class);
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     private final DynamoDbTableUtils dynamoDbTableUtils;
     public GraphQLExecute(ModelManager modelManager, PlanExecutor planExecutor,
                           MetaDataServerConfiguration metadataserver,
@@ -225,21 +229,27 @@ public class GraphQLExecute extends GraphQL
                         "  \"data\":" + core_external_query_graphql_introspection_transformation.Root_meta_external_query_graphQL_introspection_graphQLIntrospectionQuery_Class_1__Document_1__String_1_(_class, queryDoc, pureModel.getExecutionSupport()) +
                         "}").type(MediaType.TEXT_HTML_TYPE).build();
             }
-
-
+            else if (isMutationQuery(findQuery(document)))
+            {
+                // Handle mutation here
+                Mapping mapping = pureModel.getMapping(mappingPath);
+                org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime runtime = pureModel.getRuntime(runtimePath);
+                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getMutationPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
+                Collection<org.eclipse.collections.api.tuple.Pair<String, SingleExecutionPlan>> plans = Iterate.collect(purePlans, p ->
+                        {
+                            Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
+                            return Tuples.pair(p._first(), PlanGenerator.stringToPlan(PlanGenerator.serializeToJSON(nPlan, PureClientVersions.production, pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), this.transformers)));
+                        }
+                );
+                plans.forEach(p -> LOGGER.info(p.getOne() + " : " + p.getTwo().toString()));
+                return handleMutationPlans(purePlans);
+                //return Response.ok("Not executed").build();
+            }
             else
             {
                 Mapping mapping = pureModel.getMapping(mappingPath);
                 org.finos.legend.pure.m3.coreinstance.meta.pure.runtime.Runtime runtime = pureModel.getRuntime(runtimePath);
-                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
-
-                if (isMutationQuery(findQuery(document)))
-            {
-                // Handle mutation here
-//                return Response.ok(new GraphQLErrorMain("Mutation not supported yet")).build();
-                return handleMutationPlans(purePlans);
-            }
-
+                RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> purePlans = core_external_query_graphql_transformation.Root_meta_external_query_graphQL_transformation_queryToPure_getQueryPlansFromGraphQL_Class_1__Mapping_1__Runtime_1__Document_1__Extension_MANY__Pair_MANY_(_class, mapping, runtime, queryDoc, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()), pureModel.getExecutionSupport());
                 Collection<org.eclipse.collections.api.tuple.Pair<String, SingleExecutionPlan>> plans = Iterate.collect(purePlans, p ->
                         {
                             Root_meta_pure_executionPlan_ExecutionPlan nPlan = PlanPlatform.JAVA.bindPlan(p._second(), "ID", pureModel, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(pureModel.getExecutionSupport()));
@@ -291,13 +301,13 @@ public class GraphQLExecute extends GraphQL
 
     private Response handleMutationPlans(RichIterable<? extends Pair<? extends String, ? extends Root_meta_pure_executionPlan_ExecutionPlan>> executionPlans)
     {
-        Root_meta_pure_executionPlan_ExecutionPlan plan = executionPlans.getFirst()._second();
+        Root_meta_pure_executionPlan_ExecutionPlan plan  = executionPlans.select(item -> item._first().equalsIgnoreCase("PERSIST_PLAN")).getOnly()._second();
 
+        Root_meta_pure_graphFetch_executionPlan_GraphMutateExecutionNode gwen = (Root_meta_pure_graphFetch_executionPlan_GraphMutateExecutionNode) plan._rootExecutionNode();
+        //org.finos.legend.pure.generated.Root_meta_pure_graphFetch_executionPlan_GraphWriteNode gwn = gwen._node();
+        //ObjectMapper mapper = new ObjectMapper();
+        // String stringPayload = gwn._payloadStr();
 
-        Root_meta_pure_graphFetch_executionPlan_GraphWriteExecutionNode gwen = (Root_meta_pure_graphFetch_executionPlan_GraphWriteExecutionNode) plan._rootExecutionNode();
-        org.finos.legend.pure.generated.Root_meta_pure_graphFetch_executionPlan_GraphWriteNode gwn = gwen._node();
-        ObjectMapper mapper = new ObjectMapper();
-        String stringPayload = gwn._payloadStr();
 
 
         //        Root_meta_pure_graphFetch_executionPlan_GraphWriteNode classPackage = (Root_meta_pure_graphFetch_executionPlan_GraphWriteNode) gwn._class();
@@ -307,23 +317,23 @@ public class GraphQLExecute extends GraphQL
         // TODO: figure out how to get the full path as we should probably add this or some hash of to avoid collisions of
         // same Firm in different pure paths/projects
 
-        String className = gwn._class().getName();
+        String className = gwen._class().getName();
         String id = UUID.randomUUID().toString();
         String uuid = className + "#" + id;
         DynamoDbTableUtils.PersistedMutationReturn insertedMutation = null;
 
         try {
-            ObjectNode actualObj = (ObjectNode) mapper.readTree(stringPayload);
-            JsonNode jsonPayload = mapper.readTree(stringPayload);
+            String jsonPayload = gwen._jsonPayload();
+            JsonNode jsonObj = objectMapper.readTree(jsonPayload);
 
-            Map<String, AttributeValue> itemAttributes =  this.dynamoDbTableUtils.getItemAttributes(actualObj);
+            Map<String, AttributeValue> itemAttributes =  this.dynamoDbTableUtils.getItemAttributes((ObjectNode) jsonObj);
             AttributeValue uuidVal = AttributeValue.builder().s(uuid).build();
             itemAttributes.put("PK", uuidVal);
             itemAttributes.put("SK", uuidVal);
 
             DynamoDbTableUtils.PersistedItemReturn insertedItem = this.dynamoDbTableUtils.putItem("GenericTable", itemAttributes);
             insertedMutation = DynamoDbTableUtils.PersistedMutationReturn.builder().persistedItem(insertedItem).id(id)
-                    .rootClass(className).json(jsonPayload).build();
+                    .rootClass(className).json(jsonObj).build();
 
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

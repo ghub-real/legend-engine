@@ -17,15 +17,66 @@ function meta::pure::graphFetch::domain::extractDomainTypeClassFromFunction<T>(f
   )->cast(@Pair<String,FunctionDefinition<{->Any[*]}>>);
 }
 
+
+function meta::pure::graphFetch::domain::extractDomainTypeClassFromMutationTree(tree:meta::pure::graphFetch::RootGraphFetchTree<Any>[1]):Pair<String, FunctionDefinition<{->Any[*]}>>[*]
+{
+    //stick the parameters required by the mutation output to the all() query, similar to what is done
+    //for query flow.
+    // Mutation graphTree has parameters(input to persist func) in addition to subtrees(selected attributes) & property(qualified prop, persist func name)
+    // Query graph tree has subtrees(selected attributes)  & properties (query name/qualified prop)
+    // 1. Fetch the get-all method from the owner of the persist function.
+    let subTrees = $tree.subTrees->cast(@meta::pure::graphFetch::PropertyGraphFetchTree)->evaluateAndDeactivate();
+    // println('----subTrees');
+    // println($subTrees);
+    // println('-----------');
+    let properties = $subTrees.property;
+    // println('----Properties');
+    // println($properties);
+    // println('----------');
+    let result = $properties.owner->cast(@Class<Any>).qualifiedProperties->findGetAllInQualifiedProperties();
+    // println('-----Mutation result');
+    // println($result);
+    // println('----------');
+    // 2. Stich it all together serialize -> getall -> selected fields
+    if ($result->isEmpty(),
+      |fail('The system can\'t find a \'set definition\' (i.e. .all()) in any property of the query type leveraged in the tree navigation.'),
+      | if ($properties->size() == $result->size(),
+        | meta::pure::graphFetch::domain::createQueryFunctionDefinitionFromSelection($subTrees, $result),
+        | fail('All properties need to be getAll');
+      )
+    )
+    ->cast(@Pair<String, FunctionDefinition<{->Any[*]}>>);
+
+}
+
 function meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTree(tree:meta::pure::graphFetch::RootGraphFetchTree<Any>[1]):Pair<String, FunctionDefinition<{->Any[*]}>>[*]
 {
     let subTrees = $tree.subTrees->cast(@meta::pure::graphFetch::PropertyGraphFetchTree)->evaluateAndDeactivate();
+    // println('----subTrees');
+    // println($subTrees);
+    // println('-----------');
     let properties = $subTrees.property;
     let result = $properties->findGetAllInQualifiedProperties();
+    //println('---Qry Result');
+    //println($result);
+    //println('-------------');
     if ($result->isEmpty(),
       |fail('The system can\'t find a \'set definition\' (i.e. .all()) in any property of the query type leveraged in the tree navigation.'),
-      |if ($properties->size() == $result->size(),
-        | $result->zip($subTrees)->map(x|
+      | if ($properties->size() == $result->size(),
+        | meta::pure::graphFetch::domain::createQueryFunctionDefinitionFromSelection($subTrees, $result),
+        | fail('All properties need to be getAll');
+      )
+    )
+    ->cast(@Pair<String, FunctionDefinition<{->Any[*]}>>);
+}
+
+function {doc.doc='serialize->getAll->selectedProps for query plan (subtrees = selected Properties, result = getAll FuncExpr'}
+meta::pure::graphFetch::domain::createQueryFunctionDefinitionFromSelection(
+  subTrees: meta::pure::graphFetch::PropertyGraphFetchTree[*],
+  result: SimpleFunctionExpression[*]):Pair<String, FunctionDefinition<{->Any[*]}>>[*]
+{
+  $result->zip($subTrees)->map(x|
+            //println($x);
             let parametersValueByName = $x.second.property->functionType().parameters->tail().name->zip($x.second.parameters)->newMap();
             let newFunc = $x.first;
             let genType = ^GenericType(rawType=meta::pure::graphFetch::RootGraphFetchTree, typeArguments=$x.first.genericType);
@@ -66,12 +117,10 @@ function meta::pure::graphFetch::domain::extractDomainTypeClassFromGraphFetchTre
                     usageContext = []
                   )
             );
+
             pair($x.second.property.name->toOne(), $func);
 
-          );,
-        | fail('All properties need to be getAll');
-      )
-    )->cast(@Pair<String, FunctionDefinition<{->Any[*]}>>);
+          );
 }
 
 function <<access.private>> meta::pure::graphFetch::domain::findGetAllInQualifiedProperties(properties:AbstractProperty<Any>[*]):SimpleFunctionExpression[*]

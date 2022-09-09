@@ -25,7 +25,7 @@ import java.io.IOException;
 public class LocalDynamoDbServer {
 
 
-    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("LocalDynamoDbServer");
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(LocalDynamoDbServer.class);
 
      private DynamoDBProxyServer server;
      private String runningPort;
@@ -39,7 +39,7 @@ public class LocalDynamoDbServer {
         // add to follow this and add an ARM64 lib version of sqlite https://taint.org/2022/02/09/183535a.html
 
         try {
-            System.setProperty("sqlite4java.library.path", "/Users/hugo/IdeaProjects/finos/ghub-real/legend-engine/legend-engine-xt-graphQL-query/native-libs");
+            System.setProperty("sqlite4java.library.path", "/Users/renu/finos/legend-engine/legend-engine-xt-graphQL-query/native-libs");
             this.runningPort = getAvailablePort();
             LOGGER.info("Starting DynamoDB server on port {}", runningPort);
             this.server = ServerRunner.createServerFromCommandLineArgs(

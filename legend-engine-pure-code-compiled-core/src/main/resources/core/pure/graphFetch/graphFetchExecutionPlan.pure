@@ -28,26 +28,23 @@ import meta::pure::runtime::*;
 
 import meta::json::*;
 
-// HG: GraphWriteNodes
-
 Enum meta::pure::graphFetch::executionPlan::GraphWriteAction {
 PERSIST,
 UPDATE,
 DELETE
 }
 
-Class meta::pure::graphFetch::executionPlan::GraphWriteExecutionNode extends ExecutionNode
+/*Class meta::pure::graphFetch::executionPlan::GraphWriteExecutionNode extends ExecutionNode
 {
    node : GraphWriteNode[1];
-}
+} */
 
-Class meta::pure::graphFetch::executionPlan::GraphWriteNode
+Class meta::pure::graphFetch::executionPlan::GraphMutateExecutionNode extends ExecutionNode
 {
+   persistFunction: String[1];
    class: Class<Any>[1];
    action: GraphWriteAction[1];
-   payload: JSONObject[1];
-   payloadStr: String[1];
-   selectionSet: String[*];
+   jsonPayload: String[1];
 }
 
 Class <<doc.deprecated>> meta::pure::graphFetch::executionPlan::GraphFetchExecutionNode extends ExecutionNode
