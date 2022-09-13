@@ -113,7 +113,27 @@ Association meta::external::query::graphQL::transformation::queryToPure::domain:
   employees: meta::external::query::graphQL::transformation::queryToPure::domain::Employee[0..*];
   firm: meta::external::query::graphQL::transformation::queryToPure::domain::Firm[1];
 }
+Class model::simple::Firm
+{
+  id: Integer[0..1];
+  firmId: Integer[1];
+  name: String[1];
+  location: String[1];
+  allFirms() {model::simple::Firm.all()}: model::simple::Firm[*];
+  persistFirm(input: model::simple::Firm[1]) { $input }: model::simple::Firm[1];
+}
 */
+
+Class meta::external::query::graphQL::transformation::queryToPure::domain::Firm
+{
+  id: Integer[0..1];
+  firmId: Integer[1];
+  name : String[1];
+  address : String[1];
+  allFirms() {meta::external::query::graphQL::transformation::queryToPure::domain::Firm.all()}: meta::external::query::graphQL::transformation::queryToPure::domain::Firm[*];
+  persistFirm(input: meta::external::query::graphQL::transformation::queryToPure::domain::Firm[1]) {$input}: meta::external::query::graphQL::transformation::queryToPure::domain::Firm[1];
+}
+
 
 function meta::external::query::graphQL::transformation::queryToPure::persistFromJSONObject<T>(class: Class<T>[1], inputJsonObj: meta::json::JSONObject[1]): T[1]
 {
