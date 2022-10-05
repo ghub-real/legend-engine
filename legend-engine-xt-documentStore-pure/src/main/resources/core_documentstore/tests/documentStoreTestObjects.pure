@@ -24,16 +24,16 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
         name     = 'MyMongoStore'
     );
     let field1 = ^meta::external::store::document::metamodel::Field(
-          id = 'fName000',
+          //id = 'fName000',
           name = 'fName',
-          owner = $mongoStore,
+          //owner = $mongoStore,
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
           nullable = false
     );
     let field2 = ^meta::external::store::document::metamodel::Field(
-          id = 'lName001',
+          //id = 'lName001',
           name = 'lName',
-          owner = $mongoStore,
+          //owner = $mongoStore,
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
           nullable = false
     );
@@ -41,11 +41,11 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
         ^meta::external::store::document::metamodel::Collection(
           id='101',
           name='personDocument',
-          owner=$mongoStore,
           fields = [$field1, $field2]
         )
         ];
-
+    $field1->mutateAdd('owner', $docCollection);
+    $field2->mutateAdd('owner', $docCollection);
     $mongoStore->mutateAdd('collections', $docCollection);
 
 

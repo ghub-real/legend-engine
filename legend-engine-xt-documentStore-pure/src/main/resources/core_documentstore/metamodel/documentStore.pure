@@ -17,45 +17,56 @@ import meta::external::shared::format::binding::*;
 
 Class meta::external::store::document::metamodel::DocumentStore extends meta::pure::store::set::SetBasedStore
 {
-    collections : DocumentStoreElement[*];
+    collections : NamedDocumentRelation[*];
     collection(name:String[1])
     {
         $this.collections->filter(t|$t.name == $name)->first();
-    }:DocumentStoreElement[0..1];
+    }:NamedDocumentRelation[0..1];
 }
 
 Class <<typemodifiers.abstract>> meta::external::store::document::metamodel::DocumentStoreElement
 {
-   owner    : DocumentStore[1];
-   name     : String[1];
-   id       : String[1];
-
+   //owner    : DocumentStore[0..1];
+   //id       : String[0..1];
 }
 
-Class meta::external::store::document::metamodel::Collection extends meta::external::store::document::metamodel::DocumentStoreElement
+Class meta::external::store::document::metamodel::DocumentRelation extends DocumentStoreElement, meta::pure::store::set::SetRelation
 {
-   fields  : Field[*];
+   fields : DocumentStoreElement[*];
+}
+
+
+Class <<typemodifiers.abstract>> meta::external::store::document::metamodel::NamedDocumentRelation extends DocumentRelation
+{
+   name     : String[1];
+   id       : String[0..1];
+}
+
+Class meta::external::store::document::metamodel::Collection extends meta::external::store::document::metamodel::NamedDocumentRelation
+{
+   //fields  : Field[*];
    field(fieldName:String[1])
    {
-        $this.fields->filter(c | $c.name == $fieldName )->first();
+        $this.fields->cast(@Field)->filter(c | $c.name == $fieldName )->first();
    }:Field[0..1];
 }
 
-Class meta::external::store::document::metamodel::CollectionFragment extends meta::external::store::document::metamodel::DocumentStoreElement
+Class meta::external::store::document::metamodel::CollectionFragment extends meta::external::store::document::metamodel::NamedDocumentRelation
 {
     // TODO: Move to abstract class
-   fields: Field[*];
+   //fields: Field[*];
    field(fieldName:String[1])
    {
-        $this.fields->filter(c | $c.name == $fieldName )->first();
+        $this.fields->cast(@Field)->filter(c | $c.name == $fieldName )->first();
    }:Field[0..1];
 }
 
-Class meta::external::store::document::metamodel::Field extends meta::external::store::document::metamodel::DocumentStoreElement
+Class meta::external::store::document::metamodel::Field extends meta::external::store::document::metamodel::DocumentStoreElement, meta::pure::store::set::SetColumn
 {
     <<equality.Key>> name : String[1];
     <<equality.Key>> type : meta::external::store::document::metamodel::TypeReference[1];
     nullable : Boolean[0..1];
+     owner : DocumentRelation[0..1];
 }
 
 
@@ -65,39 +76,43 @@ Class <<typemodifiers.abstract>> meta::external::store::document::metamodel::Typ
   list     : Boolean[1];
 }
 
-Class meta::external::store::document::metamodel::StringTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::CoreDataType extends meta::external::store::document::metamodel::TypeReference
 {
 }
 
-Class meta::external::store::document::metamodel::BooleanTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::StringTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::IntegerTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::BooleanTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::LongTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::IntegerTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::DateTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::LongTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::DoubleTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::DateTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::DecimalTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::DoubleTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::ObjectIdTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::DecimalTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
 }
 
-Class meta::external::store::document::metamodel::ObjectTypeReference extends meta::external::store::document::metamodel::TypeReference
+Class meta::external::store::document::metamodel::ObjectIdTypeReference extends meta::external::store::document::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::document::metamodel::ObjectTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
    type    : Class<Any>[1];
    binding : Binding[1];
@@ -112,10 +127,102 @@ Class meta::external::store::document::metamodel::CollectionAlias extends Alias
    documentElement(){$this.documentElement->cast(@DocumentStoreElement)}:DocumentStoreElement[1];
 }
 
-Class meta::external::store::document::metamodel::Alias
+Class meta::external::store::document::metamodel::Alias extends DocumentStoreElement
 {
    <<equality.Key>> name : String[1];
    <<equality.Key>> documentElement : DocumentStoreElement[1];
 }
 
+//Equivalent of SQLQuery
+Class meta::external::store::document::metamodel::DocumentQuery extends meta::external::store::document::metamodel::DocumentStoreElement
+{
+}
 
+
+Class {doc.doc = 'Equivalent of select query'}
+meta::external::store::document::metamodel::SelectDocumentQuery extends meta::external::store::document::metamodel::DocumentQuery, meta::external::store::document::metamodel::Collection
+{
+    distinct : Boolean[1];
+    data : RootJoinDocumentTreeNode[0..1];
+    filteringOperation : DocumentStoreElement[*];
+    leftSideOfFilter : DocumentTreeNode[0..1];
+    // orderBy
+    // groupBy
+    // havingOperation
+    // leftSideOfFilter
+    //
+}
+
+Class meta::external::store::document::metamodel::DocumentTreeNode extends meta::pure::functions::collection::TreeNode
+{
+    alias : CollectionAlias[1];
+//   Not yet implemented
+   children()
+    {
+        $this.childrenData->cast(@JoinDocumentTreeNode)
+    }:JoinDocumentTreeNode[*];
+//    childByJoinName(s:String[1])
+//    {
+//        $this.children()->filter(c| $c.join.name == $s)->first()
+//    }:JoinTreeNode[0..1];
+}
+
+Class meta::external::store::document::metamodel::RootJoinDocumentTreeNode extends DocumentTreeNode, Collection
+{
+// This is what you typially instantiate - so that you get the children from the DocumentTreeNode
+}
+
+Class meta::external::store::document::metamodel::JoinDocumentTreeNode extends DocumentTreeNode
+{
+// Not supporting
+}
+
+
+Class meta::external::store::document::metamodel::Literal extends meta::external::store::document::metamodel::DocumentStoreElement
+{
+   <<equality.Key>> value:Any[1];
+}
+
+Class meta::external::store::document::metamodel::LiteralList extends meta::external::store::document::metamodel::DocumentStoreElement
+{
+   <<equality.Key>> values:Literal[*];
+}
+
+Class meta::external::store::document::metamodel::DocumentNull
+{
+   //Used to make sure that any two Document field Null instances are equal
+   <<equality.Key>> key:Nil[0];
+   toString()
+   {
+      'DocumentNull'
+   }:String[1];
+}
+
+
+Class meta::external::store::document::metamodel::Function extends DocumentStoreElement
+{
+}
+
+Class meta::external::store::document::metamodel::Operation extends meta::external::store::document::metamodel::Function
+{
+}
+
+Class meta::external::store::document::metamodel::BinaryOperation extends meta::external::store::document::metamodel::Operation
+{
+    <<equality.Key>> left:DocumentStoreElement[1];
+    <<equality.Key>> right:DocumentStoreElement[1];
+}
+
+Class meta::external::store::document::metamodel::FieldName extends meta::external::store::document::metamodel::DocumentStoreElement
+{
+    <<equality.Key>> name : String[1];
+}
+
+
+Class meta::external::store::document::metamodel::JoinStrings extends meta::external::store::document::metamodel::Operation
+{
+    strings:DocumentStoreElement[*];
+    prefix:DocumentStoreElement[0..1];
+    separator:DocumentStoreElement[0..1];
+    suffix:DocumentStoreElement[0..1];
+}

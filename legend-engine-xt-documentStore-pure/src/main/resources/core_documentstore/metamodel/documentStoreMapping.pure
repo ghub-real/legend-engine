@@ -14,6 +14,7 @@
 
 import meta::pure::mapping::*;
 import meta::pure::metamodel::path::*;
+import meta::pure::router::routing::*;
 import meta::external::shared::format::metamodel::*;
 import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::mapping::*;
@@ -91,4 +92,66 @@ Class meta::external::store::document::metamodel::mapping::DocumentActivity exte
    dataSource : meta::external::store::document::metamodel::runtime::DataSource[0..1];
 }
 
+Class meta::external::store::document::metamodel::mapping::EmbeddedDocumentInstanceSetImplementation extends EmbeddedSetImplementation, DocumentInstanceSetImplementation
+{
+    setMappingOwner : RootDocumentInstanceSetImplementation[1];
+}
 
+Class meta::external::store::document::metamodel::mapping::OtherwiseEmbeddedDocumentInstanceSetImplementation extends EmbeddedDocumentInstanceSetImplementation,OtherwiseEmbeddedSetImplementation
+{
+
+}
+
+Class meta::external::store::document::metamodel::mapping::InlineEmbeddedDocumentInstanceSetImplementation extends EmbeddedDocumentInstanceSetImplementation,InlineEmbeddedSetImplementation
+{
+
+}
+
+
+function meta::external::store::document::mapping::functions::findPropertyMapping(property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], currentPropertyMapping:PropertyMapping[*], propertyMappingFromRouter:PropertyMapping[*], mapping:Mapping[1],debug:DebugContext[1]):PropertyMapping[*]
+{
+   let propertyName = $property.name->toOne();
+   if($currentPropertyMapping->size() >= 1  && $currentPropertyMapping->at(0)->instanceOf(EmbeddedDocumentInstanceSetImplementation),
+         | let embeddedPropertyMapping = $currentPropertyMapping->cast(@EmbeddedDocumentInstanceSetImplementation)->map(c|$c.propertyMappingsByPropertyName($propertyName));
+
+           let result = if( !$embeddedPropertyMapping->isEmpty()
+                         ,|$embeddedPropertyMapping
+                         ,|if(!$propertyMappingFromRouter->isEmpty()
+                           ,| $propertyMappingFromRouter
+                           ,| // this should only been done in the builder but will refactor as part of other fixes;
+                              $currentPropertyMapping
+                              ->filter(c | $c->match([
+                                 is: InlineEmbeddedDocumentInstanceSetImplementation[1] | $is.parent.classMappingById($is.inlineSetImplementationId)->toOne().class->_subTypeOf($propertyOwnerClass),
+                                 a: Any[1] | true
+                              ]))
+                              ->map(c | $c->cast(@EmbeddedDocumentInstanceSetImplementation)->propertyMappingsByPropertyName($propertyName));
+                            );
+
+                         );
+           assert(!$result->isEmpty(), | 'The system can\'t find a mapping for the property \''+$propertyOwnerClass->elementToPath()+'.'+$propertyName+
+                  '\' in the mapping \''+$mapping->elementToPath()+ '-> (Embedded)' + $currentPropertyMapping->at(0)->cast(@EmbeddedDocumentInstanceSetImplementation).setMappingOwner.class.name->toOne() + '.' + $currentPropertyMapping->at(0).property.name->toOne() + '\'');
+           $result;
+         ,
+         | let propMappings = if (!$propertyMappingFromRouter->isEmpty() && $propertyMappingFromRouter.property->removeDuplicates() == $property,
+                 |$propertyMappingFromRouter->map(pm | $pm->meta::pure::router::routing::reprocessAggregationAwarePropertyMapping()),
+                 |let rootClassMapping = $mapping.rootClassMappingByClass($propertyOwnerClass)->potentiallyResolveOperation($mapping);
+                  let classMapping = if($rootClassMapping->isEmpty() && $propertyOwnerClass->instanceOf(MappingClass),
+                                        | $mapping.classMappings()->filter(x | $x->instanceOf(InstanceSetImplementation) && $x->cast(@InstanceSetImplementation).mappingClass == $propertyOwnerClass),
+                                        | $rootClassMapping);
+                     assertSize($classMapping, 1, | 'The system can\'t find a mapping ('+$classMapping->size()->toString()+') for the class \''+$propertyOwnerClass->elementToPath()+'\' in the mapping \''+$mapping->elementToPath()+'\'');
+                     let setImpls = $classMapping->resolveOperation($mapping);
+                     let result = $setImpls->map(s|$s.propertyMappingsByPropertyName($propertyName))->map(pm | $pm->meta::pure::router::routing::reprocessAggregationAwarePropertyMapping());
+                     assert(!$result->isEmpty(), | 'The system can\'t find a mapping for the property \''+$propertyOwnerClass->elementToPath()+'.'+$propertyName+'\' in the mapping \''+$mapping->elementToPath()+'\'');
+                     $result;
+              );
+           if ($currentPropertyMapping->size() == 1 && ($propMappings->size() > 1),
+              |//In this use case, the precedent mappings were filtered (and we have nothing to union ... so we can't take the first one)
+               let result = $propMappings->filter(p|$p.sourceSetImplementationId == $currentPropertyMapping.targetSetImplementationId);
+               assert(!$result->isEmpty(),| 'Error can\'t find a mapping for the property:\''+$property.name->toOne()+'\' (owner class:"'+$propertyOwnerClass.name->toOne()+'") in the set implement id:"'+$currentPropertyMapping.targetSetImplementationId->toOne()+'" in ['+$propMappings->map(p|$p.owner->toOne().id+' : ('+$p.sourceSetImplementationId+' -> '+$p.targetSetImplementationId+')')->joinStrings(',')+']');
+               $result;,
+              |$propMappings
+           );
+
+
+   );
+}

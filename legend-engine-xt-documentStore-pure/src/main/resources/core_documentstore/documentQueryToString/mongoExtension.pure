@@ -1,0 +1,84 @@
+// Copyright 2022 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import meta::external::store::document::functions::documentQueryToString::mongo::*;
+import meta::external::store::document::metamodel::runtime::*;
+import meta::external::store::document::extension::documentQueryToString::*;
+import meta::external::store::document::metamodel::*;
+import meta::external::store::document::functions::documentQueryToString::*;
+import meta::external::store::document::extension::*; // for profile
+//import meta::relational::functions::sqlQueryToString::default::*;
+//import meta::relational::functions::sqlQueryToString::*;
+//import meta::relational::metamodel::operation::*;
+//import meta::relational::metamodel::*;
+//import meta::relational::runtime::*;
+
+function <<db.DocumentStoreExtensionLoader>> meta::external::store::document::functions::documentQueryToString::mongo::dbExtensionLoaderForMongo():DbExtensionLoader[1]
+{
+  ^DbExtensionLoader(dbType = DatabaseType.Mongo, loader = createDbExtensionForMongo__DbExtension_1_);
+}
+
+function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::createDbExtensionForMongo():DbExtension[1]
+{
+   let reservedWords = mongoReservedWords();
+   let literalProcessors = getDefaultLiteralProcessors();
+   let literalProcessor = {type:Type[1]| $literalProcessors->get(if($type->instanceOf(Enumeration), | Enum, | $type))->toOne()};
+
+   ^DbExtension(
+      isBooleanLiteralSupported = true,
+      aliasLimit = 1000,
+      isDbReservedIdentifier = {str:String[1]| $str->in($reservedWords)},
+      literalProcessor = $literalProcessor,
+      selectDocumentQueryProcessor = processSelectDocumentQuery_SelectDocumentQuery_1__SqlGenerationContext_1__Boolean_1__String_1_,
+      identifierProcessor = processIdentifierWithDoubleQuotes_String_1__DbConfig_1__String_1_
+   );
+}
+
+function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::mongoReservedWords():String[*]
+{
+   [
+      'collection','int32'
+   ];
+}
+
+//function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
+//{
+//    println($s);
+//    'Mongo Query';
+//}
+
+//function meta::external::store::document::functions::documentQueryToString::mongo::processIdentifierWithQuoteChar(identifier:String[1], quoteChar: String[1], dbConfig : DbConfig[1]):String[1]
+//{
+//  if($dbConfig.quoteIdentifiers || $identifier->startsWith('"') || $dbConfig.isDbReservedIdentifier($identifier),
+//    | '%s%s%s'->format([$quoteChar, $identifier->replace('"', ''), $quoteChar]),
+//    | $identifier
+//  );
+//}
+
+
+function meta::external::store::document::functions::documentQueryToString::mongo::processIdentifierWithDoubleQuotes(identifier:String[1], dbConfig: DbConfig[1]):String[1]
+{
+  let quoteChar = '"';
+  if($dbConfig.quoteIdentifiers || $identifier->startsWith('"') || $dbConfig.isDbReservedIdentifier($identifier),
+    | '%s%s%s'->format([$quoteChar, $identifier->replace('"', ''), $quoteChar]),
+    | $identifier
+  );
+   //$identifier->processIdentifierWithQuoteChar('"', $dbConfig);
+}
+
+
+
+
+
+
+

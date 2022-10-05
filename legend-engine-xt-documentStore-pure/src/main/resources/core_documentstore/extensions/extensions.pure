@@ -1,0 +1,335 @@
+// Copyright 2022 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import meta::pure::extension::*;
+import meta::pure::graphFetch::*;
+import meta::external::store::document::extension::*;
+import meta::external::store::document::metamodel::*;
+import meta::external::store::document::metamodel::mapping::*;
+import meta::external::store::document::metamodel::runtime::*;
+import meta::external::store::document::extension::documentQueryToString::*;
+import meta::external::store::document::functions::pureToDocumentStoreQuery::*; // for all the rest process operation stuff
+
+Profile meta::external::store::document::extension::db
+{
+   stereotypes: [DocumentStoreExtensionLoader];
+}
+
+Class meta::external::store::document::extension::DocumentStoreExtension extends ModuleExtension
+{
+   //executionPlan_print_enrichedQueryToString : meta::pure::metamodel::function::Function<{Nil[1] -> String[1]}>[*];
+   documentQueryToString_processOperation : meta::pure::metamodel::function::Function<{Nil[1], Format[1], GenerationState[1], Config[1], Extension[*] -> meta::pure::metamodel::function::Function<{Nil[1]->String[1]}>[*]}>[0..1];
+}
+
+function meta::external::store::document::extension::documentStoreExtensions()  : meta::pure::extension::Extension[1]
+{
+    //[relationalExtension('relational')]
+   [documentStoreExtension('documentStore')]
+}
+
+
+function <<access.private>> meta::external::store::document::extension::documentStoreExtension(type:String[1]) : meta::pure::extension::Extension[1]
+{
+   ^Extension
+   (
+      type = $type,
+      availableStores = [meta::external::store::document::contract::documentStoreStoreContract()],
+      serializerExtension =  meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension_String_1__String_1_,
+      graphExtension_calculateSourceTree = {tree:RootGraphFetchTree<Any>[1] |
+         {rsi: RootDocumentInstanceSetImplementation[1] |
+            $tree;
+         }
+      }
+  )
+      //TODO: Move this out along with Java Binding
+//      availablePlatformBindings = meta::pure::extension::defaultExtensions().availablePlatformBindings->concatenate(
+//         meta::pure::executionPlan::platformBinding::legendJava::legendJavaPlatformBinding([
+//           meta::external::store::service::executionPlan::platformBinding::legendJava::serviceStoreLegendJavaPlatformBindingExtension()
+//         ])
+//      )
+//   )
+}
+
+function meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension(version:String[1]):String[1]
+{
+   'meta::protocols::pure::'+$version+'::extension::getRelationalExtension_String_1__SerializerExtension_1_';
+}
+
+function meta::external::store::document::extension::documentQueryToString::processOperation(documentStoreElement:DocumentStoreElement[1], dbType:DatabaseType[1], extensions:Extension[*]):String[1]
+{
+   processOperation($documentStoreElement, createDbConfig($dbType, [], []), ^Format(newLine='', indent=''), ^Config(), $extensions);
+}
+
+
+function meta::external::store::document::extension::documentQueryToString::createDbConfig( dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1]):DbConfig[1]
+{
+   ^DbConfig(
+      dbType = $dbType,
+      dbTimeZone = $dbTimeZone,
+      quoteIdentifiers = if($quoteIdentifiers->isEmpty(), |false, |$quoteIdentifiers->toOne()),
+      dbExtension = $dbType->loadDbExtension()
+   );
+}
+
+
+Class meta::external::store::document::extension::documentQueryToString::DbConfig
+{
+   dbType:DatabaseType[1];
+   dbTimeZone:String[0..1];
+   quoteIdentifiers:Boolean[1];
+
+   dbExtension: DbExtension[1];
+
+   isDbReservedIdentifier(str:String[1])
+   {
+     $this.dbExtension.isDbReservedIdentifier->eval($str);
+   }: Boolean[1];
+
+   literalProcessor(type:Type[1])
+   {
+     getLiteralProcessorForType($type, $this.dbExtension.literalProcessor);
+   }: LiteralProcessor[1];
+
+   selectDocumentQueryProcessor(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1])
+   {
+     $this.dbExtension.selectDocumentQueryProcessor->eval($s, $sgc, $isSubSelect);
+   }: String[1];
+
+
+   collectionNameToIdentifier(s:String[1])
+   {
+     if($this.dbExtension.collectionNameToIdentifier->isEmpty(), |$s, |$this.dbExtension.collectionNameToIdentifier->toOne()->eval($s, $this));
+   }: String[1];
+
+   fieldNameToIdentifier(s:String[1])
+   {
+     if($this.dbExtension.fieldNameToIdentifier->isEmpty(), |$s, |$this.dbExtension.fieldNameToIdentifier->toOne()->eval($s, $this));
+   }: String[1];
+
+   identifierProcessor(s:String[1])
+   {
+     $this.dbExtension.identifierProcessor->eval($s, $this);
+   }: String[1];
+}
+
+Class meta::external::store::document::extension::documentQueryToString::DbExtensionLoader
+{
+   dbType: DatabaseType[1];
+   loader: meta::pure::metamodel::function::Function<{->DbExtension[1]}>[1];
+}
+
+Class meta::external::store::document::extension::documentQueryToString::DbExtension
+{
+   isBooleanLiteralSupported: Boolean[1];
+   collectionThresholdLimit: Integer[0..1];
+   aliasLimit: Integer[0..1];
+   coreTypeToDbSpecificSqlTranslator: meta::pure::metamodel::function::Function<{CoreDataType[1] -> String[0..1]}>[0..1];
+   isDbReservedIdentifier: meta::pure::metamodel::function::Function<{String[1] -> Boolean[1]}>[1];
+   literalProcessor: meta::pure::metamodel::function::Function<{Type[1] -> LiteralProcessor[1]}>[1];
+   selectDocumentQueryProcessor: meta::pure::metamodel::function::Function<{SelectDocumentQuery[1], SqlGenerationContext[1], Boolean[1] -> String[1]}>[1];
+   collectionNameToIdentifier: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[0..1];
+   fieldNameToIdentifier: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[0..1];
+   identifierProcessor: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[1];
+}
+
+Class meta::external::store::document::extension::documentQueryToString::SqlGenerationContext
+{
+   dbConfig: DbConfig[1];
+   format: Format[1];
+   generationState: GenerationState[1];
+   config: Config[1];
+   extensions: Extension[*];
+}
+
+Class meta::external::store::document::extension::documentQueryToString::Format
+{
+   newLine:String[1];
+   indent:String[1];
+
+   indentStack:String[*];
+
+   separator(){
+      $this.newLine + $this.indentStack->makeString();
+   }:String[1];
+}
+
+Enum meta::external::store::document::extension::documentQueryToString::GenerationSide
+{
+   Select,
+   Where
+}
+
+Class meta::external::store::document::extension::documentQueryToString::GenerationState
+{
+  <<equality.Key>> generationSide : GenerationSide[1];
+  <<equality.Key>> withinWhenClause : Boolean[0..1];
+}
+
+Class meta::external::store::document::extension::documentQueryToString::Config
+{
+   //callingFromFilter : Boolean[0..1];
+   useQuotesForTableAliasColumn : Boolean[0..1];
+   //generateJoin:Boolean[0..1];
+   //generateJoinTarget : TableAlias[0..1];
+}
+
+function meta::external::store::document::extension::documentQueryToString::loadDbExtension(dbType: DatabaseType[1]):DbExtension[1]
+{
+  let loader = getDbExtensionLoaders()->filter(l| $l.dbType == $dbType);
+  assert($loader->size() > 0, 'No extension loaders found for dbType ' + $dbType->toString());
+  assert($loader->size() < 2, 'Multiple extension loaders found for dbType ' + $dbType->toString());
+  $loader->toOne().loader->eval();
+}
+
+function meta::external::store::document::extension::documentQueryToString::getDbExtensionLoaders():DbExtensionLoader[*]
+{
+  db->stereotype('DocumentStoreExtensionLoader').modelElements->cast(@meta::pure::metamodel::function::Function<{->DbExtensionLoader[1]}>)
+    ->map(f| $f->eval())->sortBy(l| $l.dbType.name);
+}
+
+function meta::external::store::document::extension::documentQueryToString::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
+{
+      $sgc.dbConfig.selectDocumentQueryProcessor($s, $sgc, $isSubSelect);
+
+}
+
+function meta::external::store::document::extension::documentQueryToString::processFieldName(name:String[1], dbConfig:DbConfig[1]):String[1]
+{
+   $dbConfig.identifierProcessor($dbConfig.fieldNameToIdentifier($name));
+}
+
+function meta::external::store::document::extension::documentQueryToString::processLiteral(literal:Literal[1], dbConfig : DbConfig[1]) : String[1]
+{
+   $literal.value->processLiteralValue($dbConfig);
+}
+
+function meta::external::store::document::extension::documentQueryToString::getDefaultLiteralProcessors():Map<Type,LiteralProcessor>[1]
+{
+   newMap([
+      pair(Enum,           ^LiteralProcessor(format = '%s',     transform = toString_Any_1__String_1_->literalTransform())),
+      pair(String,         ^LiteralProcessor(format = '\'%s\'', transform = convertStringToDocumentQueryString_String_1__String_1_->literalTransform())),
+      pair(Number,         ^LiteralProcessor(format = '%s',     transform = toString_Any_1__String_1_->literalTransform())),
+      pair(Integer,        ^LiteralProcessor(format = '%s',     transform = toString_Any_1__String_1_->literalTransform())),
+      pair(Float,          ^LiteralProcessor(format = '%s',     transform = toString_Any_1__String_1_->literalTransform())),
+      pair(Decimal,        ^LiteralProcessor(format = '%s',     transform = toString_Any_1__String_1_->literalTransform())),
+      pair(Boolean,        ^LiteralProcessor(format = '\'%s\'', transform = toString_Any_1__String_1_->literalTransform())),
+      pair(DocumentNull,        ^LiteralProcessor(format = '%s',     transform = convertNullToDocumentQueryString_DocumentNull_1__String_1_->literalTransform())),
+      //pair(StrictDate,     ^LiteralProcessor(format = '\'%s\'', transform = {d:StrictDate[1], dbTimeZone:String[0..1] | $d->convertDateToSqlString($dbTimeZone)})),
+      pair(DateTime,       ^LiteralProcessor(format = '\'%s\'', transform = {d:DateTime[1], dbTimeZone:String[0..1] | $d->convertDateToSqlString($dbTimeZone)}))
+      //pair(Date,           ^LiteralProcessor(format = '\'%s\'', transform = {d:Date[1], dbTimeZone:String[0..1] | $d->convertDateToSqlString($dbTimeZone)}))
+   ]);
+}
+
+function meta::external::store::document::extension::documentQueryToString::processLiteralValue(a:Any[1], dbConfig : DbConfig[1]) : String[1]
+{
+   let processor = $dbConfig.literalProcessor($a->type());
+   $processor.formatValue($a, $dbConfig.dbTimeZone);
+}
+
+function meta::external::store::document::extension::documentQueryToString::convertStringToDocumentQueryString(s:String[1]):String[1]
+{
+   $s->replace('\'', '\'\'')->replace('\@@','\'')
+}
+
+function meta::external::store::document::extension::documentQueryToString::convertNullToDocumentQueryString(s:DocumentNull[1]):String[1]
+{
+   'null'
+}
+
+
+function meta::external::store::document::extension::documentQueryToString::literalTransform<K>(t: meta::pure::metamodel::function::Function<{K[1] -> String[1]}>[1]): meta::pure::metamodel::function::Function<{K[1], String[0..1] -> String[1]}>[1]
+{
+  {x:K[1], dbTimeZone:String[0..1]| $t->eval($x)};
+}
+
+
+function meta::external::store::document::extension::documentQueryToString::getLiteralProcessorForType(type:Type[1], literalProcessor: meta::pure::metamodel::function::Function<{Type[1] -> LiteralProcessor[1]}>[1]): LiteralProcessor[1]
+{
+//   if($type->equal(VarPlaceHolder),
+//      |^LiteralProcessor(format = '%s', transform = {v:VarPlaceHolder[1], dbTimeZone:String[0..1] | convertPlaceHolderToSQLString($v, $literalProcessor, $dbTimeZone)}),
+//      |
+      $literalProcessor->eval($type);
+}
+
+function meta::external::store::document::extension::documentQueryToString::convertDateToSqlString(date:Date[1], dbTimeZone:String[0..1]):String[1]
+{
+   //Default to UTC, if timezone is not specified. GMT is the same as UTC, UTC is not actually a timezone
+   let timeZone = if( $dbTimeZone->isEmpty(), | 'GMT', |  $dbTimeZone->toOne());
+   if($date->hasSecond(),
+      | if ($date->hasSubsecond(),
+            | format('%t{[' + $timeZone + ']yyyy-MM-dd HH:mm:ss.SSSSSS}', $date),
+            | format('%t{[' + $timeZone + ']yyyy-MM-dd HH:mm:ss}', $date)),
+      | format('%t{[' + $timeZone + ']yyyy-MM-dd}', $date));
+}
+
+//function meta::external::store::document::extension::documentQueryToString::convertPlaceHolderToSQLString(v:VarPlaceHolder[1], literalProcessor: meta::pure::metamodel::function::Function<{Type[1] -> LiteralProcessor[1]}>[1], dbTimeZone:String[0..1]):String[1]
+//{
+//   let vType        = $v->getVariableType();
+//
+//   let prefixSuffix = getPrefixAndSuffixForType($vType, $literalProcessor);
+//   let prefix       = $prefixSuffix.first;
+//   let suffix       = $prefixSuffix.second;
+//   let value        = processPlaceHolder($v, $vType, $prefix, $suffix, $dbTimeZone);
+//}
+//
+//function meta::external::store::document::extension::documentQueryToString::processPlaceHolder(v:VarPlaceHolder[1], type:Type[1], prefix:String[1], suffix:String[1], dbTimeZone:String[0..1]): String[1]
+//{
+//   let noPropertyPath              = $v.propertyPath->isEmpty();
+//   let optionalHandler             = if($v->isOptionalPlaceHolder() && $noPropertyPath,|'![]',|'');
+//   let placeHolderWithPath         = $v.name+if($noPropertyPath,|'',|'.')+$v.propertyPath->map(p|$p.name)->joinStrings('.');
+//   let resolvedPlaceHolder         = if($type == String,
+//                                           | $placeHolderWithPath->convertStringToSQLString(),
+//                                           | $placeHolderWithPath) + $optionalHandler;
+//
+//   let isPossibleDateTimeType      = [Date, DateTime]->contains($v.type);
+//   let possiblyApplyDateTzFunction = if($isPossibleDateTimeType,| processDatePlaceHolder($resolvedPlaceHolder, $dbTimeZone),| $resolvedPlaceHolder);
+//
+//   if($v->isCollectionPlaceHolder(),
+//      |if($resolvedPlaceHolder == $possiblyApplyDateTzFunction,
+//         |'${renderCollection('+ $resolvedPlaceHolder + ' \",\" \"' + $prefix + '\" \"' + $suffix + '\" ' + placeHolderDefaultValue() +')}',
+//         |'${renderCollectionWithTz('+ $resolvedPlaceHolder + ' "['+ $dbTimeZone->toOne() + ']" ' + '\",\" \"' + $prefix + '\" \"' + $suffix + '\" ' + placeHolderDefaultValue() +')}'),
+//      |if($v->isOptionalPlaceHolder(),
+//          |'${varPlaceHolderToString(' + $possiblyApplyDateTzFunction + ' \"' + $prefix + '\" \"'+ $suffix + '\" '+ placeHolderDefaultValue()+')}',
+//          |$prefix + '${'+$possiblyApplyDateTzFunction+'}' + $suffix)
+//      );
+//}
+//
+//function <<access.private>> meta::external::store::document::extension::documentQueryToString::getPrefixAndSuffixForType(type:Type[1], literalProcessor: meta::pure::metamodel::function::Function<{Type[1] -> LiteralProcessor[1]}>[1]):Pair<String, String>[1]
+//{
+//   let lp           = $literalProcessor->eval($type);
+//   // We need this replace here to mimic what we would have done if we had executed the format string on input.
+//   // %% is used in format to escape a required % symbol. We don't need to do this while building freemarker context
+//   let lpFormat     = $lp.format->replace('%%', '%');
+//
+//   let index        = $lpFormat->indexOf('%s');
+//   let prefix       = $lpFormat->substring(0, $index);
+//   let suffix       = $lpFormat->substring($index+2);
+//
+//   ^Pair<String, String>(first = $prefix, second = $suffix);
+//}
+
+
+Class meta::external::store::document::extension::documentQueryToString::LiteralProcessor
+{
+   types:Type[*];
+   format: String[1];
+   transform: meta::pure::metamodel::function::Function<{Nil[1], String[0..1] -> String[1]}>[1];
+
+   formatValue(value:Any[1], dbTimeZone:String[0..1]) {
+      $this.format->format($this.transformValue($value, $dbTimeZone))
+   }:String[1];
+
+   transformValue(value:Any[1], dbTimeZone:String[0..1]) {
+      $this.transform->eval($value, $dbTimeZone)
+   }:String[1];
+}
