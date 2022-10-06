@@ -44,13 +44,9 @@ function meta::external::store::document::contract::documentStoreStoreContract()
 //
     supportsSetImplementation = s:SetImplementation[1]|$s->instanceOf(DocumentInstanceSetImplementation),
     supportsStore = s:Store[1]|$s->instanceOf(meta::external::store::document::metamodel::DocumentStore),
-//    resolveStoreFromSetImplementation = s:InstanceSetImplementation[1]|$s->match(
-//                                                                            [
-//                                                                              r : RootServiceInstanceSetImplementation[1] | $r.serviceStore(),
-//                                                                              e : EmbeddedServiceStoreSetImplementation[1] | ^meta::pure::router::store::embedded::EmbeddedStore(package=::)
-//                                                                            ]
-//                                                                        ),
-     supportsNativeJoinAmongElements = false
+    resolveStoreFromSetImplementation = s:InstanceSetImplementation[1]|$s->meta::external::store::document::contract::getStore(),
+
+    supportsNativeJoinAmongElements = false
 //
 //     printConnectionToString = {extensions:meta::pure::extension::Extension[*]|
 //                                       [
@@ -64,7 +60,7 @@ function meta::external::store::document::contract::documentStoreStoreContract()
 //                                       ]},
 //    extractSourceClassFromSetImplementation =
 //            [
-//              s: RootServiceInstanceSetImplementation[1]  | $s.class,
+//              s: RootDocumentInstanceSetImplementation[1]  | $s.class,
 //              e: EmbeddedServiceStoreSetImplementation[1] | $e.class
 //            ],
 //    crossStoreSourceSupportsBatching = {
@@ -95,8 +91,24 @@ function meta::external::store::document::contract::documentStoreStoreContract()
 //  meta::external::store::service::executionPlan::generation::planCrossStoreGraphFetchExecutionServiceStore($tree, $orderedPaths, $newParentPath, $inScopeVars, $m, $runtime, $exeCtx, $enableConstraints, $checked, $extensions, $debug)
 //}
 
+//function meta::external::store::document::contract::planGraphFetchExecution(tree:ClusteredGraphFetchTree[1], orderedPaths:String[*], enableConstraints:Boolean[1], checked:Boolean[1], sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):LocalGraphFetchExecutionNode[1]
+//{
+//  meta::external::store::document::contract::planRootGraphFetchExecutionDocumentStore($sq, $ext, $tree, $orderedPaths, $m, $runtime, $exeCtx, $enableConstraints, $checked, $extensions, $debug)
+//}
+
 
 function meta::external::store::document::contract::supports(f:FunctionExpression[1]):Boolean[1]
 {
   !findSupportedFunction($f, getSupportedFunctions())->isEmpty()
+}
+
+
+function meta::external::store::document::contract::getStore(r:InstanceSetImplementation[1]):Store[1]
+{
+  $r->match(
+    [
+      r:RootDocumentInstanceSetImplementation[1]| $r.mainCollectionAlias.documentStore->toOne(),
+      e:EmbeddedDocumentInstanceSetImplementation[1]| ^meta::pure::router::store::embedded::EmbeddedStore(package=::)
+    ]
+  )
 }

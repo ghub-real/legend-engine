@@ -123,7 +123,7 @@ Class meta::external::store::document::metamodel::ObjectTypeReference extends me
 Class meta::external::store::document::metamodel::CollectionAlias extends Alias
 {
    setMappingOwner : meta::pure::mapping::PropertyMappingsImplementation[0..1];
-   owner    : DocumentStore[0..1];
+   documentStore    : DocumentStore[0..1];
    documentElement(){$this.documentElement->cast(@DocumentStoreElement)}:DocumentStoreElement[1];
 }
 

@@ -67,7 +67,7 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
    let collectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
                 name = 'personDocument',
                 documentElement = $docCollection,
-                owner = $mongoStore
+                documentStore = $mongoStore
                 );
 
    let firmDocumentSetImpl = ^meta::external::store::document::metamodel::mapping::RootDocumentInstanceSetImplementation(
