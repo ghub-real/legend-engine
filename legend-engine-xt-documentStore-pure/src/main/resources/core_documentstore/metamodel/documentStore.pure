@@ -124,7 +124,7 @@ Class meta::external::store::document::metamodel::CollectionAlias extends Alias
 {
    setMappingOwner : meta::pure::mapping::PropertyMappingsImplementation[0..1];
    documentStore    : DocumentStore[0..1];
-   documentElement(){$this.documentElement->cast(@DocumentStoreElement)}:DocumentStoreElement[1];
+   documentRelation(){$this.documentRelation->cast(@DocumentRelation)}:DocumentStoreElement[1];
 }
 
 Class meta::external::store::document::metamodel::Alias extends DocumentStoreElement
