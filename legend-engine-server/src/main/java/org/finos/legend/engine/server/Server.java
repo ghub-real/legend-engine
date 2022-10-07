@@ -39,6 +39,8 @@ import org.finos.legend.engine.api.analytics.MappingAnalytics;
 import org.finos.legend.engine.application.query.api.ApplicationQuery;
 import org.finos.legend.engine.application.query.configuration.ApplicationQueryConfiguration;
 import org.finos.legend.engine.authentication.LegendDefaultDatabaseAuthenticationFlowProviderConfiguration;
+import org.finos.legend.engine.connection.mongodb.LocalMongoDbClient;
+import org.finos.legend.engine.connection.mongodb.MongoDbResource;
 import org.finos.legend.engine.external.shared.format.extension.GenerationExtension;
 import org.finos.legend.engine.external.shared.format.extension.GenerationMode;
 import org.finos.legend.engine.external.shared.format.generations.loaders.CodeGenerators;
@@ -216,6 +218,10 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new ExecutePlanStrategic(planExecutor));
         environment.jersey().register(new ExecutePlanLegacy(planExecutor));
 
+        // goncah MongoDB
+        LocalMongoDbClient mongoDbClient = new LocalMongoDbClient();
+        environment.jersey().register(new MongoDbResource(mongoDbClient));
+
         // GraphQL
         environment.jersey().register(new GraphQLGrammar());
         environment.jersey().register(new GraphQLExecute(modelManager, planExecutor, serverConfiguration.metadataserver, generatorExtensions.flatCollect(PlanGeneratorExtension::getExtraPlanTransformers)));
@@ -243,7 +249,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new Testable(modelManager));
 
         // localh2server on 9092
-        //this.setupLocalH2Db();
+        this.setupLocalH2Db();
 
         enableCors(environment);
     }
