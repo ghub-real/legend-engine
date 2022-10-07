@@ -64,28 +64,28 @@ Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreG
 //   parentTempTableName : String[1];
 //   parentTempTableColumns : SQLResultColumn[*];
 //}
-//
-//Class meta::relational::graphFetch::executionPlan::RelationalClassQueryTempTableGraphFetchExecutionNode extends RelationalTempTableGraphFetchExecutionNode
-//{
-//}
-//
-//Class meta::relational::graphFetch::executionPlan::RelationalPrimitiveQueryGraphFetchExecutionNode extends RelationalGraphFetchExecutionNode
-//{
-//}
-//
-//Class meta::relational::graphFetch::executionPlan::RelationalRootQueryTempTableGraphFetchExecutionNode extends RelationalClassQueryTempTableGraphFetchExecutionNode
-//{
-//   batchSize : Integer[0..1];
-//   enableConstraints : Boolean[1];
-//   checked : Boolean[1];
-//}
-//
-//Class meta::relational::graphFetch::executionPlan::RelationalCrossRootQueryTempTableGraphFetchExecutionNode extends RelationalClassQueryTempTableGraphFetchExecutionNode
-//{
+
+Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreClassQueryTempTableGraphFetchExecutionNode //extends RelationalTempTableGraphFetchExecutionNode
+{
+}
+
+Class meta::external::store::document::graphFetch::executionPlan::DocumentStorePrimitiveQueryGraphFetchExecutionNode extends DocumentStoreGraphFetchExecutionNode
+{
+}
+
+Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode extends DocumentStoreClassQueryTempTableGraphFetchExecutionNode
+{
+  batchSize : Integer[0..1];
+  enableConstraints : Boolean[1];
+  checked : Boolean[1];
+}
+
+// Class meta::relational::graphFetch::executionPlan::DocumentStoreCrossRootQueryTempTableGraphFetchExecutionNode extends RelationalClassQueryTempTableGraphFetchExecutionNode
+// {
 //   parentTempTableName    : String[1];
 //   parentTempTableColumns : SQLResultColumn[*];
-//}
-//
+// }
+
 //function <<access.private>> meta::relational::graphFetch::executionPlan::tempTableName(index: Integer[1]):String[1]
 //{
 //   'temp_table_node_' + toString($index)

@@ -66,7 +66,7 @@ Class meta::external::store::document::metamodel::Field extends meta::external::
     <<equality.Key>> name : String[1];
     <<equality.Key>> type : meta::external::store::document::metamodel::TypeReference[1];
     nullable : Boolean[0..1];
-     owner : DocumentRelation[0..1];
+    owner : DocumentRelation[0..1];
 }
 
 
@@ -124,7 +124,7 @@ Class meta::external::store::document::metamodel::CollectionAlias extends Alias
 {
    setMappingOwner : meta::pure::mapping::PropertyMappingsImplementation[0..1];
    documentStore    : DocumentStore[0..1];
-   documentRelation(){$this.documentRelation->cast(@DocumentRelation)}:DocumentStoreElement[1];
+   documentRelation(){$this.documentElement->cast(@DocumentRelation)}:DocumentRelation[1];
 }
 
 Class meta::external::store::document::metamodel::Alias extends DocumentStoreElement
@@ -140,9 +140,9 @@ Class meta::external::store::document::metamodel::DocumentQuery extends meta::ex
 
 
 Class {doc.doc = 'Equivalent of select query'}
-meta::external::store::document::metamodel::SelectDocumentQuery extends meta::external::store::document::metamodel::DocumentQuery, meta::external::store::document::metamodel::Collection
+meta::external::store::document::metamodel::SelectDocumentQuery extends meta::external::store::document::metamodel::DocumentQuery, meta::external::store::document::metamodel::DocumentRelation
 {
-    distinct : Boolean[1];
+    distinct : Boolean[0..1];
     data : RootJoinDocumentTreeNode[0..1];
     filteringOperation : DocumentStoreElement[*];
     leftSideOfFilter : DocumentTreeNode[0..1];
@@ -167,7 +167,7 @@ Class meta::external::store::document::metamodel::DocumentTreeNode extends meta:
 //    }:JoinTreeNode[0..1];
 }
 
-Class meta::external::store::document::metamodel::RootJoinDocumentTreeNode extends DocumentTreeNode, Collection
+Class meta::external::store::document::metamodel::RootJoinDocumentTreeNode extends DocumentTreeNode, DocumentRelation
 {
 // This is what you typially instantiate - so that you get the children from the DocumentTreeNode
 }
@@ -205,6 +205,12 @@ Class meta::external::store::document::metamodel::Function extends DocumentStore
 
 Class meta::external::store::document::metamodel::Operation extends meta::external::store::document::metamodel::Function
 {
+}
+
+Class meta::external::store::document::metamodel::DynaFunction extends Operation
+{
+    <<equality.Key>> name : String[1];
+    <<equality.Key>> parameters : DocumentStoreElement[*];
 }
 
 Class meta::external::store::document::metamodel::BinaryOperation extends meta::external::store::document::metamodel::Operation

@@ -29,7 +29,9 @@ Class meta::external::store::document::metamodel::mapping::DocumentMappingSpecif
     userDefinedPrimaryKey : Boolean[1];
     mainCollectionAlias : CollectionAlias[1];
 
-    mainCollection(){$this.mainCollectionAlias.documentElement}:DocumentStoreElement[1];
+    mainDocumentRelation(){$this.mainCollectionAlias.documentRelation}:DocumentRelation[1];
+
+    mainCollection(){$this.mainCollectionAlias.documentElement->match([c:Collection[1]|$c])}:Collection[1];
 }
 
 Class meta::external::store::document::metamodel::mapping::RootDocumentInstanceSetImplementation extends DocumentInstanceSetImplementation, DocumentMappingSpecification
@@ -106,6 +108,15 @@ Class meta::external::store::document::metamodel::mapping::InlineEmbeddedDocumen
 {
 
 }
+
+function meta::external::store::document::mapping::functions::dataTypePropertyMappings(impl:DocumentInstanceSetImplementation[1]):PropertyMapping[*]
+{
+   $impl.allPropertyMappings()->map(pm | $pm.property->genericType().typeArguments->at(1).rawType->toOne()->match([
+                                              d : meta::pure::metamodel::type::DataType[1] | $pm,
+                                              a : Any[1] | []
+                                             ]))
+}
+
 
 
 function meta::external::store::document::mapping::functions::findPropertyMapping(property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], currentPropertyMapping:PropertyMapping[*], propertyMappingFromRouter:PropertyMapping[*], mapping:Mapping[1],debug:DebugContext[1]):PropertyMapping[*]

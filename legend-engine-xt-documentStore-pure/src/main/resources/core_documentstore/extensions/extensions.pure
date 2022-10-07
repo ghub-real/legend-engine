@@ -333,3 +333,23 @@ Class meta::external::store::document::extension::documentQueryToString::Literal
       $this.transform->eval($value, $dbTimeZone)
    }:String[1];
 }
+
+function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], extensions:Extension[*]):String[1]
+{
+   documentQueryToString($documentQuery, $dbType, [], [], $extensions);
+}
+
+function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], extensions:Extension[*]):String[1]
+{
+   documentQueryToString($documentQuery, $dbType, $dbTimeZone, $quoteIdentifiers, ^Format(newLine='', indent=''), $extensions);
+}
+
+function meta::external::store::document::extension::documentQueryToString::documentQueryToStringPretty(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], extensions:Extension[*]):String[1]
+{
+   documentQueryToString($documentQuery, $dbType, $dbTimeZone, $quoteIdentifiers, ^Format(newLine='\n', indent='\t'), $extensions);
+}
+
+function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], format:Format[1], extensions:Extension[*]):String[1]
+{
+   processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions);
+}
