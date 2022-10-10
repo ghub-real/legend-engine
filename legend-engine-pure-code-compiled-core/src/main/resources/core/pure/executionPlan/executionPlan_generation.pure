@@ -110,9 +110,9 @@ function meta::pure::executionPlan::executionPlan(clusters:ClusteredValueSpecifi
    let functionParameters = $f->stubFuncParameters();
    
    let node = if ($clusters->size() == 1,
-       | $clusters->at(0)->plan($runtime, $inScopeVars, $routed.advancedRouting, $context, $extensions, $debugContext),
+       | $clusters->at(0)->plan($runtime, $inScopeVars, $context, $extensions, $debugContext),
        | let allNodes = $clusters->fold({c,a|let x = $a.vars;
-                                             let node = $c->plan($runtime, $x, $routed.advancedRouting, $context, $extensions, $debugContext);
+                                             let node = $c->plan($runtime, $x, $context, $extensions, $debugContext);
                                              let nVars = $node->match([a:AllocationExecutionNode[1]|let varValues = if($a.resultType.type ==TabularDataSet,
                                                                                                                        |^PlanSetPlaceHolder(name=$a.varName,tdsColumns = $a.resultType->match([x:TDSResultType[1]|$x.tdsColumns, a:Any[1]|[]])),
                                                                                                                        |^PlanVarPlaceHolder(name=$a.varName,type = $a.resultType.type, multiplicity=$a.resultSizeRange));
@@ -149,18 +149,6 @@ function meta::pure::executionPlan::executionPlan(clusters:ClusteredValueSpecifi
 
 
 
-
-function <<doc.deprecated>> meta::pure::executionPlan::generatePlatformCode(plan:ExecutionPlan[1], config:PlatformCodeGenerationConfig[1], extensions:meta::pure::extension::Extension[*]):ExecutionPlan[1]
-{
-   meta::pure::executionPlan::generatePlatformCode($plan, $config, $extensions, if(isOptionSet('DebugPlatformCodeGen'), |debug(), |noDebug()));
-}
-
-function <<doc.deprecated>> meta::pure::executionPlan::generatePlatformCode(plan:ExecutionPlan[1], config:PlatformCodeGenerationConfig[1], extensions:meta::pure::extension::Extension[*], debug:DebugContext[1]):ExecutionPlan[1]
-{
-   assert($config.platform == Platform.JAVA, 'Platform Not Supported: ' + $config.platform.name);
-   meta::pure::executionPlan::generatePlatformCode($plan, meta::pure::executionPlan::platformBinding::legendJava::legendJavaPlatformBindingId(), ^meta::pure::executionPlan::platformBinding::legendJava::LegendJavaPlatformBindingConfig(planId = $config.planId), $extensions, $debug);
-}
-
 function meta::pure::executionPlan::generatePlatformCode(plan:ExecutionPlan[1], platformId:String[1], config:meta::pure::executionPlan::platformBinding::PlatformBindingConfig[1], extensions:meta::pure::extension::Extension[*]):ExecutionPlan[1]
 {
    meta::pure::executionPlan::generatePlatformCode($plan, $platformId, $config, $extensions, if(isOptionSet('DebugPlatformCodeGen'), |debug(), |noDebug()));
@@ -175,9 +163,10 @@ function meta::pure::executionPlan::generatePlatformCode(plan:ExecutionPlan[1], 
 
 function <<access.private>> meta::pure::executionPlan::addFunctionParametersValidationNode(node:ExecutionNode[1], f:FunctionDefinition<Any>[1], planVarPlaceHolders:PlanVarPlaceHolder[*], routedFunction:FunctionDefinition<Any>[1]):ExecutionNode[1]
 {
+   let enumValidationContext = $planVarPlaceHolders->filter(p | $p.type->instanceOf(Enumeration))->map(e | ^meta::pure::executionPlan::EnumValidationContext(varName = $e.name, validEnumValues = $e.type->cast(@Enumeration<Any>)->enumValues()->map(e |$e->id())));
    let paramsSupportedForStreamInput = $routedFunction->findParamsSupportedForStreamInput();
    if($f->instanceOf(LambdaFunction) && $planVarPlaceHolders->isNotEmpty(),| let functionParameters = $planVarPlaceHolders->map(p|^FunctionParameter(name=$p.name, supportsStream = $p.name->in($paramsSupportedForStreamInput), multiplicity=$p.multiplicity, type=$p.type));
-                                                                             let functionParametersValidationNode = ^FunctionParametersValidationNode(functionParameters = $functionParameters, resultType=^ResultType(type = Boolean));
+                                                                             let functionParametersValidationNode = ^FunctionParametersValidationNode(functionParameters = $functionParameters, resultType=^ResultType(type = Boolean), parameterValidationContext = $enumValidationContext);
                                                                              $node->match([s:SequenceExecutionNode[1]|^$s(executionNodes=$functionParametersValidationNode->concatenate($s.executionNodes)),
                                                                                            e:ExecutionNode[1]|^SequenceExecutionNode(executionNodes=[$functionParametersValidationNode, $e], resultType=$e.resultType, resultSizeRange=$e.resultSizeRange)]);
                                                                          ,| $node);
@@ -218,7 +207,7 @@ function meta::pure::executionPlan::stubFuncParameters(f:FunctionDefinition<Any>
    $f->functionType().parameters->evaluateAndDeactivate()->map(p|^PlanVarPlaceHolder(name=$p.name, type = $p.genericType.rawType->toOne(), multiplicity=$p.multiplicity));
 }
 
-function meta::pure::executionPlan::plan(cluster:ClusteredValueSpecification[1], runtime:Runtime[0..1], inScopeVars:Map<String, List<Any>>[1], advancedRouting:Boolean[0..1], context:ExecutionContext[1], extensions:meta::pure::extension::Extension[*], debugContext:DebugContext[1]):ExecutionNode[1]
+function meta::pure::executionPlan::plan(cluster:ClusteredValueSpecification[1], runtime:Runtime[0..1], inScopeVars:Map<String, List<Any>>[1], context:ExecutionContext[1], extensions:meta::pure::extension::Extension[*], debugContext:DebugContext[1]):ExecutionNode[1]
 {
     let fe = $cluster.val->match([r:ExtendedRoutedValueSpecification[1]|$r.value,
                                   t:TDSRoutedValueSpecification[1] | $t.value,
@@ -229,7 +218,7 @@ function meta::pure::executionPlan::plan(cluster:ClusteredValueSpecification[1],
             let subPlan = $variables->at(1)->match(
                               [
                                  c:ClusteredValueSpecification[1]|
-                                    $c->plan($runtime, $inScopeVars, $advancedRouting, if ($c.exeCtx->isEmpty(), | $context, | $c.exeCtx->toOne()), $extensions, $debugContext);,
+                                    $c->plan($runtime, $inScopeVars, if ($c.exeCtx->isEmpty(), | $context, | $c.exeCtx->toOne()), $extensions, $debugContext);,
                                  i:InstanceValue[1]|^meta::pure::executionPlan::ConstantExecutionNode
                                                     (
                                                        resultType = ^ResultType(type = $i.genericType.rawType->toOne()),
@@ -243,7 +232,8 @@ function meta::pure::executionPlan::plan(cluster:ClusteredValueSpecification[1],
                                                                  (
                                                                     expression = $s,
                                                                     requiredVariableInputs = $varInput,
-                                                                    resultType = ^ResultType(type=$s.genericType.rawType->toOne())
+                                                                    resultType = ^ResultType(type=$s.genericType.rawType->toOne()),
+                                                                    resultSizeRange = $s.multiplicity
                                                                  );
                               ]
                            );
@@ -263,7 +253,7 @@ function meta::pure::executionPlan::plan(cluster:ClusteredValueSpecification[1],
                r:Runtime[0..1] | $r
             ]);
 
-            let query = ^meta::pure::mapping::StoreQuery(store=$cluster.store, fe=$fe, inScopeVars=$inScopeVars, advancedRouting=$advancedRouting);
+            let query = ^meta::pure::mapping::StoreQuery(store=$cluster.store, fe=$fe, inScopeVars=$inScopeVars);
             let res = $cluster.s.planExecution->toOne()->eval($query, $cluster.val->match([r:RoutedValueSpecification[1]|$r, a:Any[*]|[]])->cast(@RoutedValueSpecification), $cluster.mapping, $rt, if ($cluster.exeCtx->isEmpty(), | $context, | $cluster.exeCtx->toOne()), $extensions, $debugContext);
             ^$res(fromCluster=$cluster);
     );
@@ -283,19 +273,19 @@ function meta::pure::executionPlan::nodeFromConnection(c:Connection[1], tree:Roo
                   let returnedClass   = $tree.class->toOne();
 
                   assert($tree->isNotEmpty(), 'Deserialization without Graph Fetch Tree not yet supported');
-                  let deserializeNode = ^meta::external::shared::format::executionPlan::ExternalFormatInternalizeExecutionNode
-                                        (
-                                            resultType      = ^PartialClassResultType(
-                                                                type=$returnedClass,
-                                                                propertiesWithParameters = $tree.subTrees->cast(@PropertyGraphFetchTree)->map(x | $x->map(x | ^PropertyWithParameters(property = $x.property, parameters = $x.parameters)))
-                                                              ),
-                                            resultSizeRange = ZeroMany,
-                                            tree            = $tree,
-                                            binding         = $connection->cast(@meta::external::shared::format::executionPlan::ExternalFormatConnection).element->cast(@meta::external::shared::format::binding::Binding),
-                                            executionNodes  = $sourceNode
-                                        );
-
-                  meta::external::shared::format::executionPlan::generateDataQualityNode($deserializeNode, $enableConstraints, $checked);
+                  ^meta::external::shared::format::executionPlan::ExternalFormatInternalizeExecutionNode
+                  (
+                      resultType        = ^PartialClassResultType(
+                                            type=$returnedClass,
+                                            propertiesWithParameters = $tree.subTrees->cast(@PropertyGraphFetchTree)->map(x | $x->map(x | ^PropertyWithParameters(property = $x.property, parameters = $x.parameters)))
+                                          ),
+                      resultSizeRange   = ZeroMany,
+                      tree              = $tree,
+                      binding           = $connection->cast(@meta::external::shared::format::executionPlan::ExternalFormatConnection).element->cast(@meta::external::shared::format::binding::Binding),
+                      executionNodes    = $sourceNode,
+                      enableConstraints = $enableConstraints,
+                      checked           = $checked
+                  );
                }
             ]->concatenate($dflt)->toOneMany())->toOne();
 }

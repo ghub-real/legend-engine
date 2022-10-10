@@ -66,6 +66,7 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.Platfo
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.PlatformUnionExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.PureExpressionPlatformExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SequenceExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.externalFormat.VariableResolutionExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
@@ -133,6 +134,15 @@ public class ExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
         {
             return executionNode.executionNodes.get(0).accept(new ExecutionNodeExecutor(this.profiles, this.executionState));
         }
+        else if (executionNode instanceof VariableResolutionExecutionNode)
+        {
+            Result res = executionState.getResult(((VariableResolutionExecutionNode) executionNode).varName);
+            if (res == null)
+            {
+                throw new RuntimeException("Expected result for variable : " + ((VariableResolutionExecutionNode) executionNode).varName + ". No result found !");
+            }
+            return res;
+        }
 
         return this.executionState.extraNodeExecutors.stream().map(executor -> executor.value(executionNode, profiles, executionState)).filter(Objects::nonNull).findFirst().orElseThrow(() -> new UnsupportedOperationException("Unsupported execution node type '" + executionNode.getClass().getSimpleName() + "'"));
     }
@@ -178,7 +188,7 @@ public class ExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
     @Override
     public Result visit(FunctionParametersValidationNode functionParametersValidationNode)
     {
-        FunctionParametersParametersValidation.validate(Lists.immutable.withAll(functionParametersValidationNode.functionParameters), this.executionState);
+        FunctionParametersParametersValidation.validate(Lists.immutable.withAll(functionParametersValidationNode.functionParameters), functionParametersValidationNode.parameterValidationContext, this.executionState);
         return new ConstantResult(true);
     }
 
@@ -186,12 +196,7 @@ public class ExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
     public Result visit(AllocationExecutionNode allocationExecutionNode)
     {
         String varName = allocationExecutionNode.varName;
-        Result result = allocationExecutionNode.executionNodes().getFirst().accept(new ExecutionNodeExecutor(this.profiles, new ExecutionState(this.executionState).varName(varName)));
-//        if (!(r instanceof ConstantResult) && !(r instanceof RelationalResult) && !(r instanceof StreamingObjectResult))
-//        {
-//            r.close();
-//            throw new RuntimeException("Not supported yet! " + r.getClass().getName());
-//        }
+        Result result = allocationExecutionNode.executionNodes().getFirst().accept(new ExecutionNodeExecutor(this.profiles, new ExecutionState(this.executionState).varName(varName).setRealizeInMemory(allocationExecutionNode.realizeInMemory)));
         if (result instanceof ConstantResult && ((ConstantResult) result).getValue() instanceof Map && ((Map<?, ?>) ((ConstantResult) result).getValue()).get("values") != null)
         {
             result = new ConstantResult(((List<?>) ((Map<?, ?>) ((ConstantResult) result).getValue()).get("values")).get(0));

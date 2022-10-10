@@ -62,7 +62,7 @@ jobs:
           MAVEN_OPTS: -Xmx4g
       - name: Build + Test
         if: (github.repository != 'finos/legend-engine') || (github.ref != 'refs/heads/master')
-        run: mvn install javadoc:javadoc -Dmaven.test.failure.ignore=true
+        run: mvn install javadoc:javadoc
         env:
           MAVEN_OPTS: -Xmx4g
       - name: Build + Test + Maven Deploy + Sonar + Docker Snapshot
@@ -71,7 +71,9 @@ jobs:
           DOCKER_USERNAME: finos
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           MAVEN_OPTS: -Xmx4g
-        run: mvn javadoc:javadoc deploy -P docker-snapshot
+        run: |
+          mvn install -DskipTests=true
+          mvn javadoc:javadoc deploy -P docker-snapshot
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v3

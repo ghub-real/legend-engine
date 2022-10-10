@@ -25,7 +25,6 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::execution
    (
       serializer = ^Protocol(name='pure', version='vX_X_X'),
       templateFunctions = $sourcePlan.processingTemplateFunctions,
-      authDependent = $sourcePlan.authDependent,
       kerberos = $sourcePlan.kerberos,
       rootExecutionNode = $sourcePlan.rootExecutionNode->transformNode($sourcePlan.mapping, $extensions),
       globalImplementationSupport = $sourcePlan.globalImplementationSupport->map(impl | $impl->transformPlatformGlobalImplementation())
@@ -94,14 +93,19 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::execution
                _type = 'allocation',
                resultType = $alloc.resultType->transformResultType($mapping, $extensions),
                resultSizeRange = $alloc.resultSizeRange->isEmpty()->if(|[],|$alloc.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
-               varName = $alloc.varName
+               varName = $alloc.varName,
+               realizeInMemory = $alloc.realizeInMemory
             ),
          exp:meta::pure::executionPlan::FunctionParametersValidationNode[1]|
            ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::FunctionParametersValidationNode(
               _type = 'function-parameters-validation',
               resultType = $exp.resultType->transformResultType($mapping, $extensions),
-              functionParameters = $exp.functionParameters->map(p | ^meta::protocols::pure::vX_X_X::metamodel::valueSpecification::Variable(_type='var', name=$p.name, supportsStream=$p.supportsStream, class=$p.type->elementToPath(), multiplicity=$p.multiplicity->isEmpty()->if(| [],| $p.multiplicity->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())))
-           ),
+              functionParameters = $exp.functionParameters->map(p | ^meta::protocols::pure::vX_X_X::metamodel::valueSpecification::Variable(_type='var', name=$p.name, supportsStream=$p.supportsStream, class=$p.type->elementToPath(), multiplicity=$p.multiplicity->isEmpty()->if(| [],| $p.multiplicity->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()))),
+              parameterValidationContext = $exp.parameterValidationContext->map(p | $p->match([
+                                                                              e:meta::pure::executionPlan::EnumValidationContext[1] | ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::EnumValidationContext(varName = $e.varName, validEnumValues = $e.validEnumValues, _type = 'enumValidationContext')
+                                                                            ]))
+
+            ),
          g:meta::pure::graphFetch::executionPlan::GlobalGraphFetchExecutionNode[1]|
             ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::graphFetch::GlobalGraphFetchExecutionNode
             (
@@ -146,6 +150,12 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::execution
                _type = 'freeMarkerConditionalExecutionNode',
                resultType = $f.resultType->transformResultType($mapping, $extensions),
                resultSizeRange = $f.resultSizeRange->isEmpty()->if(|[],|$f.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+            ),
+         v:meta::pure::executionPlan::VariableResolutionExecutionNode[1]|  
+            ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::VariableResolutionExecutionNode(
+                _type      = 'varResolution',
+                resultType = $v.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                varName    = $v.varName
             ),
          f:meta::pure::mapping::modelToModel::graphFetch::executionPlan::StoreStreamReadingExecutionNode[1]|
             ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::graphFetch::store::inMemory::StoreStreamReadingExecutionNode(
@@ -202,7 +212,8 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::execution
    ^$n(
       requiredVariableInputs = $node.requiredVariableInputs->map(s | $s->transformSource()),
       executionNodes  = $node.executionNodes->map(s|$s->transformNode($mapping, $extensions)),
-      implementation  = $node.implementation->map(impl | $impl->transformPlatformNodeImplementation())
+      implementation  = $node.implementation->map(impl | $impl->transformPlatformNodeImplementation()),
+      authDependent = $node.authDependent
    );
 }
 

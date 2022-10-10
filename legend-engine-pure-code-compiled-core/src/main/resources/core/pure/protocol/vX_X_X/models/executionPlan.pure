@@ -21,7 +21,6 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionPlan
    serializer : Protocol[1];
    templateFunctions : String[*];
    rootExecutionNode : ExecutionNode[1];
-   authDependent: Boolean[1];
    kerberos: String [0..1];
    globalImplementationSupport : meta::protocols::pure::vX_X_X::metamodel::executionPlan::PlatformImplementation[0..1];
 }
@@ -35,6 +34,7 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
    isChildrenExecutionParallelizable: Boolean[0..1];
    executionNodes : ExecutionNode[*];
    implementation : meta::protocols::pure::vX_X_X::metamodel::executionPlan::PlatformImplementation[0..1];
+   authDependent: Boolean[0..1];
 }
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::VariableInput
@@ -47,6 +47,7 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::VariableInput
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::AllocationExecutionNode extends ExecutionNode
 {
    varName : String[1];
+   realizeInMemory : Boolean[0..1];
 }
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::PureExpressionPlatformExecutionNode extends ExecutionNode
@@ -70,6 +71,11 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::FreeMarkerConditi
    freeMarkerBooleanExpression   : String[1];
    trueBlock                     : ExecutionNode[1];
    falseBlock                    : ExecutionNode[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::VariableResolutionExecutionNode extends ExecutionNode
+{
+   varName : String[1];
 }
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::PlatformImplementation
@@ -131,6 +137,18 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::ModelToModelExecu
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::FunctionParametersValidationNode extends ExecutionNode
 {
    functionParameters:meta::protocols::pure::vX_X_X::metamodel::valueSpecification::Variable[*];
+   parameterValidationContext : meta::protocols::pure::vX_X_X::metamodel::executionPlan::ParameterValidationContext[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::ParameterValidationContext
+{
+   _type : String[1];
+   varName: String[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::EnumValidationContext extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ParameterValidationContext
+{
+   validEnumValues: String[*];
 }
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::graphFetch::GlobalGraphFetchExecutionNode extends ExecutionNode

@@ -33,8 +33,7 @@ import org.eclipse.collections.impl.utility.Iterate;
 import org.eclipse.collections.impl.utility.ListIterate;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
-import org.finos.legend.engine.api.analytics.DataSpaceAnalytics;
-import org.finos.legend.engine.api.analytics.DiagramAnalytics;
+import org.finos.legend.engine.api.analytics.LineageAnalytics;
 import org.finos.legend.engine.api.analytics.MappingAnalytics;
 import org.finos.legend.engine.application.query.api.ApplicationQuery;
 import org.finos.legend.engine.application.query.configuration.ApplicationQueryConfiguration;
@@ -73,15 +72,17 @@ import org.finos.legend.engine.plan.execution.stores.relational.plugin.Relationa
 import org.finos.legend.engine.plan.execution.stores.service.plugin.ServiceStore;
 import org.finos.legend.engine.plan.generation.extension.PlanGeneratorExtension;
 import org.finos.legend.engine.protocol.pure.v1.PureProtocolObjectMapperFactory;
+import org.finos.legend.engine.api.analytics.DataSpaceAnalytics;
+import org.finos.legend.engine.api.analytics.DiagramAnalytics;
 import org.finos.legend.engine.query.graphQL.api.debug.GraphQLDebug;
 import org.finos.legend.engine.query.graphQL.api.execute.GraphQLExecute;
 import org.finos.legend.engine.query.graphQL.api.grammar.GraphQLGrammar;
 import org.finos.legend.engine.query.pure.api.Execute;
+import org.finos.legend.engine.server.core.bundles.ErrorHandlingBundle;
 import org.finos.legend.engine.server.core.ServerShared;
 import org.finos.legend.engine.server.core.api.CurrentUser;
 import org.finos.legend.engine.server.core.api.Info;
 import org.finos.legend.engine.server.core.api.Memory;
-import org.finos.legend.engine.server.core.bundles.ErrorHandlingBundle;
 import org.finos.legend.engine.server.core.exceptionMappers.CatchAllExceptionMapper;
 import org.finos.legend.engine.server.core.exceptionMappers.JsonInformationExceptionMapper;
 import org.finos.legend.engine.server.core.session.SessionAttributeBundle;
@@ -172,7 +173,12 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         // Session Management
         SessionTracker sessionTracker = new SessionTracker();
-        environment.servlets().setSessionHandler(new SessionHandler());
+        SessionHandler sessionHandler = new SessionHandler();
+        if (serverConfiguration.sessionCookie != null)
+        {
+            sessionHandler.setSessionCookie(serverConfiguration.sessionCookie);
+        }
+        environment.servlets().setSessionHandler(sessionHandler);
         environment.servlets().addServletListeners(sessionTracker);
         environment.jersey().register(new SessionInfo(sessionTracker));
 
@@ -244,12 +250,13 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new MappingAnalytics(modelManager));
         environment.jersey().register(new DiagramAnalytics(modelManager));
         environment.jersey().register(new DataSpaceAnalytics(modelManager));
+        environment.jersey().register(new LineageAnalytics(modelManager));
 
         // Testable
         environment.jersey().register(new Testable(modelManager));
 
         // localh2server on 9092
-        this.setupLocalH2Db();
+        // this.setupLocalH2Db();
 
         enableCors(environment);
     }

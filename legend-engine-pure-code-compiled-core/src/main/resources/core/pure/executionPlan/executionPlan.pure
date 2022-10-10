@@ -65,6 +65,7 @@ Class meta::pure::executionPlan::ExecutionPlan
    runtime : Runtime[1];
    rootExecutionNode : ExecutionNode[1];
    processingTemplateFunctions :String[*];
+   <<doc.deprecated>>
    authDependent: Boolean[1];
    kerberos: String [0..1];
    globalImplementationSupport: PlatformImplementation[0..1];
@@ -127,6 +128,11 @@ Class meta::pure::executionPlan::FreeMarkerConditionalExecutionNode extends meta
    falseBlock                    : ExecutionNode[0..1];
 }
 
+Class meta::pure::executionPlan::VariableResolutionExecutionNode extends meta::pure::executionPlan::ExecutionNode
+{
+   varName : String[1];
+}
+
 Class meta::pure::executionPlan::PlatformImplementation
 {
 }
@@ -155,6 +161,7 @@ Class meta::pure::executionPlan::CompiledClass
 Class meta::pure::executionPlan::AllocationExecutionNode extends meta::pure::executionPlan::ExecutionNode
 {
    varName : String[1];
+   realizeInMemory : Boolean[0..1];
 }
 
 Class meta::pure::executionPlan::ConstantExecutionNode extends meta::pure::executionPlan::ExecutionNode
@@ -170,6 +177,17 @@ Class meta::pure::executionPlan::ErrorExecutionNode extends meta::pure::executio
 Class meta::pure::executionPlan::FunctionParametersValidationNode extends meta::pure::executionPlan::ExecutionNode
 {
    functionParameters : FunctionParameter[*];
+   parameterValidationContext : ParameterValidationContext[*];
+}
+
+Class meta::pure::executionPlan::ParameterValidationContext
+{
+   varName: String[1];
+}
+
+Class meta::pure::executionPlan::EnumValidationContext extends ParameterValidationContext
+{
+   validEnumValues: String[*];
 }
 
 Class meta::pure::executionPlan::FunctionParameter
@@ -184,28 +202,3 @@ Class meta::pure::mapping::aggregationAware::AggregationAwareExecutionNode exten
 {
       aggregationAwareActivity: String[1];
 }
-
-
-Class <<doc.deprecated>> meta::pure::executionPlan::EngineDependencies
-{
-   dependencyMap: Map<Class<Any>, String>[1];
-
-   getEngineDependencyForClass(e:Class<Any>[1]) {
-      $this.dependencyMap->get($e)->toOne()
-   }: String[1];
-}
-
-Class <<doc.deprecated>> meta::pure::executionPlan::PlatformCodeGenerationConfig
-{
-   platform: Platform[1];
-   planId: String[0..1];
-   engineDependencies: EngineDependencies[0..1];
-   graphFetchWithCachingFlow: Boolean[0..1];
-}
-
-Enum <<doc.deprecated>> meta::pure::executionPlan::Platform
-{
-   JAVA
-}
-
-
