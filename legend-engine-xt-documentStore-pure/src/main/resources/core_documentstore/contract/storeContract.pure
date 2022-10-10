@@ -97,8 +97,7 @@ function meta::external::store::document::contract::getStore(r:InstanceSetImplem
 {
   $r->match(
     [
-      r:RootDocumentInstanceSetImplementation[1]| $r.mainCollectionAlias.documentStore->toOne(),
-      e:EmbeddedDocumentInstanceSetImplementation[1]| ^meta::pure::router::store::embedded::EmbeddedStore(package=::)
-    ]
-  )
+      r:RootDocumentInstanceSetImplementation[1]| $r.mainCollectionAlias.documentStore->toOne()//,
+//      e:EmbeddedRelationalInstanceSetImplementation[1]| $e->resolveRootFromEmbedded()->meta::relational::contract::getStore(),    ]
+     ])
 }

@@ -20,11 +20,13 @@ import com.mongodb.client.MongoClients;
 import lombok.Value;
 
 @Value
-public class LocalMongoDbClient {
+public class LocalMongoDbClient
+{
 
     MongoClient client;
 
-    public LocalMongoDbClient() {
+    public LocalMongoDbClient()
+    {
         // handle custom config etc
         client = MongoClients.create("mongodb://localhost:27017");
     }
