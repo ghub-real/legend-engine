@@ -16,6 +16,7 @@ import meta::pure::store::*;
 import meta::pure::mapping::*;
 import meta::pure::runtime::*;
 import meta::pure::extension::*;
+import meta::pure::executionPlan::*;
 import meta::pure::graphFetch::routing::*;
 import meta::pure::graphFetch::executionPlan::*;
 import meta::external::store::document::metamodel::mapping::*;
@@ -28,7 +29,7 @@ function meta::external::store::document::contract::documentStoreStoreContract()
    (
      id = 'documentStore',
      supports = meta::external::store::document::contract::supports_FunctionExpression_1__Boolean_1_,
-//     planExecution = meta::external::store::service::contract::planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__Extension_MANY__DebugContext_1__ExecutionNode_1_,
+     planExecution = meta::external::store::document::contract::planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__Extension_MANY__DebugContext_1__ExecutionNode_1_,
 //     planGraphFetchExecution = meta::external::store::document::contract::planGraphFetchExecution_ClusteredGraphFetchTree_1__String_MANY__Boolean_1__Boolean_1__StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_1__Runtime_1__ExecutionContext_1__Extension_MANY__DebugContext_1__LocalGraphFetchExecutionNode_1_,
 //     planCrossGraphFetchExecution = meta::external::store::service::contract::planCrossGraphFetchExecution_ClusteredGraphFetchTree_1__String_MANY__String_1__Boolean_1__Boolean_1__Map_1__Mapping_1__Runtime_1__ExecutionContext_1__Extension_MANY__DebugContext_1__LocalGraphFetchExecutionNode_1_,
 //
@@ -63,27 +64,22 @@ function meta::external::store::document::contract::documentStoreStoreContract()
    )
 }
 //
-//// Execution Plan
-//function meta::external::store::document::contract::planExecution(sq:StoreQuery[1], ext:RoutedValueSpecification[0..1], mapping:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):ExecutionNode[1]
-//{
-//   let fe = $sq.fe->evaluateAndDeactivate()->cast(@FunctionExpression);
-//   assert($fe.func->in(graphFetchFunctions()), 'Document Store supports graphFetch queries only');
-//   planGraphFetchExecution($sq, $ext, $mapping->toOne(), $runtime->toOne(), $exeCtx, $extensions, $debug);
-//}
+// Execution Plan
+function meta::external::store::document::contract::planExecution(sq:StoreQuery[1], ext:RoutedValueSpecification[0..1], mapping:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):ExecutionNode[1]
+{
+  let fe = $sq.fe->evaluateAndDeactivate()->cast(@FunctionExpression);
+  assert($fe.func->in([meta::pure::graphFetch::execution::graphFetchFunctions()]), 'Document Store supports graphFetch queries only');
+  $sq->meta::pure::graphFetch::executionPlan::planGraphFetchExecution($ext, $mapping->toOne(), $runtime->toOne(), $exeCtx, $extensions, $debug);
+}
 
-//function meta::external::store::document::contract::planGraphFetchExecution(tree:ClusteredGraphFetchTree[1], orderedPaths:String[*], enableConstraints:Boolean[1], checked:Boolean[1], sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):LocalGraphFetchExecutionNode[1]
-//{
-// meta::external::store::service::executionPlan::generation::planRootGraphFetchExecutionDocumentStore($sq, $ext, $tree, $orderedPaths, $m, $runtime, $exeCtx, $enableConstraints, $checked, $extensions, $debug)
-//}
+function meta::external::store::document::contract::planGraphFetchExecution(tree:ClusteredGraphFetchTree[1], orderedPaths:String[*], enableConstraints:Boolean[1], checked:Boolean[1], sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):LocalGraphFetchExecutionNode[1]
+{
+  meta::external::store::document::graphFetch::executionPlan::planRootGraphFetchExecutionDocumentStore($sq, $ext, $tree, $orderedPaths, $m, $runtime, $exeCtx, $enableConstraints, $checked, $extensions, $debug)
+}
 
 //function meta::external::store::document::contract::planCrossGraphFetchExecution(tree:ClusteredGraphFetchTree[1], orderedPaths:String[*], newParentPath:String[1], enableConstraints:Boolean[1], checked:Boolean[1], inScopeVars: Map<String, List<Any>>[1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):LocalGraphFetchExecutionNode[1]
 //{
-//  meta::external::store::service::executionPlan::generation::planCrossStoreGraphFetchExecutionServiceStore($tree, $orderedPaths, $newParentPath, $inScopeVars, $m, $runtime, $exeCtx, $enableConstraints, $checked, $extensions, $debug)
-//}
-
-//function meta::external::store::document::contract::planGraphFetchExecution(tree:ClusteredGraphFetchTree[1], orderedPaths:String[*], enableConstraints:Boolean[1], checked:Boolean[1], sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):LocalGraphFetchExecutionNode[1]
-//{
-//  meta::external::store::document::contract::planRootGraphFetchExecutionDocumentStore($sq, $ext, $tree, $orderedPaths, $m, $runtime, $exeCtx, $enableConstraints, $checked, $extensions, $debug)
+//  meta::relational::graphFetch::executionPlan::planCrossRootGraphFetchExecutionRelational($tree, $orderedPaths, $newParentPath, $inScopeVars, $m, $runtime, $exeCtx, $extensions, $debug);
 //}
 
 
