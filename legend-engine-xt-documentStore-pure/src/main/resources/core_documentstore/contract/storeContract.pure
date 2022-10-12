@@ -22,6 +22,7 @@ import meta::pure::graphFetch::executionPlan::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::contract::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::*;
+import meta::external::store::document::metamodel::*;
 
 function meta::external::store::document::contract::documentStoreStoreContract():StoreContract[1]
 {
@@ -30,14 +31,14 @@ function meta::external::store::document::contract::documentStoreStoreContract()
      id = 'documentStore',
      supports = meta::external::store::document::contract::supports_FunctionExpression_1__Boolean_1_,
      planExecution = meta::external::store::document::contract::planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__Extension_MANY__DebugContext_1__ExecutionNode_1_,
-//     planGraphFetchExecution = meta::external::store::document::contract::planGraphFetchExecution_ClusteredGraphFetchTree_1__String_MANY__Boolean_1__Boolean_1__StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_1__Runtime_1__ExecutionContext_1__Extension_MANY__DebugContext_1__LocalGraphFetchExecutionNode_1_,
+     planGraphFetchExecution = meta::external::store::document::contract::planGraphFetchExecution_ClusteredGraphFetchTree_1__String_MANY__Boolean_1__Boolean_1__StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_1__Runtime_1__ExecutionContext_1__Extension_MANY__DebugContext_1__LocalGraphFetchExecutionNode_1_,
 //     planCrossGraphFetchExecution = meta::external::store::service::contract::planCrossGraphFetchExecution_ClusteredGraphFetchTree_1__String_MANY__String_1__Boolean_1__Boolean_1__Map_1__Mapping_1__Runtime_1__ExecutionContext_1__Extension_MANY__DebugContext_1__LocalGraphFetchExecutionNode_1_,
 //
     supportsSetImplementation = s:SetImplementation[1]|$s->instanceOf(DocumentInstanceSetImplementation),
     supportsStore = s:Store[1]|$s->instanceOf(meta::external::store::document::metamodel::DocumentStore),
     resolveStoreFromSetImplementation = s:InstanceSetImplementation[1]|$s->meta::external::store::document::contract::getStore(),
 
-    supportsNativeJoinAmongElements = false
+    supportsNativeJoinAmongElements = false,
 //
 //     printConnectionToString = {extensions:meta::pure::extension::Extension[*]|
 //                                       [
@@ -49,11 +50,12 @@ function meta::external::store::document::contract::documentStoreStoreContract()
 //                                          sp:ServiceParametersResolutionExecutionNode[1] | meta::external::store::service::executionPlan::toString::serviceParametersResolutionExecutionNodeToString($sp, $space, $extensions);,
 //                                          l:LimitExecutionNode[1] | meta::external::store::service::executionPlan::toString::limitExecutionNodeToString($l, $space, $extensions);
 //                                       ]},
-//    extractSourceClassFromSetImplementation =
-//            [
-//              s: RootDocumentInstanceSetImplementation[1]  | $s.class,
-//              e: EmbeddedServiceStoreSetImplementation[1] | $e.class
-//            ],
+   extractSourceClassFromSetImplementation =
+           [
+             s: RootDocumentInstanceSetImplementation[1]  | $s.class,
+             e: EmbeddedDocumentInstanceSetImplementation[1] | $e.class
+           ]
+
 //    crossStoreSourceSupportsBatching = {
 //        set:InstanceSetImplementation[1], xProperties:AbstractProperty<Any>[*], params : Map<String, String>[1] |
 //          if ($set->instanceOf(RootServiceInstanceSetImplementation),
