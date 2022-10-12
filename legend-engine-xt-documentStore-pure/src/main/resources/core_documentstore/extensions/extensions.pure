@@ -13,12 +13,14 @@
 // limitations under the License.
 import meta::pure::extension::*;
 import meta::pure::graphFetch::*;
+import meta::pure::runtime::*;
 import meta::external::store::document::extension::*;
 import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::runtime::*;
 import meta::external::store::document::extension::documentQueryToString::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::*; // for all the rest process operation stuff
+import meta::external::store::document::functions::typeInference::*;
 
 Profile meta::external::store::document::extension::db
 {
@@ -33,7 +35,7 @@ Class meta::external::store::document::extension::DocumentStoreExtension extends
 
    //relational_execution_postProcessors : Function<{PostProcessorResult[1], Runtime[1], RoutedValueSpecification[0..1], Mapping[0..1], Database[0..1], ExecutionContext[1] -> PostProcessorResult[1]}>[*];
    //relational_plan_postProcessors : Function<{PostProcessorResult[1], Runtime[1], RoutedValueSpecification[0..1], Mapping[0..1], Database[0..1], ExecutionContext[1] -> PostProcessorResult[1]}>[*];
-  //relational_plan_updateConnection : Function<{Nil[1]->Connection[1]}>[*];
+  relational_plan_updateConnection : meta::pure::metamodel::function::Function<{Nil[1]->Connection[1]}>[*];
 
    documentQueryToString_isBooleanOperation : meta::pure::metamodel::function::Function<{Nil[1] -> Boolean[1]}>[*];
 }
@@ -359,4 +361,274 @@ function meta::external::store::document::extension::documentQueryToString::docu
 function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], format:Format[1], extensions:Extension[*]):String[1]
 {
    processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions);
+}
+
+
+function meta::external::store::document::functions::typeInference::inferDocumentStoreType(dop: DocumentStoreElement[1]):meta::external::store::document::metamodel::TypeReference[0..1] // removed , translationContext:TranslationContext[1]
+{
+   let documentStoreType = inferDocumentStoreType($dop, true); 
+   //$relationalType->translateCoreTypeToDbSpecificType($translationContext);
+   $documentStoreType;
+}
+
+function meta::external::store::document::functions::typeInference::inferDocumentStoreType(dop: DocumentStoreElement[1], failOnMatchFailure:Boolean[1]):meta::external::store::document::metamodel::TypeReference[0..1]
+{
+   $dop->match([
+      //t : TableAliasColumn[1] | if($t.column.owner->isNotEmpty() && $t.column.owner->toOne()->instanceOf(View),| $t.column.owner->toOne()->cast(@View).columnMappings->filter(cm | $cm.columnName == $t.column.name)->toOne().relationalOperationElement->inferRelationalType($failOnMatchFailure), | $t.column.type),
+      //j : RelationalOperationElementWithJoin[1] | $j.relationalOperationElement->toOne()->inferRelationalType($failOnMatchFailure),
+      d : DynaFunction[1] | $d->inferDynaFunctionReturnType($failOnMatchFailure),
+      d : Alias[1] | $d.documentElement->inferDocumentStoreType($failOnMatchFailure),
+      l : Literal[1] | $l.value->match([
+         s: String[1]  | ^meta::external::store::document::metamodel::StringTypeReference(list=false),
+         b: Boolean[1] |  ^meta::external::store::document::metamodel::BooleanTypeReference(list=false),
+         i: Integer[1] |  ^meta::external::store::document::metamodel::IntegerTypeReference(list=false),
+         d: Float[1]   |  ^meta::external::store::document::metamodel::DoubleTypeReference(list=false),
+         //d: StrictDate[1]   |  ^meta::external::store::document::metamodel::DateTypeReference(),
+         d: Date[1]   |  ^meta::external::store::document::metamodel::DateTypeReference(list=false),
+        //  d: meta::relational::functions::pureToSqlQuery::metamodel::VarPlaceHolder[1]   |  
+        //     if($d.type == String,
+        //        | ^meta::relational::metamodel::datatype::Varchar(size = 4000),
+        //        | if($d.type == Integer,
+        //             | ^meta::relational::metamodel::datatype::Integer(),
+        //             | if($d.type == Float,
+        //                  | ^meta::relational::metamodel::datatype::Float(),
+        //                  | if($d.type == Boolean,
+        //                       | ^meta::relational::metamodel::datatype::Bit(),
+        //                       | if($d.type->in([DateTime, Date]),
+        //                            | ^meta::relational::metamodel::datatype::Timestamp(),
+        //                            | if($d.type == StrictDate,
+        //                                 | ^meta::relational::metamodel::datatype::Date(),
+        //                                 | fail('Not supported yet!'); ^meta::relational::metamodel::datatype::DataType();
+        //                              )
+        //                         )
+        //                    )
+        //               )
+        //          )
+        //     ),
+         a: Any[1]     | if($failOnMatchFailure, | fail('Not supported yet!'); ^meta::external::store::document::metamodel::CoreDataType(list=false);, |[]);
+      ]),
+      //j : meta::relational::metamodel::operation::JoinStrings[1] | ^meta::relational::metamodel::datatype::Varchar(size = $j.strings->concatenate($j.prefix)->concatenate($j.separator)->concatenate($j.suffix)->map(x | $x->inferRelationalType($failOnMatchFailure)->toOne()->getSize())->sum()),
+      f:Field[1] | $f.type,
+      l : Any[1] | if($failOnMatchFailure, | fail('Not supported yet!'); ^meta::external::store::document::metamodel::CoreDataType(list=false);, |[]);
+   ]);
+}
+
+
+
+function meta::external::store::document::functions::typeInference::inferDynaFunctionReturnType(d: DynaFunction[1], failOnMatchFailure:Boolean[1]):meta::external::store::document::metamodel::TypeReference[0..1]
+{
+   let dfToReturnFunctionMap = meta::external::store::document::functions::typeInference::getDynaFunctionTypeInferenceMap();
+   let candidateMatchAndDTypePairs = $dfToReturnFunctionMap->get($d.name).values;
+   let filteredMatchAndDTypePairs = $candidateMatchAndDTypePairs->filter(p | $p.first->eval($d.parameters));
+   if($failOnMatchFailure, | assert($filteredMatchAndDTypePairs->size() >= 1, 'Type inference not supported yet! Dyna function: ' + $d.name);, | []);
+   if($filteredMatchAndDTypePairs->size() >= 1, | $filteredMatchAndDTypePairs->at(0).second->eval($d.parameters), | []);
+}
+
+function <<access.private>> meta::external::store::document::functions::typeInference::getDynaFunctionTypeInferenceMap():Map<String, List<Pair<meta::pure::metamodel::function::Function<{DocumentStoreElement[*]->Boolean[1]}>, meta::pure::metamodel::function::Function<{DocumentStoreElement[*]->meta::external::store::document::metamodel::TypeReference[0..1]}>>>>[1]
+{
+   newMap([
+      pair(
+         'and',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+
+      pair(
+         'convertDateTime',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::DateTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'count',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::LongTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'distinct',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | $params->isNotEmpty()},
+               {params: DocumentStoreElement[*] | $params->at(0)->inferDocumentStoreType()}
+            )
+         ])
+      ),
+
+      pair(
+         'equal',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'exists',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'greaterThan',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'greaterThanEqual',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'in',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'isEmpty',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'isNotEmpty',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'isNotNull',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'isNull',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'lessThan',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'lessThanEqual',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+
+      pair(
+         'not',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+      
+      pair(
+         'notEqual',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'or',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::BooleanTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'size',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | ^meta::external::store::document::metamodel::LongTypeReference(list=false)}
+            )
+         ])
+      ),
+
+      pair(
+         'toOne',
+         list([
+            pair(
+               {params: DocumentStoreElement[*] | true},
+               {params: DocumentStoreElement[*] | $params->at(0)->inferDocumentStoreType()}
+            )
+         ])
+      )
+
+  ]);
+
 }

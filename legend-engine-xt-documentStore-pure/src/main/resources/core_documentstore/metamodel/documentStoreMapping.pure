@@ -15,9 +15,15 @@
 import meta::pure::mapping::*;
 import meta::pure::metamodel::path::*;
 import meta::pure::router::routing::*;
+import meta::pure::runtime::*;
+import meta::pure::extension::*;
 import meta::external::shared::format::metamodel::*;
 import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::mapping::*;
+import meta::external::store::document::mapping::functions::*;
+import meta::external::store::document::metamodel::runtime::*;
+import meta::external::store::document::extension::*;
+
 
 Class meta::external::store::document::metamodel::mapping::DocumentInstanceSetImplementation extends InstanceSetImplementation
 {
@@ -165,4 +171,51 @@ function meta::external::store::document::mapping::functions::findPropertyMappin
 
 
    );
+}
+
+
+function meta::external::store::document::mapping::functions::collectionSizeFunction():String[1]
+{
+   '<#function collectionSize collection> <#return collection?size?c> </#function>';
+}
+
+function meta::external::store::document::mapping::functions::collectionRenderFunction():String[1]
+{
+   '<#function renderCollection collection separator prefix suffix defaultValue>'+
+        '<#if collection?size == 0>' +
+           '<#return defaultValue>' +
+        '</#if>' +
+        '<#return prefix + collection?join(suffix + separator + prefix) + suffix>'+
+   '</#function>';
+}
+
+function meta::external::store::document::mapping::functions::utcToTimeZoneSupportFunction():String[1]
+{
+   '<#function GMTtoTZ tz paramDate>'+
+      '<#if paramDate?is_enumerable && !paramDate?has_content>'+
+         '<#return paramDate>'+
+      '<#else>' +
+         '<#return (tz+" "+paramDate)?date.@alloyDate></#if></#function>'+
+
+   '<#function renderCollectionWithTz collection timeZone separator prefix suffix defaultValue>'+
+      '<#assign result = [] />'+
+      '<#list collection as c>'+
+         '<#assign result = [prefix + (timeZone+" "+c)?date.@alloyDate + suffix] + result>'+
+      '</#list>'+
+      '<#return result?reverse?join(separator, defaultValue)>'+
+   '</#function>';
+}
+
+
+function meta::external::store::document::mapping::functions::documentStorePlanSupportFunctions(c:DatabaseConnection[1]):String[*]
+{
+   if($c.timeZone->isNotEmpty() && !meta::pure::functions::date::systemDefaultTimeZones()->contains($c.timeZone->toOne()),|utcToTimeZoneSupportFunction(),|[])->concatenate(collectionRenderFunction())->concatenate(collectionSizeFunction());//->concatenate(optionalVarPlaceHolderOperationSelectorFunction())->concatenate(varPlaceHolderToStringFunction())->concatenate(equalEnumOperationSelectorFunction())
+}
+
+
+function meta::external::store::document::mapping::functions::updateConnection(conn:Connection[1], extensions:Extension[*]):Connection[1]
+{
+   $conn->match($extensions->map(e|$e.moduleExtension('documentStore')->cast(@DocumentStoreExtension).relational_plan_updateConnection)->concatenate([
+      c:DatabaseConnection[1] | $c 
+   ])->toOneMany())
 }

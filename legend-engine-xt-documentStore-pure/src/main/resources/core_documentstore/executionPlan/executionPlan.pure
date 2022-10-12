@@ -14,6 +14,8 @@
 
 import meta::pure::executionPlan::*;
 import meta::external::store::document::graphFetch::executionPlan::*;
+import meta::external::store::document::metamodel::mapping::*;
+import meta::external::store::document::metamodel::runtime::*;
 
 
 Class meta::external::store::document::graphFetch::executionPlan::DocumentRelationResultType extends ResultType
@@ -30,4 +32,19 @@ Enum meta::external::store::document::graphFetch::executionPlan::DocumentRelatio
 {
    COLLECTION,
    COLLECTION_VIEW
+}
+
+Class meta::external::store::document::metamodel::mapping::DocumentQueryResultField
+{
+   label : String[1];
+   dataType : meta::external::store::document::metamodel::TypeReference[0..1];
+}
+
+Class meta::external::store::document::metamodel::mapping::DocumentQueryExecutionNode extends ExecutionNode
+{
+   documentQuery : String[1];
+   onConnectionCloseCommitQuery : String[0..1];
+   onConnectionCloseRollbackQuery : String[0..1];
+   resultFields : DocumentQueryResultField[*];
+   connection: DatabaseConnection[1];
 }

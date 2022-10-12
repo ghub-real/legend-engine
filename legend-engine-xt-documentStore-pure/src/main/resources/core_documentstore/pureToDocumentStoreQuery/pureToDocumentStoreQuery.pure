@@ -722,11 +722,17 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
 }
 
-function meta::external::store::document::functions::pureToDocumentStoreQuery::processDocumentRelation(r: DocumentStoreElement[1], c:Class<Any>[0..1], nodeId:String[1], addPk:Boolean[1], pkOffset:Integer[1], addAllColumns:Boolean[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
+function meta::external::store::document::functions::pureToDocumentStoreQuery::processDocumentRelation(r: DocumentStoreElement[1], c:Class<Any>[0..1], nodeId:String[1], addPk:Boolean[1], pkOffset:Integer[1], addAllColumns:Boolean[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1] //milestoningContext: TemporalMilestoningContext[0..1], 
 {
    $r->match([
                s:SelectDocumentQuery[1] | $s,
                t:Collection[1] | $t
+               //u:Union[1] | $u,
+               //v:View[1]  | let selectWithCursor = processRelationalMappingSpecification($v, $c, $nodeId, $addPk, $pkOffset, true, $milestoningContext, ^$state(inFilter=false), $context, $extensions);
+               //             let select = $selectWithCursor.select;
+               //             let selectWithFiltersProcessed = ^$select(filteringOperation=$select.filteringOperation->concatenate($select.extraFilteringOperation))->pushSavedFilteringOperation($extensions);
+               //             ^ViewSelectSQLQuery(view=$v, name=$v.name, columns = $selectWithFiltersProcessed.columns, selectSQLQuery = $selectWithFiltersProcessed, schema=$v.mainTable.schema);,
+               //s:SemiStructuredArrayFlatten[1] | $s
              ]);
 }
 
@@ -1190,6 +1196,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::b
    let maxSize = 535;
    if($uniqueName->length() > $maxSize, |$uniqueName->substring(0, $maxSize - 35) + '___' + $uniqueName->substring($maxSize - 35)->meta::pure::functions::hash::hash(meta::pure::functions::hash::HashType.MD5), |$uniqueName);
 }
+
+
 
 
 Class meta::external::store::document::functions::pureToDocumentStoreQuery::PureFunctionToRelationalFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>

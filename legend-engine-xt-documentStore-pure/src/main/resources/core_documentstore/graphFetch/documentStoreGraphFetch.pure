@@ -27,6 +27,9 @@ import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::runtime::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::*;
+import meta::external::store::document::extension::documentQueryToString::*;
+import meta::external::store::document::functions::typeInference::*;
+import meta::external::store::document::mapping::functions::*;
 
 
 Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreGraphFetchExecutionNode extends LocalGraphFetchExecutionNode
@@ -172,11 +175,10 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
    let currentIdx       = $orderedPaths->indexOf($currentPath);
    let currentIdxString = $currentIdx->toString();
 
-   //TODO
    /* Generate Sql Query */
-   //let primitiveQuery     = generatePrimitivePropertyQuery($parentSets, $currentTree, $parentTree, $mapping, $inScopeVars, $mc, $debug, $extensions);
-   //let resultColumnnName  = '"node_' + $currentIdxString + '_result"';
-   //let namedColumnQuery   = ^$primitiveQuery(columns = ^Alias(name = $resultColumnnName, relationalElement = $primitiveQuery.columns->toOne()));
+   let primitiveQuery     = generatePrimitivePropertyQuery($parentSets, $currentTree, $parentTree, $mapping, $inScopeVars, $debug, $extensions);  //$mc, 
+   let resultFieldName  = '"node_' + $currentIdxString + '_result"';
+   let namedFieldQuery   = ^$primitiveQuery(fields = ^Alias(name = $resultFieldName, documentElement = $primitiveQuery.fields->toOne()));
    //let changedDriverQuery = $namedColumnQuery->changeDriverToTempWithPkProjection(tempTableName($parentIdx), $parentSets, $extensions);
    //let shouldManageAgg    = $currentTree.property->instanceOf(QualifiedProperty) && $currentTree.property->containsAggregationFunctionInFunction(defaultState($mapping, $inScopeVars).supportedFunctions);
    //let managedAggQuery    = if ($shouldManageAgg,
@@ -192,11 +194,11 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 
    //let postProcessorResult = $managedAggQuery->postProcessSQLQuery($store, [], $mapping, $runtime, $exeCtx, $extensions);
    //let postProcessedQuery  = $postProcessorResult.query->cast(@SelectSQLQuery);
-
+   let postProcessedQuery = $namedFieldQuery->cast(@SelectDocumentQuery);
 
    /* Create execution node */
    let dbConnection  = $runtime.connections->toOne()->cast(@DatabaseConnection);
-   //let sqlNode       = $postProcessedQuery->buildSQLExecutionNode($dbConnection, $extensions);
+   let sqlNode       = $postProcessedQuery->buildDocumentQueryExecutionNode($dbConnection, $extensions);
    //let allExecNodes  = $postProcessorResult.executionNodes->concatenate($sqlNode)->concatenate($postProcessorResult.postExecutionNodes);
    //let wrappedNode   = generateExecutionNodeForPostProcessedResult($sqlNode, $allExecNodes, $postProcessorResult, $extensions);
 
@@ -211,6 +213,50 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 }
 
 
+function <<access.private>> meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode(query: SelectDocumentQuery[1], dbConnection: DatabaseConnection[1], extensions:Extension[*]):DocumentQueryExecutionNode[1]
+{
+   let sql = $query->documentQueryToString($dbConnection.type, $dbConnection.timeZone, $dbConnection.quoteIdentifiers, $extensions);
+   
+   ^DocumentQueryExecutionNode
+    (
+       documentQuery         = $sql,
+       resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne())), // not passing in meta::relational::translation::TranslationContext
+       resultType       = ^ResultType(type = Any),
+       connection       = $dbConnection->meta::external::store::document::mapping::functions::updateConnection($extensions)->cast(@DatabaseConnection),
+       supportFunctions = documentStorePlanSupportFunctions($dbConnection)
+    );
+}
+
+function <<access.private>> meta::external::store::document::graphFetch::executionPlan::generatePrimitivePropertyQuery(setImpls: DocumentInstanceSetImplementation[*], propTree: RoutedPropertyGraphFetchTree[1], parentTree: GraphFetchTree[1], mapping:Mapping[1], inScopeVars: Map<String, List<Any>>[1], debug: DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
+{
+   let isQualified    = false; // $propTree.property->instanceOf(QualifiedProperty);
+   let pureToDocumentQueryState = defaultState($mapping, $inScopeVars);
+   let srcSetImpl     = $setImpls->match([
+      s:RootDocumentInstanceSetImplementation[1]     | $s,
+      s:EmbeddedDocumentInstanceSetImplementation[1] | $s.setMappingOwner;
+   ])->cast(@RootDocumentInstanceSetImplementation);
+
+   let mainCollection     = $srcSetImpl.mainDocumentRelation->processDocumentRelation([], '', false, 0, false, $pureToDocumentQueryState, $debug, $extensions);
+   let currentNode   = ^RootJoinDocumentTreeNode(alias=^CollectionAlias(name = 'root', documentElement = $mainCollection));
+   let base = ^SelectDocumentQuery(data = $currentNode)->applyTypeFilter($srcSetImpl, '_gftm', $pureToDocumentQueryState, $debug, $extensions);
+   //let base          = ^$basePreFilter(select = $basePreFilter.select->pushFilters($extensions));
+   
+   let res = if ($isQualified,
+                {|
+                   let qualifier    = $propTree.property->cast(@QualifiedProperty<Any>);
+                   let newVars      = $qualifier->functionType().parameters->evaluateAndDeactivate()->tail()->map(x | pair($x.name, list($propTree.parameters->evaluateAndDeactivate()->at($qualifier->functionType().parameters->evaluateAndDeactivate()->indexOf($x) - 1)->evaluateAndDeactivate()->reactivate($inScopeVars)->evaluateAndDeactivate())));
+                   let updatedState = ^$pureToDocumentQueryState(inGetterFlow = true, qualifierBase=^OperationWithParentPropertyMapping(element = $base), inScopeVars = $pureToDocumentQueryState.inScopeVars->putAll($newVars));
+                   // TODO
+                   //processQualifiedProperty($qualifier, [], $base, ^Map<VariableExpression, ValueSpecification>(), $updatedState, $debug, $extensions).element->cast(@SelectWithCursor);
+                   $base;
+                },
+                {|
+                   processPropertyMapping($propTree.propertyMapping, $parentTree->typeFromGraphFetchTree()->cast(@Class<Any>), $base, ^$pureToDocumentQueryState(inGetterFlow = true), $debug, $extensions)->cast(@SelectDocumentQuery)
+                }
+             );
+
+  ^$res(distinct = true)->pushFilters($extensions);
+}
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::createPureToDocumentQueryState(simplePrimitiveProperties: Property<Nil,Any|*>[*], inScopeVars: Map<String, List<Any>>[1], mapping: Mapping[1], exeCtx: ExecutionContext[1]):State[1]
 {
@@ -232,6 +278,12 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
        graphFetchFlow       = true,
        graphFetchProperties = $simplePrimitiveProperties
     );
+}
+function <<access.private>> meta::external::store::document::graphFetch::executionPlan::pushFilters(query: SelectDocumentQuery[1], extensions:Extension[*]):SelectDocumentQuery[1]
+{
+   $query
+      ->pushSavedFilteringOperation($extensions)
+      //->pushExtraFilteringOperation($extensions)
 }
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::tempTableName(index: Integer[1]):String[1]
