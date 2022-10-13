@@ -87,96 +87,98 @@ Mapping meta::external::store::document::tests::simple::MyDocStoreMapping
 )
 
 
-//Mapping meta::external::store::document::tests::simple::simpleRelationalMapping
-//(
-//  GeographicEntityType: EnumerationMapping GE
-//  {
-//        CITY:  1
-//  }
+Mapping meta::external::store::document::tests::simple::simpleRelationalMapping
+(
+ GeographicEntityType: EnumerationMapping GE
+ {
+       CITY:  1
+ }
 
-//    Person : Relational
-//    {
-//      ~primaryKey(
-//      [TestDbStore]default.personTable.ID
-//        )
-//        ~mainTable[TestDbStore]personTable
-//        firstName : [TestDbStore]personTable.FIRSTNAME,
-//        age : [TestDbStore]personTable.AGE,
-//        lastName : [TestDbStore]personTable.LASTNAME,
-//        firm : [TestDbStore]@Firm_Person,
-//        address : [TestDbStore]@Address_Person,
-//        manager : [TestDbStore]@Person_Manager
-//    }
+   Person : Relational
+   {
+     ~primaryKey(
+     [TestDbStore]default.personTable.ID
+       )
+       ~mainTable[TestDbStore]personTable
+       firstName : [TestDbStore]personTable.FIRSTNAME,
+       age : [TestDbStore]personTable.AGE,
+       lastName : [TestDbStore]personTable.LASTNAME,
+       firm : [TestDbStore]@Firm_Person,
+       address : [TestDbStore]@Address_Person,
+       manager : [TestDbStore]@Person_Manager
+   }
 
-//    Firm : Relational
-//    {
-//        legalName : [TestDbStore]firmTable.LEGALNAME,
-//        employees : [TestDbStore]@Firm_Person,
-//        address : [TestDbStore]@Address_Firm
-//    }
+   Firm : Relational
+   {
+       legalName : [TestDbStore]firmTable.LEGALNAME,
+       employees : [TestDbStore]@Firm_Person,
+       address : [TestDbStore]@Address_Firm
+   }
 
-//    Address : Relational
-//    {
-//        name : [TestDbStore]addressTable.NAME,
-//        street : [TestDbStore]addressTable.STREET,
-//        //type : EnumerationMapping GE : [TestDbStore]addressTable.TYPE,
-//        comments : [TestDbStore]addressTable.COMMENTS
-//    }
+   Address : Relational
+   {
+       name : [TestDbStore]addressTable.NAME,
+       street : [TestDbStore]addressTable.STREET,
+       //type : EnumerationMapping GE : [TestDbStore]addressTable.TYPE,
+       comments : [TestDbStore]addressTable.COMMENTS
+   }
 
-//)
-
-
-//###Relational
-//Database meta::external::store::document::tests::simple::TestDbStore
-//  (
-//  Table personTable (
-//    ID INT PRIMARY KEY,
-//    FIRSTNAME VARCHAR(200),
-//    LASTNAME VARCHAR(200),
-//    AGE INT,
-//    ADDRESSID INT,
-//    FIRMID INT,
-//    MANAGERID INT
-//  )
-//
-
-//  Table firmTable(
-//    ID INT PRIMARY KEY,
-//    LEGALNAME VARCHAR(200),
-//    ADDRESSID INT,
-//    CEOID INT
-//  )
-
-//  Table addressTable(
-//    ID INT PRIMARY KEY,
-//    TYPE INT,
-//    NAME VARCHAR(200),
-//    STREET VARCHAR(100),
-//    COMMENTS VARCHAR(100)
-//  )
-//  Join Firm_Ceo(firmTable.CEOID = personTable.ID)
-//  Join Firm_Person(firmTable.ID = personTable.FIRMID)
-//  Join Address_Firm(addressTable.ID = firmTable.ADDRESSID)
-//  Join Address_Person(addressTable.ID = personTable.ADDRESSID)
-//  Join Person_Manager(personTable.MANAGERID = {target}.ID)
-
-//)
+)
 
 
-//function meta::external::store::document::tests::simple::testRuntime(db:meta::relational::metamodel::Database[1]):meta::pure::runtime::Runtime[1]
-//{
-//  ^meta::pure::runtime::Runtime(connections = testDatabaseConnection($db))
-//}
+###Relational
+Database meta::external::store::document::tests::simple::TestDbStore
+ (
+ Table personTable (
+   ID INT PRIMARY KEY,
+   FIRSTNAME VARCHAR(200),
+   LASTNAME VARCHAR(200),
+   AGE INT,
+   ADDRESSID INT,
+   FIRMID INT,
+   MANAGERID INT
+ )
 
 
-//function meta::external::store::document::tests::simple::testDatabaseConnection(db:meta::relational::metamodel::Database[1]):meta::relational::runtime::TestDatabaseConnection[1]
-//{
-//    ^meta::relational::runtime::TestDatabaseConnection(
-//        element = $db,
-//        type = meta::relational::runtime::DatabaseType.H2,
-//        timeZone = 'GMT'
-//    );
-//}
+ Table firmTable(
+   ID INT PRIMARY KEY,
+   LEGALNAME VARCHAR(200),
+   ADDRESSID INT,
+   CEOID INT
+ )
+
+ Table addressTable(
+   ID INT PRIMARY KEY,
+   TYPE INT,
+   NAME VARCHAR(200),
+   STREET VARCHAR(100),
+   COMMENTS VARCHAR(100)
+ )
+ Join Firm_Ceo(firmTable.CEOID = personTable.ID)
+ Join Firm_Person(firmTable.ID = personTable.FIRMID)
+ Join Address_Firm(addressTable.ID = firmTable.ADDRESSID)
+ Join Address_Person(addressTable.ID = personTable.ADDRESSID)
+ Join Person_Manager(personTable.MANAGERID = {target}.ID)
+
+)
+
+###Pure
+import meta::external::store::document::tests::simple::*;
+
+function meta::external::store::document::tests::simple::testRuntime(db:meta::relational::metamodel::Database[1]):meta::pure::runtime::Runtime[1]
+{
+ ^meta::pure::runtime::Runtime(connections = meta::external::store::document::tests::simple::testDatabaseConnection($db))
+}
+
+
+function meta::external::store::document::tests::simple::testDatabaseConnection(db:meta::relational::metamodel::Database[1]):meta::relational::runtime::TestDatabaseConnection[1]
+{
+   ^meta::relational::runtime::TestDatabaseConnection(
+       element = $db,
+       type = meta::relational::runtime::DatabaseType.H2,
+       timeZone = 'GMT'
+   );
+}
 
 
 

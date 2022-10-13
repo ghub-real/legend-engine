@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.valueSpecification.executionContext;
+package org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.executionContext;
 
 import org.eclipse.collections.impl.factory.Lists;
 
@@ -26,6 +26,6 @@ public class DocumentStoreExecutionContext
     public Boolean preserveJoinOrder;
     public Boolean importDataFlow;
     public Boolean importDataFlowAddFks;
-    public List<TableForeignColumns> importDataFlowFkCols = Lists.mutable.empty();
+    public List<CollectionForeignFields> importDataFlowFkCols = Lists.mutable.empty();
     public Long importDataFlowImplementationCount;
 }
