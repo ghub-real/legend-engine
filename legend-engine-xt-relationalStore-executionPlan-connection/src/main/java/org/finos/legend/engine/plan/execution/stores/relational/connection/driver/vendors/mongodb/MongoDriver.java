@@ -1,4 +1,4 @@
-// Copyright 2020 Goldman Sachs
+// Copyright 2021 Goldman Sachs
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores;
+package org.finos.legend.engine.plan.execution.stores.relational.connection.driver.vendors.mongodb;
 
-public enum StoreType
+import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DriverWrapper;
+
+// TODO: goncah, not being used yet, replicating DB2 pattern
+public class MongoDriver extends DriverWrapper
 {
-    Relational, Service, InMemory, NonRelational
+    @Override
+    protected String getClassName()
+    {
+        return "not yet implemented";
+    }
 }

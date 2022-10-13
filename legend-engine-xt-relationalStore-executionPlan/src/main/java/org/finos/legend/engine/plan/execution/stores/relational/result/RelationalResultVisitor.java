@@ -27,4 +27,6 @@ public interface RelationalResultVisitor<T> extends ResultVisitor<T>
     T visit(RelationalResult relationalResult);
 
     T visit(SQLExecutionResult relationalResult);
+
+    T visit(NoSQLExecutionResult relationalResult);
 }

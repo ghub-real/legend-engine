@@ -53,6 +53,7 @@ public abstract class DatabaseManager
                     register(new DatabricksManager());
                     register(new PostgresManager());
                     register(new RedshiftManager());
+//                    register(new MongoDBManager()); // TODO: goncah figure out if DBManager pattern can work for non-relational DBs
 
                     MutableList<ConnectionExtension> extensions = Iterate.addAllTo(ServiceLoader.load(ConnectionExtension.class), Lists.mutable.empty());
                     extensions.flatCollect(ConnectionExtension::getAdditionalDatabaseManager).forEach(DatabaseManager::register);

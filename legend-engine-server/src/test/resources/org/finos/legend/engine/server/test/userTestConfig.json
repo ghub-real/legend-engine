@@ -3,7 +3,7 @@
     "mode": "TEST_IGNORE_FUNCTION_MATCH"
   },
   "logging": {
-    "level": "error",
+    "level": "info",
     "appenders": [
       {
         "type": "console",
@@ -71,6 +71,12 @@
     "port": 9092
   },
   "relationalexecution": {
+    "tempPath": "/tmp/",
+    "temporarytestdb": {
+      "port": 9092
+    }
+  },
+  "nonrelationalexecution": {
     "tempPath": "/tmp/",
     "temporarytestdb": {
       "port": 9092

@@ -12,23 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.service.plugin;
+package org.finos.legend.engine.plan.execution.stores.relational.plugin;
 
-import org.finos.legend.engine.plan.execution.stores.StoreState;
-import org.finos.legend.engine.plan.execution.stores.StoreType;
+import org.finos.legend.engine.plan.execution.stores.StoreExecutor;
 
-public class ServiceStoreState implements StoreState
+public class NonRelationalStoreExecutor implements StoreExecutor
 {
-    @Override
-    public StoreType getStoreType()
+    private final NonRelationalStoreState state;
+
+    NonRelationalStoreExecutor(NonRelationalStoreState state)
     {
-        return StoreType.Service;
+        this.state = state;
     }
 
+    @Override
+    public NonRelationalStoreExecutionState buildStoreExecutionState()
+    {
+        return new NonRelationalStoreExecutionState(this.state);
+    }
 
     @Override
-    public Object getStoreExecutionInfo()
+    public NonRelationalStoreState getStoreState()
     {
-        return null;
+        return this.state;
     }
 }

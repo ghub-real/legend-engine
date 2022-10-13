@@ -32,13 +32,7 @@ import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstanc
 import org.finos.legend.engine.plan.dependencies.store.relational.IRelationalCreateAndPopulateTempTableExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.relational.IRelationalResult;
 import org.finos.legend.engine.plan.dependencies.store.relational.classResult.IRelationalClassInstantiationNodeExecutor;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalChildGraphNodeExecutor;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalCrossRootGraphNodeExecutor;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalCrossRootQueryTempTableGraphFetchExecutionNodeSpecifics;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalRootGraphNodeExecutor;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
+import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.*;
 import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
 import org.finos.legend.engine.plan.execution.cache.ExecutionCache;
 import org.finos.legend.engine.plan.execution.cache.graphFetch.GraphFetchCacheByEqualityKeys;
@@ -57,6 +51,7 @@ import org.finos.legend.engine.plan.execution.result.graphFetch.GraphFetchResult
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphObjectsBatch;
 import org.finos.legend.engine.plan.execution.result.object.StreamingObjectResult;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
+import org.finos.legend.engine.plan.execution.stores.relational.NonRelationalExecutor;
 import org.finos.legend.engine.plan.execution.stores.relational.RelationalDatabaseCommandsVisitorBuilder;
 import org.finos.legend.engine.plan.execution.stores.relational.RelationalExecutor;
 import org.finos.legend.engine.plan.execution.stores.relational.activity.AggregationAwareActivity;
@@ -64,59 +59,27 @@ import org.finos.legend.engine.plan.execution.stores.relational.blockConnection.
 import org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.commands.RelationalDatabaseCommands;
-import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
-import org.finos.legend.engine.plan.execution.stores.relational.result.PreparedTempTableResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.RealizedRelationalResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.RelationalResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.ResultColumn;
-import org.finos.legend.engine.plan.execution.stores.relational.result.ResultInterpreterExtension;
-import org.finos.legend.engine.plan.execution.stores.relational.result.SQLExecutionResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.TempTableStreamingResult;
+import org.finos.legend.engine.plan.execution.stores.relational.result.*;
 import org.finos.legend.engine.plan.execution.stores.relational.result.graphFetch.RelationalGraphObjectsBatch;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AggregationAwareExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AllocationExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ConstantExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.CreateAndPopulateTempTableExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ErrorExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNodeVisitor;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.FreeMarkerConditionalExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.FunctionParametersValidationNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.GraphFetchM2MExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.JavaPlatformImplementation;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.MultiResultSequenceExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.PureExpressionPlatformExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalBlockExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalClassInstantiationExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalDataTypeInstantiationExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalRelationDataInstantiationExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalTdsInstantiationExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SQLExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SequenceExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalClassQueryTempTableGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalCrossRootGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalCrossRootQueryTempTableGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalPrimitiveQueryGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalRootGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalRootQueryTempTableGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.*;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.*;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryCrossStoreGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryPropertyGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryRootGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.StoreStreamReadingExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.result.ClassResultType;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseConnection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseType;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.NonRelationalDatabaseConnection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.DefaultH2AuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.MongoDBDatasourceSpecification;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.graph.GraphFetchTree;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.graph.PropertyGraphFetchTree;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.graph.RootGraphFetchTree;
 import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.finos.legend.engine.shared.core.collectionsExtensions.DoubleStrategyHashMap;
 import org.pac4j.core.profile.CommonProfile;
+import org.slf4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -144,10 +107,14 @@ import java.util.stream.StreamSupport;
 
 public class RelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
 {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Alloy Execution Server");
     private final ExecutionState executionState;
     private final MutableList<CommonProfile> profiles;
     private MutableList<Function2<ExecutionState, List<Map<String, Object>>, Result>> resultInterpreterExtensions;
 
+
+    // TODO: goncah set to true to override SQLExecutionNode flow -> MongoExecutionNode
+    private static final boolean testMongoQueryFromSQLNode = true;
     public RelationalExecutionNodeExecutor(ExecutionState executionState, MutableList<CommonProfile> profiles)
     {
         this.executionState = executionState;
@@ -158,6 +125,7 @@ public class RelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Res
     @Override
     public Result visit(ExecutionNode executionNode)
     {
+        LOGGER.info("executing " + executionNode.getClass().getSimpleName() + " execution node");
         if (executionNode instanceof RelationalBlockExecutionNode)
         {
             RelationalBlockExecutionNode relationalBlockExecutionNode = (RelationalBlockExecutionNode) executionNode;
@@ -277,16 +245,62 @@ public class RelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Res
         }
         else if (executionNode instanceof SQLExecutionNode)
         {
-            SQLExecutionNode SQLExecutionNode = (SQLExecutionNode) executionNode;
-            this.executionState.topSpan = GlobalTracer.get().activeSpan();
-            try (Scope scope = GlobalTracer.get().buildSpan("Relational DB Execution").startActive(true))
-            {
-                scope.span().setTag("databaseType", SQLExecutionNode.getDatabaseTypeName());
-                scope.span().setTag("sql", SQLExecutionNode.sqlQuery());
-                Result result = ((RelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.Relational)).getRelationalExecutor().execute(SQLExecutionNode, profiles, executionState);
-                if (result instanceof SQLExecutionResult)
+
+
+            if (testMongoQueryFromSQLNode) {
+                // TODO: goncah convert SQLExecutionNode to MongoNode, for now, until we pass in MongoQueryNode directly.
+                DefaultH2AuthenticationStrategy authStrategy = new DefaultH2AuthenticationStrategy();
+                MongoDBDatasourceSpecification mongoSpec = new MongoDBDatasourceSpecification();
+
+                NonRelationalDatabaseConnection connection = new NonRelationalDatabaseConnection(mongoSpec, authStrategy, DatabaseType.MongoDB);
+
+                MongoQLExecutionNode mongoExecutionNode = new MongoQLExecutionNode();
+                mongoExecutionNode.mongoQLQuery = "{ 'aggregate': 'firms', 'pipeline': [{ '$match':{} }], 'cursor': { } }";
+                mongoExecutionNode.resultColumns = ((SQLExecutionNode) executionNode).getSQLResultColumns();
+                mongoExecutionNode.resultType = executionNode.resultType;
+                mongoExecutionNode.connection = connection;
+                MongoDBDatasourceSpecification datasourceSpecification = new MongoDBDatasourceSpecification();
+                datasourceSpecification.databaseName = "defaultDb";
+                datasourceSpecification.host = "localhost";
+                datasourceSpecification.port = 27017;
+                connection.datasourceSpecification = datasourceSpecification;
+
+                return this.visit(mongoExecutionNode);
+            }
+
+                SQLExecutionNode SQLExecutionNode = (SQLExecutionNode) executionNode;
+                this.executionState.topSpan = GlobalTracer.get().activeSpan();
+                try (Scope scope = GlobalTracer.get().buildSpan("Relational DB Execution").startActive(true))
                 {
-                    scope.span().setTag("executedSql", ((SQLExecutionResult) result).getExecutedSql());
+                    scope.span().setTag("databaseType", SQLExecutionNode.getDatabaseTypeName());
+                    scope.span().setTag("sql", SQLExecutionNode.sqlQuery());
+                    Result result = ((RelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.Relational)).getRelationalExecutor().execute(SQLExecutionNode, profiles, executionState);
+                    if (result instanceof SQLExecutionResult)
+                    {
+                        scope.span().setTag("executedSql", ((SQLExecutionResult) result).getExecutedSql());
+                    }
+                    return result;
+                }
+
+        }
+
+        else if (executionNode instanceof MongoQLExecutionNode)
+        {
+            MongoQLExecutionNode mongoExecutionNode = (MongoQLExecutionNode) executionNode;
+
+            try (Scope scope = GlobalTracer.get().buildSpan("Non-Relational DB Execution").startActive(true))
+            {
+                scope.span().setTag("databaseType", mongoExecutionNode.getDatabaseTypeName());
+                scope.span().setTag("mql", mongoExecutionNode.getQuery());
+
+                NonRelationalStoreExecutionState es = ((NonRelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational));
+                NonRelationalExecutor nonRelationalExecutor = es.getRelationalExecutor();
+
+                Result result = nonRelationalExecutor.execute(mongoExecutionNode, profiles, executionState);
+
+                if (result instanceof NoSQLExecutionResult)
+                {
+                    scope.span().setTag("executedNoSql", ((NoSQLExecutionResult) result).getExecutedMql());
                 }
                 return result;
             }
@@ -1188,7 +1202,15 @@ public class RelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Res
         try
         {
             rootResult = node.executionNodes.get(0).accept(new ExecutionNodeExecutor(this.profiles, this.executionState));
+
+            // TODO: goncah handle the result output so Pure IDE does not return an error
+            if (testMongoQueryFromSQLNode) {
+                return rootResult;
+            }
             SQLExecutionResult sqlExecutionResult = (SQLExecutionResult) rootResult;
+
+
+
             DatabaseConnection databaseConnection = sqlExecutionResult.getSQLExecutionNode().connection;
             ResultSet rootResultSet = ((SQLExecutionResult) rootResult).getResultSet();
 

@@ -17,37 +17,37 @@ package org.finos.legend.engine.plan.execution.stores.relational.plugin;
 import org.finos.legend.engine.authentication.provider.DatabaseAuthenticationFlowProvider;
 import org.finos.legend.engine.plan.execution.stores.StoreState;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
-import org.finos.legend.engine.plan.execution.stores.relational.RelationalExecutor;
-import org.finos.legend.engine.plan.execution.stores.relational.config.RelationalExecutionConfiguration;
+import org.finos.legend.engine.plan.execution.stores.relational.NonRelationalExecutor;
+import org.finos.legend.engine.plan.execution.stores.relational.config.NonRelationalExecutionConfiguration;
 import org.finos.legend.engine.plan.execution.stores.relational.config.TemporaryTestDbConfiguration;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.RelationalExecutorInfo;
 
 import java.util.Optional;
 
-public class RelationalStoreState implements StoreState
+public class NonRelationalStoreState implements StoreState
 {
-    private final RelationalExecutor relationalExecutor;
+    private final NonRelationalExecutor relationalExecutor;
     private final RelationalExecutorInfo relationalExecutorInfo = new RelationalExecutorInfo();
 
-    public RelationalStoreState(TemporaryTestDbConfiguration temporarytestdb, RelationalExecutionConfiguration relationalExecutionConfiguration)
+    public NonRelationalStoreState(TemporaryTestDbConfiguration temporarytestdb, NonRelationalExecutionConfiguration relationalExecutionConfiguration)
     {
-        this.relationalExecutor = new RelationalExecutor(temporarytestdb, relationalExecutionConfiguration);
+        this.relationalExecutor = new NonRelationalExecutor(temporarytestdb, relationalExecutionConfiguration);
     }
 
-    public RelationalStoreState(int port)
+    public NonRelationalStoreState(int port)
     {
-        this(new TemporaryTestDbConfiguration(port), new RelationalExecutionConfiguration("/tmp/"));
+        this(new TemporaryTestDbConfiguration(port), new NonRelationalExecutionConfiguration("/tmp/"));
     }
 
-    public RelationalStoreState(TemporaryTestDbConfiguration temporarytestdb, RelationalExecutionConfiguration relationalExecutionConfiguration, Optional<DatabaseAuthenticationFlowProvider> flowProviderHolder)
+    public NonRelationalStoreState(TemporaryTestDbConfiguration temporarytestdb, NonRelationalExecutionConfiguration relationalExecutionConfiguration, Optional<DatabaseAuthenticationFlowProvider> flowProviderHolder)
     {
-        this.relationalExecutor = new RelationalExecutor(temporarytestdb, relationalExecutionConfiguration, flowProviderHolder);
+        this.relationalExecutor = new NonRelationalExecutor(temporarytestdb, relationalExecutionConfiguration, flowProviderHolder);
     }
 
     @Override
     public StoreType getStoreType()
     {
-        return StoreType.Relational;
+        return StoreType.NonRelational;
     }
 
 
@@ -58,7 +58,7 @@ public class RelationalStoreState implements StoreState
         return this.relationalExecutorInfo;
     }
 
-    public RelationalExecutor getRelationalExecutor()
+    public NonRelationalExecutor getRelationalExecutor()
     {
         return this.relationalExecutor;
     }

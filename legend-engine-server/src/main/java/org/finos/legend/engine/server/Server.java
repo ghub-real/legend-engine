@@ -68,6 +68,8 @@ import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
 import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
 import org.finos.legend.engine.plan.execution.stores.relational.api.RelationalExecutorInformation;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.api.schema.SchemaExplorationApi;
+import org.finos.legend.engine.plan.execution.stores.relational.plugin.NonRelational;
+import org.finos.legend.engine.plan.execution.stores.relational.plugin.NonRelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.relational.plugin.Relational;
 import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.service.plugin.ServiceStore;
@@ -114,6 +116,8 @@ public class Server<T extends ServerConfiguration> extends Application<T>
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Alloy Execution Server");
 
     protected RelationalStoreExecutor relationalStoreExecutor;
+
+    protected NonRelationalStoreExecutor nonRelationalStoreExecutor;
 
     private Environment environment;
 
@@ -168,7 +172,9 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         ChainFixingFilterHandler.apply(environment.getApplicationContext(), serverConfiguration.filterPriorities);
 
         relationalStoreExecutor = (RelationalStoreExecutor) Relational.build(serverConfiguration.relationalexecution);
-        PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(relationalStoreExecutor, ServiceStore.build(), InMemory.build());
+        nonRelationalStoreExecutor = (NonRelationalStoreExecutor) NonRelational.build(serverConfiguration.nonrelationalexecution);
+
+        PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(relationalStoreExecutor, nonRelationalStoreExecutor, ServiceStore.build(), InMemory.build());
 
         // Session Management
         SessionTracker sessionTracker = new SessionTracker();
