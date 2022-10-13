@@ -168,19 +168,6 @@ let docAndStoreMapping = meta::external::store::document::tests::object::getDocu
   let mongoStoreAndMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
   let mappingDocumentStore = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second);
 
-  let routed = $queryPerson->meta::pure::router::routeFunction($mappingDocumentStore, $runtime, $executionContext, $extensions, $debugContext);
-  let routedFunction = $routed.functions->evaluateAndDeactivate()->toOne();
-  let clusters = $routedFunction.expressionSequence->evaluateAndDeactivate()->cast(@meta::pure::router::clustering::ClusteredValueSpecification);
-
-  let functionParameters = $queryPerson->meta::pure::executionPlan::stubFuncParameters();
-  let inScopeVars = $functionParameters->map(ep|pair($ep.name, ^List<Any>(values=$ep)))->newMap();
-
-  let feNew = $clusters.val->match([r:ExtendedRoutedValueSpecification[1]|$r.value,
-                                  t:TDSRoutedValueSpecification[1] | $t.value,
-                                  a:Any[1]|$a])->cast(@FunctionExpression);
-
-  let query = ^meta::pure::mapping::StoreQuery(store=$clusters.store->toOne(), fe=$feNew, inScopeVars=$inScopeVars);
-
 
   let executionPlan = meta::pure::executionPlan::executionPlan($queryPerson, $mappingDocumentStore, $runtime, $executionContext, $extensions, $debugContext);
   //let executionPlan = meta::pure::executionPlan::executionPlan($query1, poc::mapping::modelh2, $runtime, $executionContext, $relationalExtensions, $debugContext);
