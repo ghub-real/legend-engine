@@ -14,7 +14,11 @@
 
 package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.operation;
 
-public class Literal extends DocumentStoreElement
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.mapping.CollectionPtr;
+
+public class Field extends DocumentStoreElement
 {
-    public Object value;
+    // No Alias
+    public CollectionPtr collectionPtr;
+    public String field;
 }
