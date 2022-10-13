@@ -17,8 +17,10 @@ package org.finos.legend.engine.plan.execution.stores.relational.blockConnection
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.map.MutableMap;
 import org.eclipse.collections.impl.factory.Maps;
+import org.finos.legend.engine.plan.execution.stores.StoreExecutionState;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.ConnectionKey;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManagerSelector;
+import org.finos.legend.engine.plan.execution.stores.relational.plugin.NonRelationalStoreExecutionState;
 import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutionState;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseConnection;
 import org.finos.legend.engine.shared.core.operational.Assert;
@@ -40,22 +42,48 @@ public class BlockConnectionContext
         this(Maps.mutable.empty());
     }
 
-    public BlockConnection getBlockConnection(RelationalStoreExecutionState executionState, DatabaseConnection databaseConnection, MutableList<CommonProfile> profiles)
+    public BlockConnection getBlockConnection(StoreExecutionState executionState, DatabaseConnection databaseConnection, MutableList<CommonProfile> profiles)
     {
-        BlockConnection requiredBlockConnection = this.blockConnectionMap.get(executionState.getRelationalExecutor().getConnectionManager().generateKeyFromDatabaseConnection(databaseConnection));
-        if (requiredBlockConnection == null)
-        {
-            requiredBlockConnection = setBlockConnection(executionState.getRelationalExecutor().getConnectionManager(),
-                    databaseConnection,
-                    new BlockConnection(executionState.getRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext())));
-        }
-        if (!requiredBlockConnection.blockConnectionState.isConnectionAvailable())
-        {
-            Assert.fail(() -> "Multiple Connections required for " + databaseConnection.toString() + " connection( Not supported currently )");
+
+        if (executionState instanceof RelationalStoreExecutionState) {
+            RelationalStoreExecutionState relationalStoreExecutionState = (RelationalStoreExecutionState) executionState;
+
+            BlockConnection requiredBlockConnection = this.blockConnectionMap.get(relationalStoreExecutionState.getRelationalExecutor().getConnectionManager().generateKeyFromDatabaseConnection(databaseConnection));
+            if (requiredBlockConnection == null)
+            {
+                requiredBlockConnection = setBlockConnection(relationalStoreExecutionState.getRelationalExecutor().getConnectionManager(),
+                        databaseConnection,
+                        new BlockConnection(relationalStoreExecutionState.getRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext())));
+            }
+            if (!requiredBlockConnection.blockConnectionState.isConnectionAvailable())
+            {
+                Assert.fail(() -> "Multiple Connections required for " + databaseConnection.toString() + " connection( Not supported currently )");
+            }
+
+            requiredBlockConnection.blockConnectionState.hasOpenResultSet();
+            return requiredBlockConnection;
         }
 
-        requiredBlockConnection.blockConnectionState.hasOpenResultSet();
-        return requiredBlockConnection;
+        if (executionState instanceof NonRelationalStoreExecutionState) {
+            NonRelationalStoreExecutionState relationalStoreExecutionState = (NonRelationalStoreExecutionState) executionState;
+
+            BlockConnection requiredBlockConnection = this.blockConnectionMap.get(relationalStoreExecutionState.getRelationalExecutor().getConnectionManager().generateKeyFromDatabaseConnection(databaseConnection));
+            if (requiredBlockConnection == null)
+            {
+                requiredBlockConnection = setBlockConnection(relationalStoreExecutionState.getRelationalExecutor().getConnectionManager(),
+                        databaseConnection,
+                        new BlockConnection(relationalStoreExecutionState.getRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext())));
+            }
+            if (!requiredBlockConnection.blockConnectionState.isConnectionAvailable())
+            {
+                Assert.fail(() -> "Multiple Connections required for " + databaseConnection.toString() + " connection( Not supported currently )");
+            }
+
+            requiredBlockConnection.blockConnectionState.hasOpenResultSet();
+            return requiredBlockConnection;
+        }
+        Assert.fail(() -> "Not supported)");
+        return null;
     }
 
     public void unlockAllBlockConnections()
