@@ -51,12 +51,17 @@ public class ResultField
         {
             this.valueExtractor = (rootNode, calendar) -> LocalDate.parse(rootNode.get(this.label).asText());
 
-        } else if ("TIMESTAMP".equalsIgnoreCase(this.dataType))
+        }
+        else
         {
-            this.valueExtractor = (rootNode, calendar) -> LocalDateTime.parse(rootNode.get(this.label).asText());
-        } else
-        {
-            this.valueExtractor = (rootNode, calendar) -> rootNode.get(this.label);
+            if ("TIMESTAMP".equalsIgnoreCase(this.dataType))
+            {
+                this.valueExtractor = (rootNode, calendar) -> LocalDateTime.parse(rootNode.get(this.label).asText());
+            }
+            else
+            {
+                this.valueExtractor = (rootNode, calendar) -> rootNode.get(this.label);
+            }
         }
 
 
@@ -70,7 +75,7 @@ public class ResultField
                 case BOOLEAN:
                     if (valueNode.isBoolean())
                     {
-                         return valueNode.asBoolean();
+                        return valueNode.asBoolean();
                     }
                     break;
                 case NUMBER:
@@ -78,9 +83,12 @@ public class ResultField
                     {
                         return valueNode.asLong();
                     }
-                    else if (valueNode.isDouble() || valueNode.isFloat())
+                    else
                     {
-                        return valueNode.asDouble();
+                        if (valueNode.isDouble() || valueNode.isFloat())
+                        {
+                            return valueNode.asDouble();
+                        }
                     }
                     break;
                 case OBJECT:
@@ -114,9 +122,7 @@ public class ResultField
 
     public String getNonQuotedLabel()
     {
-        return this.label.startsWith("\"") && this.label.endsWith("\"") ?
-                this.label.substring(1, this.label.length() - 1) :
-                this.label;
+        return this.label.startsWith("\"") && this.label.endsWith("\"") ? this.label.substring(1, this.label.length() - 1) : this.label;
     }
 
     public String getDataType()

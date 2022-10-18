@@ -12,14 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.document.connection.manager;
+package org.finos.legend.engine.plan.execution.stores.nonrelational.client;
 
-
-import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.OAuthProfile;
-
-import java.util.List;
-
-public interface ConnectionManagerExtension
+public class NonRelationalExecutorInfo
 {
-    ConnectionManager getExtensionManager(int testDbPort, List<OAuthProfile> oauthProfiles);
 }

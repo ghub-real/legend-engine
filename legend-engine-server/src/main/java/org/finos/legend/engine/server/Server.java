@@ -63,7 +63,7 @@ import org.finos.legend.engine.plan.execution.PlanExecutor;
 import org.finos.legend.engine.plan.execution.api.ExecutePlanLegacy;
 import org.finos.legend.engine.plan.execution.api.ExecutePlanStrategic;
 import org.finos.legend.engine.plan.execution.service.api.ServiceModelingApi;
-import org.finos.legend.engine.plan.execution.stores.document.NonRelationalStoreExecutor;
+import org.finos.legend.engine.plan.execution.stores.document.NonRelationalExecutor;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.LocalMongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbResource;
@@ -117,7 +117,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     protected RelationalStoreExecutor relationalStoreExecutor;
 
-    protected NonRelationalStoreExecutor nonRelationalStoreExecutor;
+    protected NonRelationalExecutor nonRelationalExecutor;
 
     private Environment environment;
 

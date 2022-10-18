@@ -20,7 +20,7 @@ import org.eclipse.collections.impl.list.mutable.FastList;
 import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
 import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.result.ResultVisitor;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.MongoQLExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.ResultField;
 import org.pac4j.core.profile.CommonProfile;
@@ -35,7 +35,7 @@ public class DocumentQueryExecutionResult extends Result
 {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Alloy Execution Server");
 
-    MongoQLExecutionNode documentQueryExecutionNode;
+    DocumentQueryExecutionNode documentQueryExecutionNode;
     private final String databaseType;
     private final String databaseTimeZone;
     private final Calendar calendar;
@@ -54,7 +54,7 @@ public class DocumentQueryExecutionResult extends Result
 
     public Span topSpan;
 
-    public DocumentQueryExecutionResult(List<ExecutionActivity> activities, MongoQLExecutionNode executionNode, String databaseType, String databaseTimeZone, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
+    public DocumentQueryExecutionResult(List<ExecutionActivity> activities, DocumentQueryExecutionNode executionNode, String databaseType, String databaseTimeZone, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
     {
         super("success", activities);
 
@@ -75,7 +75,7 @@ public class DocumentQueryExecutionResult extends Result
         return ((DocumentStoreResultVisitor<T>) resultVisitor).visit(this);
     }
 
-    public MongoQLExecutionNode getDocumentQueryExecutionNode()
+    public DocumentQueryExecutionNode getDocumentQueryExecutionNode()
     {
         return this.documentQueryExecutionNode;
     }

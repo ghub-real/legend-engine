@@ -43,9 +43,7 @@ public class DocumentQueryResultField
     @JsonIgnore
     public String getNonQuotedLabel()
     {
-        return this.label.startsWith("\"") && this.label.endsWith("\"") ?
-                this.label.substring(1, this.label.length() - 1) :
-                this.label;
+        return this.label.startsWith("\"") && this.label.endsWith("\"") ? this.label.substring(1, this.label.length() - 1) : this.label;
     }
 
     @JsonIgnore
@@ -67,33 +65,54 @@ public class DocumentQueryResultField
         {
             return Tuples.pair(this.label, "String");
         }
-        else if ( type.startsWith("DOUBLE"))
+        else
         {
-            return Tuples.pair(this.label, "Double");
-        }
-        else if (type.startsWith("DECIMAL"))
-        {
-            return Tuples.pair(this.label, "Decimal");
-        }
-        else if (type.startsWith("INTEGER"))
-        {
-            return Tuples.pair(this.label, "Integer");
-        }
-        else if (type.startsWith("LONG"))
-        {
-            return Tuples.pair(this.label, "Long");
-        }
-        else if (type.startsWith("Boolean"))
-        {
-            return Tuples.pair(this.label, "Boolean");
-        }
-        else if (type.startsWith("TIMESTAMP") || type.startsWith("DATE"))
-        {
-            return Tuples.pair(this.label, "DateTime");
-        }
-        else if (type.startsWith("OBJECTTYPE") )
-        {
-            return Tuples.pair(this.label, "ObjectType");
+            if (type.startsWith("DOUBLE"))
+            {
+                return Tuples.pair(this.label, "Double");
+            }
+            else
+            {
+                if (type.startsWith("DECIMAL"))
+                {
+                    return Tuples.pair(this.label, "Decimal");
+                }
+                else
+                {
+                    if (type.startsWith("INTEGER"))
+                    {
+                        return Tuples.pair(this.label, "Integer");
+                    }
+                    else
+                    {
+                        if (type.startsWith("LONG"))
+                        {
+                            return Tuples.pair(this.label, "Long");
+                        }
+                        else
+                        {
+                            if (type.startsWith("Boolean"))
+                            {
+                                return Tuples.pair(this.label, "Boolean");
+                            }
+                            else
+                            {
+                                if (type.startsWith("TIMESTAMP") || type.startsWith("DATE"))
+                                {
+                                    return Tuples.pair(this.label, "DateTime");
+                                }
+                                else
+                                {
+                                    if (type.startsWith("OBJECTTYPE"))
+                                    {
+                                        return Tuples.pair(this.label, "ObjectType");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return Tuples.pair(this.label, "String"); // Default is String. But shouldn't go here

@@ -23,10 +23,10 @@ import org.eclipse.collections.impl.list.mutable.FastList;
 import org.finos.legend.engine.plan.execution.nodes.state.ExecutionState;
 import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.stores.document.config.NonRelationalExecutionConfiguration;
+import org.finos.legend.engine.plan.execution.stores.document.config.TemporaryTestDbConfiguration;
 import org.finos.legend.engine.plan.execution.stores.document.connection.manager.ConnectionManagerSelector;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
-import org.finos.legend.engine.plan.execution.stores.relational.config.TemporaryTestDbConfiguration;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.MongoQLExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification;
 import org.pac4j.core.profile.CommonProfile;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class NonRelationalStoreExecutor
+public class NonRelationalExecutor
 {
     public static final String DEFAULT_DB_TIME_ZONE = "GMT";
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Alloy Execution Server");
@@ -66,7 +66,7 @@ public class NonRelationalStoreExecutor
 //        this(temporarytestdb, nonRelationalExecutionConfiguration);
 //    }
 
-    public NonRelationalStoreExecutor(TemporaryTestDbConfiguration temporarytestdb, NonRelationalExecutionConfiguration nonRelationalExecutionConfiguration) //removed Optional<DatabaseAuthenticationFlowProvider> flowProviderHolder
+    public NonRelationalExecutor(TemporaryTestDbConfiguration temporarytestdb, NonRelationalExecutionConfiguration nonRelationalExecutionConfiguration) //removed Optional<DatabaseAuthenticationFlowProvider> flowProviderHolder
     {
         //this.flowProviderHolder = flowProviderHolder;
         this.connectionManager = new ConnectionManagerSelector(temporarytestdb, nonRelationalExecutionConfiguration.oauthProfiles, Optional.empty());
@@ -85,7 +85,7 @@ public class NonRelationalStoreExecutor
     }
 
 
-    public Result execute(MongoQLExecutionNode node, MutableList<CommonProfile> profiles, ExecutionState executionState)
+    public Result execute(DocumentQueryExecutionNode node, MutableList<CommonProfile> profiles, ExecutionState executionState)
     {
         LOGGER.info("Executing against MongoDB");
 
@@ -246,7 +246,7 @@ public class NonRelationalStoreExecutor
 //            }
 //            return blockConnection;
 //        }
-//        return executionState.getRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext());
+//        return executionState.getNonRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext());
 //    }
 //
 //    public static String process(String query, Map<?, ?> vars, String templateFunctions)

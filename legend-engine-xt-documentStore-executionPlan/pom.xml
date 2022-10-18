@@ -59,7 +59,7 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- TODO: REMOVE THIS -->
+        <!-- TODO: REMOVE THIS - only OAuth profiles used -->
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-xt-relationalStore-executionPlan</artifactId>

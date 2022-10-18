@@ -12,14 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.document.connection.manager;
+package org.finos.legend.engine.plan.execution.stores.document.result;
 
-
-import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.OAuthProfile;
+import org.eclipse.collections.api.block.function.Function2;
+import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.tuple.Pair;
+import org.finos.legend.engine.plan.execution.nodes.state.ExecutionState;
+import org.finos.legend.engine.plan.execution.result.Result;
 
 import java.util.List;
+import java.util.Map;
 
-public interface ConnectionManagerExtension
+public interface ResultInterpreterExtension
 {
-    ConnectionManager getExtensionManager(int testDbPort, List<OAuthProfile> oauthProfiles);
+    Function2<ExecutionState, List<Map<String, Object>>, Result> additionalResultBuilder();
+
+    MutableList<Pair<Class, String>> additionalMappers();
 }

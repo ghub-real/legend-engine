@@ -19,6 +19,8 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.factory.Maps;
 import org.finos.legend.engine.protocol.pure.v1.extension.ProtocolSubTypeInfo;
 import org.finos.legend.engine.protocol.pure.v1.extension.PureProtocolExtension;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
@@ -37,15 +39,12 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
     {
         //return Lists.fixedSize.empty();
         return Lists.fixedSize.with(() -> Lists.fixedSize.with(
-        ProtocolSubTypeInfo.newBuilder(DatasourceSpecification.class)
-                .withSubtype(MongoDBDatasourceSpecification.class, "mongoDB")
-                .build(),
 
 //        return Lists.fixedSize.with(() -> Lists.fixedSize.with(
-//                // Packageable element
-//                ProtocolSubTypeInfo.newBuilder(PackageableElement.class)
-//                        .withSubtype(Database.class, "relational")
-//                        .build(),
+                // Packageable element
+                ProtocolSubTypeInfo.newBuilder(PackageableElement.class)
+                        .withSubtype(DocumentStore.class, "nonRelational")
+                        .build(),
 //                // Value specification
 //                ProtocolSubTypeInfo.newBuilder(ValueSpecification.class)
 //                        .withSubtype(DatabaseInstance.class, "databaseInstance")
@@ -86,36 +85,18 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
 //                ProtocolSubTypeInfo.newBuilder(EmbeddedData.class)
 //                        .withSubtype(RelationalCSVData.class, "relationalCSVData")
 //                        .build(),
-//                // Execution plan node
-//                ProtocolSubTypeInfo.newBuilder(ExecutionNode.class)
-//                        .withSubtype(RelationalExecutionNode.class, "relational")
-//                        .withSubtype(RelationalTdsInstantiationExecutionNode.class, "relationalTdsInstantiation")
-//                        .withSubtype(RelationalClassInstantiationExecutionNode.class, "relationalClassInstantiation")
-//                        .withSubtype(RelationalRelationDataInstantiationExecutionNode.class, "relationalRelationDataInstantiation")
-//                        .withSubtype(RelationalDataTypeInstantiationExecutionNode.class, "relationalDataTypeInstantiation")
-//                        .withSubtype(RelationalRootGraphFetchExecutionNode.class, "relationalRootGraphFetchExecutionNode")
-//                        .withSubtype(RelationalCrossRootGraphFetchExecutionNode.class, "relationalCrossRootGraphFetchExecutionNode")
-//                        .withSubtype(RelationalTempTableGraphFetchExecutionNode.class, "relationalTempTableGraphFetchExecutionNode")
-//                        .withSubtype(RelationalGraphFetchExecutionNode.class, "relationalGraphFetchExecutionNode")
-//                        .withSubtype(RelationalBlockExecutionNode.class, "relationalBlock")
-//                        .withSubtype(CreateAndPopulateTempTableExecutionNode.class, "createAndPopulateTempTable")
-//                        .withSubtype(SQLExecutionNode.class, "sql")
-//                        .withSubtype(RelationalPrimitiveQueryGraphFetchExecutionNode.class, "relationalPrimitiveQueryGraphFetch")
-//                        .withSubtype(RelationalClassQueryTempTableGraphFetchExecutionNode.class, "relationalClassQueryTempTableGraphFetch")
-//                        .withSubtype(RelationalRootQueryTempTableGraphFetchExecutionNode.class, "relationalRootQueryTempTableGraphFetch")
-//                        .withSubtype(RelationalCrossRootQueryTempTableGraphFetchExecutionNode.class, "relationalCrossRootQueryTempTableGraphFetch")
-//                        .build(),
-//
-//                //DatasourceSpecification
-//                ProtocolSubTypeInfo.newBuilder(DatasourceSpecification.class)
-//                        .withSubtype(LocalH2DatasourceSpecification.class, "h2Local")
-//                        .withSubtype(StaticDatasourceSpecification.class, "static")
-//                        .withSubtype(EmbeddedH2DatasourceSpecification.class, "h2Embedded")
-//                        .withSubtype(SnowflakeDatasourceSpecification.class, "snowflake")
-//                        .withSubtype(DatabricksDatasourceSpecification.class, "databricks")
-//                        .withSubtype(RedshiftDatasourceSpecification.class, "redshift")
-//                        .build(),
-//
+                // Execution plan node
+                ProtocolSubTypeInfo.newBuilder(ExecutionNode.class)
+                        .withSubtype(DocumentQueryExecutionNode.class, "documentQuery")
+                       // .withSubtype(RelationalRootGraphFetchExecutionNode.class, "relationalRootGraphFetchExecutionNode")
+                       // .withSubtype(RelationalGraphFetchExecutionNode.class, "relationalGraphFetchExecutionNode")
+                        .build(),
+
+                //DatasourceSpecification
+                ProtocolSubTypeInfo.newBuilder(DatasourceSpecification.class)
+                        .withSubtype(MongoDBDatasourceSpecification.class, "mongoDB")
+                        .build(),
+
                 // AuthenticationStrategy
                 ProtocolSubTypeInfo.newBuilder(AuthenticationStrategy.class)
                         .withSubtype(TestDatabaseAuthenticationStrategy.class, "test")

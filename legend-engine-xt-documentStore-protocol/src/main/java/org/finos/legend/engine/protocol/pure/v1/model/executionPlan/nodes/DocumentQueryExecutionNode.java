@@ -22,7 +22,7 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.n
 import java.util.Collections;
 import java.util.List;
 
-public class MongoQLExecutionNode extends ExecutionNode
+public class DocumentQueryExecutionNode extends ExecutionNode
 {
     public String mongoQLQuery;
     public String onConnectionCloseCommitQuery;

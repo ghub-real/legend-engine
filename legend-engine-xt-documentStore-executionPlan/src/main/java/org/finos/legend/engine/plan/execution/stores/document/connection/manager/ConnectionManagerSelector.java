@@ -20,23 +20,21 @@ import org.eclipse.collections.impl.utility.Iterate;
 import org.finos.legend.engine.authentication.credential.CredentialSupplier;
 import org.finos.legend.engine.authentication.provider.DatabaseAuthenticationFlowProvider;
 import org.finos.legend.engine.plan.execution.stores.StoreExecutionState;
-import org.finos.legend.engine.plan.execution.stores.relational.config.TemporaryTestDbConfiguration;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.ConnectionKey;
+import org.finos.legend.engine.plan.execution.stores.document.config.TemporaryTestDbConfiguration;
+import org.finos.legend.engine.plan.execution.stores.document.connection.manager.strategic.NonRelationalConnectionManager;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ConnectionKey;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds.DataSourceSpecification;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.OAuthProfile;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.ds.DataSourceSpecification;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManager;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManagerExtension;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.manager.strategic.RelationalConnectionManager;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseConnection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseType;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.RelationalDatabaseConnection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.authentication.TestDatabaseAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseType;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
 import org.finos.legend.engine.shared.core.identity.Identity;
 import org.finos.legend.engine.shared.core.identity.factory.IdentityFactoryProvider;
 import org.pac4j.core.profile.CommonProfile;
 
 import javax.security.auth.Subject;
-import java.sql.Connection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,7 +43,7 @@ import java.util.ServiceLoader;
 public class ConnectionManagerSelector
 {
     private final Optional<DatabaseAuthenticationFlowProvider> flowProviderHolder;
-    private MutableList<org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManager> connectionManagers;
+    private MutableList<org.finos.legend.engine.plan.execution.stores.document.connection.manager.ConnectionManager> connectionManagers;
 
     public ConnectionManagerSelector(TemporaryTestDbConfiguration temporaryTestDb, List<OAuthProfile> oauthProfiles)
     {
@@ -54,31 +52,44 @@ public class ConnectionManagerSelector
 
     public ConnectionManagerSelector(TemporaryTestDbConfiguration temporaryTestDb, List<OAuthProfile> oauthProfiles, Optional<DatabaseAuthenticationFlowProvider> flowProviderHolder)
     {
-        MutableList<org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManagerExtension> extensions = Iterate.addAllTo(ServiceLoader.load(ConnectionManagerExtension.class), Lists.mutable.empty());
-        this.connectionManagers = Lists.mutable.<org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManager>with(
-                new RelationalConnectionManager(temporaryTestDb.port, oauthProfiles, flowProviderHolder)
+        MutableList<org.finos.legend.engine.plan.execution.stores.document.connection.manager.ConnectionManagerExtension> extensions = Iterate.addAllTo(ServiceLoader.load(ConnectionManagerExtension.class), Lists.mutable.empty());
+        this.connectionManagers = Lists.mutable.<org.finos.legend.engine.plan.execution.stores.document.connection.manager.ConnectionManager>with(
+                new NonRelationalConnectionManager(temporaryTestDb.port, oauthProfiles, flowProviderHolder)
         ).withAll(extensions.collect(e -> e.getExtensionManager(temporaryTestDb.port, oauthProfiles)));
         this.flowProviderHolder = flowProviderHolder;
     }
 
-    public Connection getDatabaseConnection(MutableList<CommonProfile> profiles, DatabaseConnection databaseConnection)
+    public static org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection transformToTestConnectionSpecification(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection originalConnection, String testData, List<String> setupSqls)
+    {
+        DataStoreConnection db = new DataStoreConnection();
+        db.datasourceSpecification = new org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification(); //testData, setupSqls
+        db.authenticationStrategy = new TestDatabaseAuthenticationStrategy();
+        db.databaseType = DatabaseType.Mongo;
+        db.type = DatabaseType.Mongo;
+        db.element = originalConnection.element;
+        db.timeZone = originalConnection instanceof DatabaseConnection ? ((DatabaseConnection) originalConnection).timeZone : null;
+        db.quoteIdentifiers = originalConnection instanceof DatabaseConnection ? ((DatabaseConnection) originalConnection).quoteIdentifiers : null;
+        return db;
+    }
+
+    public NonRelationalClient getDatabaseConnection(MutableList<CommonProfile> profiles, DatabaseConnection databaseConnection)
     {
         return this.getDatabaseConnection(profiles, databaseConnection, StoreExecutionState.emptyRuntimeContext());
     }
 
-    public Connection getDatabaseConnection(MutableList<CommonProfile> profiles, DatabaseConnection databaseConnection, StoreExecutionState.RuntimeContext runtimeContext)
+    public NonRelationalClient getDatabaseConnection(MutableList<CommonProfile> profiles, DatabaseConnection databaseConnection, StoreExecutionState.RuntimeContext runtimeContext)
     {
         DataSourceSpecification datasource = getDataSourceSpecification(databaseConnection);
         Identity identity = IdentityFactoryProvider.getInstance().makeIdentity(profiles);
         return this.getDatabaseConnectionImpl(identity, databaseConnection, datasource, runtimeContext);
     }
 
-    public Connection getDatabaseConnection(Subject subject, DatabaseConnection databaseConnection)
+    public NonRelationalClient getDatabaseConnection(Subject subject, DatabaseConnection databaseConnection)
     {
         return this.getDatabaseConnection(subject, databaseConnection, StoreExecutionState.emptyRuntimeContext());
     }
 
-    public Connection getDatabaseConnection(Subject subject, DatabaseConnection databaseConnection, StoreExecutionState.RuntimeContext runtimeContext)
+    public NonRelationalClient getDatabaseConnection(Subject subject, DatabaseConnection databaseConnection, StoreExecutionState.RuntimeContext runtimeContext)
     {
         DataSourceSpecification datasource = getDataSourceSpecification(databaseConnection);
         Identity identity = IdentityFactoryProvider.getInstance().makeIdentity(subject);
@@ -94,7 +105,7 @@ public class ConnectionManagerSelector
         }
         return datasource;
     }
-
+/*
     public Connection getDatabaseConnection(Identity identity, DatabaseConnection databaseConnection)
     {
         return this.getDatabaseConnection(identity, databaseConnection, StoreExecutionState.emptyRuntimeContext());
@@ -104,21 +115,21 @@ public class ConnectionManagerSelector
     {
         DataSourceSpecification datasource = getDataSourceSpecification(databaseConnection);
         return this.getDatabaseConnectionImpl(identity, databaseConnection, datasource, runtimeContext);
-    }
+    }*/
 
-    public Connection getDatabaseConnectionImpl(Identity identity, DatabaseConnection databaseConnection, DataSourceSpecification datasource, StoreExecutionState.RuntimeContext runtimeContext)
+    public NonRelationalClient getDatabaseConnectionImpl(Identity identity, DatabaseConnection databaseConnection, DataSourceSpecification datasource, StoreExecutionState.RuntimeContext runtimeContext)
     {
-        if (databaseConnection instanceof RelationalDatabaseConnection)
+        if (databaseConnection instanceof DataStoreConnection)
         {
-            RelationalDatabaseConnection relationalDatabaseConnection = (RelationalDatabaseConnection) databaseConnection;
-            Optional<CredentialSupplier> databaseCredentialHolder = RelationalConnectionManager.getCredential(flowProviderHolder, relationalDatabaseConnection, identity, runtimeContext);
-            return datasource.getConnectionUsingIdentity(identity, databaseCredentialHolder);
+            DataStoreConnection nonRelationalDatabaseConnection = (DataStoreConnection) databaseConnection;
+            Optional<CredentialSupplier> databaseCredentialHolder = NonRelationalConnectionManager.getCredential(flowProviderHolder, nonRelationalDatabaseConnection, identity, runtimeContext);
+            return datasource.getClientUsingIdentity(identity, databaseCredentialHolder);
         }
         /*
             In some cases, connection managers can return DatabaseConnections that are not RelationalDatabaseConnection.
             Without the metadata associated with a RelationalDatabaseConnection we cannot compute a credential.
         */
-        return datasource.getConnectionUsingIdentity(identity, Optional.empty());
+        return datasource.getClientUsingIdentity(identity, Optional.empty());
     }
 
     public ConnectionKey generateKeyFromDatabaseConnection(DatabaseConnection databaseConnection)
@@ -131,26 +142,4 @@ public class ConnectionManagerSelector
         return key;
     }
 
-    public Connection getTestDatabaseConnection()
-    {
-        Connection connection = this.connectionManagers.collect(ConnectionManager::getTestDatabaseConnection).detect(Objects::nonNull);
-        if (connection == null)
-        {
-            throw new RuntimeException("Not Supported! ");
-        }
-        return connection;
-    }
-
-    public static org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection transformToTestConnectionSpecification(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection originalConnection, String testData, List<String> setupSqls)
-    {
-        RelationalDatabaseConnection db = new RelationalDatabaseConnection();
-        db.datasourceSpecification = new org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification.LocalH2DatasourceSpecification(testData, setupSqls);
-        db.authenticationStrategy = new TestDatabaseAuthenticationStrategy();
-        db.databaseType = DatabaseType.H2;
-        db.type = DatabaseType.H2;
-        db.element = originalConnection.element;
-        db.timeZone = originalConnection instanceof DatabaseConnection ? ((DatabaseConnection) originalConnection).timeZone : null;
-        db.quoteIdentifiers = originalConnection instanceof DatabaseConnection ? ((DatabaseConnection) originalConnection).quoteIdentifiers : null;
-        return db;
-    }
 }

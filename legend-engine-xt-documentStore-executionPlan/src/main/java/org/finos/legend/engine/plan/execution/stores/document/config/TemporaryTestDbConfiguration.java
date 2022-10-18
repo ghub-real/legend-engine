@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.document.connection.manager;
+package org.finos.legend.engine.plan.execution.stores.document.config;
 
-
-import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.OAuthProfile;
-
-import java.util.List;
-
-public interface ConnectionManagerExtension
+public class TemporaryTestDbConfiguration
 {
-    ConnectionManager getExtensionManager(int testDbPort, List<OAuthProfile> oauthProfiles);
+    public Integer port;
+
+    public TemporaryTestDbConfiguration()
+    {
+    }
+
+    public TemporaryTestDbConfiguration(Integer port)
+    {
+        this.port = port;
+    }
 }

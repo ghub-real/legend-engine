@@ -24,6 +24,7 @@ public class DataStoreConnection extends DatabaseConnection
     public AuthenticationStrategy authenticationStrategy;
 
     public DatabaseType databaseType;
+
     public DataStoreConnection()
     {
 
