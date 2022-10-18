@@ -1,0 +1,177 @@
+// Copyright 2020 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Press F9 to execute the 'go' function...
+// Press F10 to run the full test suite
+
+Class poc::model::Firm
+{
+  firmId: Integer[1];
+  name: String[1];
+  location: String[1];
+  allFirms() {poc::model::Firm.all()}: poc::model::Firm[*];
+  persistFirm(obj: poc::model::Firm[1]) {^poc::model::Firm(firmId=1 , name='My Name' , location='London')}: poc::model::Firm[1];
+}
+
+Class poc::model::Person
+{
+  firstName: String[1];
+  lastName: String[1];
+  otherNames: String[1];
+  firmId: Integer[1];
+  allPersons() {poc::model::Person.all()}: poc::model::Person[*];
+}
+
+
+###Relational
+Database poc::database::h2
+(
+  Table PERSON
+  (
+    FIRSTNAME VARCHAR(200),
+    LASTNAME VARCHAR(200),
+    OTHERNAMES VARCHAR(200),
+    FIRMID INTEGER
+  )
+  Table FIRM
+  (
+    ID INTEGER PRIMARY KEY,
+    LEGALNAME VARCHAR(200) NOT NULL,
+    LOCATION VARCHAR(200) NOT NULL
+  )
+  Join Firm_Person(PERSON.FIRMID = FIRM.ID)
+)
+
+###Mapping
+Mapping poc::mapping::modelh2
+(
+  *poc::model::Firm: Relational
+  {
+    ~primaryKey
+    (
+      [poc::database::h2]FIRM.ID
+    )
+    ~mainTable [poc::database::h2]FIRM
+    firmId: [poc::database::h2]FIRM.ID,
+    name: [poc::database::h2]FIRM.LEGALNAME,
+    location: [poc::database::h2]FIRM.LOCATION
+  }
+)
+###Pure
+import meta::external::query::graphQL::metamodel::*;
+import meta::relational::metamodel::execute::*;
+
+function poc::testRuntime():meta::pure::runtime::Runtime[1]
+{
+  ^meta::pure::runtime::Runtime(connections =
+    poc::database::testDatabaseConnection(poc::database::h2));
+}
+
+
+function poc::database::testDatabaseConnection(db:meta::relational::metamodel::Database[1]):meta::relational::runtime::TestDatabaseConnection[1]
+{
+    ^meta::relational::runtime::TestDatabaseConnection(
+        element = $db,
+        type = meta::relational::runtime::DatabaseType.H2,
+        timeZone = 'GMT'
+    );
+}
+
+
+function poc::tests::createFirmTableAndFillDb(connection : meta::relational::runtime::DatabaseConnection[1]) : Boolean[1]
+{
+    executeInDb('Drop table if exists Firm;', $connection);
+    executeInDb('Create Table Firm(id INT, legalName VARCHAR(200), location VARCHAR(200));', $connection);
+    executeInDb('insert into Firm (id, legalName, location) values (1, \'Firm X\', \'Athens\');', $connection);
+    executeInDb('insert into Firm (id, legalName, location) values (2, \'Firm A\', \'Athens\');', $connection);
+    executeInDb('insert into Firm (id, legalName, location) values (3, \'Firm B\', \'Athens\');', $connection);
+    executeInDb('insert into Firm (id, legalName, location) values (4, \'Firm C\', \'Athens\');', $connection);
+    executeInDb('Drop table if exists Person;', $connection);
+    executeInDb('Create Table Person(firstName VARCHAR(200), lastName VARCHAR(200), otherNames VARCHAR(200), firmId INT);', $connection);
+    executeInDb('insert into Person (firstName, lastName, otherNames, firmId) values (\'Theo 1\', \'Malatestas 1\', \'No other name 1\', 1);', $connection);
+    executeInDb('insert into Person (firstName, lastName, otherNames, firmId) values (\'Theo 2\', \'Malatestas 2\', \'No other name 2\', 2);', $connection);
+    executeInDb('insert into Person (firstName, lastName, otherNames, firmId) values (\'Theo 3\', \'Malatestas 3\', \'No other name 3\', 3);', $connection);
+    executeInDb('insert into Person (firstName, lastName, otherNames, firmId) values (\'Theo 4\', \'Malatestas 4\', \'No other name 4\', 4);', $connection);
+    true;
+}
+
+function go():Any[*]
+{
+  println('dfdf----');
+
+//let query1 = |poc::model::Firm.all()->filter(x | $x.name == 'Firm X')->meta::pure::graphFetch::execution::graphFetch(
+let query1 = |poc::model::Firm.all()->meta::pure::graphFetch::execution::graphFetch(
+  #{
+    poc::model::Firm {
+      name
+    }
+  }#
+)->meta::pure::graphFetch::execution::serialize(
+  #{
+    poc::model::Firm{
+      name
+    }
+  }#
+);
+
+let queryPerson = |meta::external::store::document::tests::simple::Person.all()->meta::pure::graphFetch::execution::graphFetch(
+  #{
+    meta::external::store::document::tests::simple::Person {
+      firstName
+    }
+  }#
+)->meta::pure::graphFetch::execution::serialize(
+  #{
+    meta::external::store::document::tests::simple::Person {
+      firstName
+    }
+  }#
+);
+
+println('query1');
+//println($query1);
+
+let runtime = poc::testRuntime();
+
+let executionContext = ^meta::pure::runtime::ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+
+let docAndStoreMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
+
+
+    let debugContext = ^meta::pure::tools::DebugContext(
+      debug=false,
+      space=''
+    );
+
+    let extensions = [meta::external::store::document::extension::documentStoreExtensions()];
+    let relationalExtensions = [meta::relational::extension::relationalExtensions()];
+
+    poc::tests::createFirmTableAndFillDb(
+      poc::database::testDatabaseConnection(poc::database::h2));
+
+    //let resultA = execute($query1, poc::mapping::modelh2, poc::testRuntime(), meta::relational::extension::relationalExtensions());
+
+    println('$resultA');
+    //println($resultA.values);
+
+  let mongoStoreAndMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
+  let mappingDocumentStore = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second);
+
+
+  let executionPlan = meta::pure::executionPlan::executionPlan($queryPerson, $mappingDocumentStore, $runtime, $executionContext, $extensions, $debugContext);
+  //let executionPlan = meta::pure::executionPlan::executionPlan($query1, poc::mapping::modelh2, $runtime, $executionContext, $relationalExtensions, $debugContext);
+  //println('executionPlan');
+  //println($executionPlan.rootExecutionNode);
+
+}

@@ -17,57 +17,75 @@ import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::*;
 import meta::pure::functions::collection::*;
 
-function meta::external::store::document::tests::object::getDocumentStoreAndMapping() : meta::pure::functions::collection::Pair<DocumentStore, RootDocumentInstanceSetImplementation>[1]
+function meta::external::store::document::tests::object::getMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
 {
-    let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
+  let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
         package  = meta::external::store::document::metamodel,
         name     = 'MyMongoStore'
     );
+
+    $mongoStore;
+}
+
+function meta::external::store::document::tests::object::getAllFields(): meta::external::store::document::metamodel::Field[*]
+{
+    let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+
     let field1 = ^meta::external::store::document::metamodel::Field(
-          //id = 'fName000',
           name = 'fName',
-          //owner = $mongoStore,
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
           nullable = false
     );
     let field2 = ^meta::external::store::document::metamodel::Field(
-          //id = 'lName001',
           name = 'lName',
-          //owner = $mongoStore,
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
           nullable = false
     );
+    let field3 = ^meta::external::store::document::metamodel::Field(
+          name = 'oNames',
+          type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
+          nullable = false
+    );
+
+    [$field1, $field2, $field3];
+}
+
+function meta::external::store::document::tests::object::getDocumentStoreAndMapping() : meta::pure::functions::collection::Pair<DocumentStore, RootDocumentInstanceSetImplementation>[1]
+{
+    let domainClass = meta::external::store::document::tests::simple::Person;
+    let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+    let allFields = meta::external::store::document::tests::object::getAllFields();
+
     let docCollection = [
         ^meta::external::store::document::metamodel::Collection(
           id='101',
           name='personDocument',
-          fields = [$field1, $field2]
+          fields = $allFields
         )
-        ];
-    $field1->mutateAdd('owner', $docCollection);
-    $field2->mutateAdd('owner', $docCollection);
+      ];
+
     $mongoStore->mutateAdd('collections', $docCollection);
-
-
-
-  let domainClass = meta::external::store::document::tests::simple::Person;
 
   let  firmPropMappings = [
       ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
         property = $domainClass.properties->filter(p | $p.name == 'firstName')->toOne(),
         sourceSetImplementationId = 'firm_set', targetSetImplementationId = '',
-        documentStoreElement = $field1),
+        documentStoreElement = $allFields->at(0)),
       ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
         property = $domainClass.properties->filter(p | $p.name == 'lastName')->toOne(),
         sourceSetImplementationId = 'firm_set', targetSetImplementationId = '',
-        documentStoreElement = $field2)
+        documentStoreElement = $allFields->at(1)),
+      ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
+        property = $domainClass.properties->filter(p | $p.name == 'otherNames')->toOne(),
+        sourceSetImplementationId = 'firm_set', targetSetImplementationId = '',
+        documentStoreElement = $allFields->at(2))
    ];
 
 
    let collectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
                 name = 'personDocument',
                 documentElement = $docCollection,
-                documentStore = $mongoStore
+                documentStore=$mongoStore
                 );
 
    let firmDocumentSetImpl = ^meta::external::store::document::metamodel::mapping::RootDocumentInstanceSetImplementation(
@@ -82,3 +100,50 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
   $collectionAlias->mutateAdd('setMappingOwner', $firmDocumentSetImpl);
   meta::pure::functions::collection::pair($mongoStore, $firmDocumentSetImpl);
 }
+
+function meta::external::store::document::tests::object::getCollection(): meta::external::store::document::metamodel::Collection[1]
+{
+  let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+
+  let allFields = meta::external::store::document::tests::object::getAllFields();
+
+    let docCollection = 
+        ^meta::external::store::document::metamodel::Collection(
+          id='101',
+          name='personDocument',
+          fields = $allFields
+        );
+
+    $docCollection;
+}
+
+function meta::external::store::document::tests::object::getCollectionWithLessFieldsThanMapping(): meta::external::store::document::metamodel::Collection[1]
+{
+  let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+
+  let allFields = meta::external::store::document::tests::object::getAllFields();
+
+    let docCollection = 
+        ^meta::external::store::document::metamodel::Collection(
+          id='101',
+          name='personDocument',
+          fields = [$allFields->at(0), $allFields->at(1)]
+        );
+
+    $docCollection;
+}
+
+/*
+function meta::external::store::document::tests::object::getState(): meta::external::store::document::metamodel::State[1]
+{
+  let domainClass = meta::external::store::document::tests::simple::Person;
+  let graphFetchProperty1 = $domainClass.properties->filter(p | $p.name == 'firstName')->toOne();
+  let graphFetchProperty2 = $domainClass.properties->filter(p | $p.name == 'lastName')->toOne();
+  let graphFetchProperty3 = $domainClass.properties->filter(p | $p.name == 'otherNames')->toOne();
+
+  ^State(
+    graphFetchFlow=true,
+    graphFetchProperties=[$graphFetchProperty1, $graphFetchProperty2, $graphFetchProperty3]
+  );
+}
+*/
