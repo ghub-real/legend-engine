@@ -52,7 +52,7 @@ function <<access.private>> meta::external::store::document::extension::document
    ^Extension
    (
       type = $type,
-      availableStores = [meta::external::store::document::contract::documentStoreStoreContract()],
+      availableStores = meta::pure::extension::defaultExtensions().availableStores->concatenate(meta::external::store::document::contract::documentStoreStoreContract()),
       serializerExtension =  meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension_String_1__String_1_,
       graphExtension_calculateSourceTree = {tree:RootGraphFetchTree<Any>[1] |
          {rsi: RootDocumentInstanceSetImplementation[1] |
@@ -209,11 +209,18 @@ function meta::external::store::document::extension::documentQueryToString::getD
 function meta::external::store::document::extension::documentQueryToString::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
       $sgc.dbConfig.selectDocumentQueryProcessor($s, $sgc, $isSubSelect);
+}
 
+function meta::external::store::document::extension::documentQueryToString::processIdentifierWithDoubleQuotes(identifier:String[1], dbConfig : DbConfig[1], quoteChar: String[1]):String[1]
+{
+  // Do we need this?
+  //$dbConfig.identifierProcessor($identifier, $dbConfig, $quoteChar);
+  ''
 }
 
 function meta::external::store::document::extension::documentQueryToString::processFieldName(name:String[1], dbConfig:DbConfig[1]):String[1]
 {
+  // not used currently, see if we need it
    $dbConfig.identifierProcessor($dbConfig.fieldNameToIdentifier($name));
 }
 
@@ -360,13 +367,13 @@ function meta::external::store::document::extension::documentQueryToString::docu
 
 function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], format:Format[1], extensions:Extension[*]):String[1]
 {
-   processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions);
+   processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions)
 }
 
 
 function meta::external::store::document::functions::typeInference::inferDocumentStoreType(dop: DocumentStoreElement[1]):meta::external::store::document::metamodel::TypeReference[0..1] // removed , translationContext:TranslationContext[1]
 {
-   let documentStoreType = inferDocumentStoreType($dop, true); 
+   let documentStoreType = inferDocumentStoreType($dop, true);
    //$relationalType->translateCoreTypeToDbSpecificType($translationContext);
    $documentStoreType;
 }
@@ -385,7 +392,7 @@ function meta::external::store::document::functions::typeInference::inferDocumen
          d: Float[1]   |  ^meta::external::store::document::metamodel::DoubleTypeReference(list=false),
          //d: StrictDate[1]   |  ^meta::external::store::document::metamodel::DateTypeReference(),
          d: Date[1]   |  ^meta::external::store::document::metamodel::DateTypeReference(list=false),
-        //  d: meta::relational::functions::pureToSqlQuery::metamodel::VarPlaceHolder[1]   |  
+        //  d: meta::relational::functions::pureToSqlQuery::metamodel::VarPlaceHolder[1]   |
         //     if($d.type == String,
         //        | ^meta::relational::metamodel::datatype::Varchar(size = 4000),
         //        | if($d.type == Integer,
@@ -588,7 +595,7 @@ function <<access.private>> meta::external::store::document::functions::typeInfe
             )
          ])
       ),
-      
+
       pair(
          'notEqual',
          list([
