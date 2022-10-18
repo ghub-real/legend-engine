@@ -54,7 +54,8 @@ function meta::pure::graphFetch::execution::graphFetchFunctions():Function<Any>[
     meta::pure::graphFetch::execution::graphFetch_T_MANY__RootGraphFetchTree_1__Integer_1__T_MANY_, 
     meta::pure::graphFetch::execution::graphFetchChecked_T_MANY__RootGraphFetchTree_1__Checked_MANY_, 
     meta::pure::graphFetch::execution::graphFetchUnexpanded_T_MANY__RootGraphFetchTree_1__T_MANY_,
-    meta::pure::graphFetch::execution::graphFetchCheckedUnexpanded_T_MANY__RootGraphFetchTree_1__Checked_MANY_
+    meta::pure::graphFetch::execution::graphFetchCheckedUnexpanded_T_MANY__RootGraphFetchTree_1__Checked_MANY_,
+    meta::pure::graphFetch::execution::serialize_T_MANY__RootGraphFetchTree_1__String_1_
   ] 
 }
 

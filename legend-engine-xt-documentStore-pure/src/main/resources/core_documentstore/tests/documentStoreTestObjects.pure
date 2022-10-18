@@ -43,7 +43,8 @@ function meta::external::store::document::tests::object::getAllFields(): meta::e
     );
     let field3 = ^meta::external::store::document::metamodel::Field(
           name = 'oNames',
-          type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
+          //type = ^meta::external::store::document::metamodel::StringTypeReference(list=true),
+          type = ^meta::external::store::document::metamodel::StringTypeReference(list=true),
           nullable = false
     );
 
