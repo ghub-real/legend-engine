@@ -25,6 +25,7 @@ import meta::external::store::document::mapping::functions::*;
 import meta::external::store::document::metamodel::runtime::*;
 import meta::external::store::document::extension::documentQueryToString::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::documentmappingspecification::*;
+import meta::external::store::document::functions::pureToDocumentStoreQuery::metamodel::*;
 
 
 //Class meta::external::store::document::functions::pureToDocumentStoreQuery::DocumentStoreQuery
@@ -74,17 +75,36 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::Func
    }:FunctionParamScope[0..1];
 }
 
+function meta::external::store::document::functions::pureToDocumentStoreQuery::updateFunctionParamScope(state:State[1], functionType:FunctionType[1], selectDocumentQuery: SelectDocumentQuery[1]):State[1]
+{
+   let paramNames = $functionType.parameters->evaluateAndDeactivate().name;
+   let values=$paramNames->map(p|pair($p,$selectDocumentQuery));
+   let varToSelect=newMap($values);
+   let newScope = ^FunctionParamScope(parent=$state.functionReferenceScope, varToSelect=$varToSelect);
+   ^$state(functionReferenceScope=$newScope);
+}
+
+function meta::external::store::document::functions::pureToDocumentStoreQuery::updateFunctionParamScope(state:State[1], variableExpressions:VariableExpression[*], selectDocumentQuery: SelectDocumentQuery[1]):State[1]
+{
+   if(!$state.functionReferenceScope->isEmpty(),| let varExpressionToSelect=$variableExpressions->map(v|pair($v,$state.functionReferenceScope->toOne()));
+                                                  let newScope = ^FunctionParamScope(parent=$state.functionReferenceScope, varExpressionToSelect=$varExpressionToSelect);
+                                                  ^$state(functionReferenceScope=$newScope);,
+                                                | $state);
+}
+
+// meta::external::store::document::functions::pureToDocumentStoreQuery::processNoOp_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processNoOp(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1],  context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
 {
    //Ignores the function and only processes the first parameter
-   processValueSpecificationReturnPropertyMapping($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne()
+   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processNoOp');
+   let a = processValueSpecificationReturnPropertyMapping($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
+   $a;
 }
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processValueSpecification(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*],  operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[*]
 {
    processValueSpecificationReturnPropertyMapping($vs, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->map(r | $r.element);
 }
-
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processValueSpecificationReturnPropertyMapping(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[*]
 {
@@ -186,6 +206,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processValue(vals:Any[*], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[*]
 {
+    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processValue');
     let select = $operation;
     if ($vals->isEmpty(), | $state.inFilter->if(|^$select(filteringOperation = ^meta::external::store::document::metamodel::Literal(value=^DocumentNull())),|^$select(fields = ^meta::external::store::document::metamodel::Literal(value=^DocumentNull())))
                         , | $vals->map(v | $v->match([
@@ -243,15 +264,18 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::s
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::findSupportedFunction(fe:FunctionExpression[1], supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>[1]):meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>[0..1]
 {
-   $supportedFunctions->get($fe.func)
+  //println('findSupportedFunction -fe');
+  //println($fe);
+  let a = $supportedFunctions->get($fe.func);
+  $a;
 }
-
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::getSupportedFunctions():Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>[1]
 {
    newMap([
       ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::collection::getAll_Class_1__T_MANY_, second=meta::external::store::document::functions::pureToDocumentStoreQuery::processGetAll_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_),
       ^PureFunctionToRelationalFunctionPair(first=meta::pure::graphFetch::execution::graphFetch_T_MANY__RootGraphFetchTree_1__T_MANY_, second=meta::external::store::document::functions::pureToDocumentStoreQuery::processNoOp_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_)
+      //^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::collection::map_T_MANY__Function_1__V_MANY_, second=meta::external::store::document::functions::pureToDocumentStoreQuery::processMap_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__OperationWithParentPropertyMapping_1_)
       ]);
 }
 
@@ -306,7 +330,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                    );
 }
 
-function <<access.private>> meta::external::store::document::functions::pureToDocumentStoreQuery::printDebugQuery(select:SelectDocumentQuery[1], space:String[1], extensions:Extension[*]):String[1]
+function meta::external::store::document::functions::pureToDocumentStoreQuery::printDebugQuery(select:SelectDocumentQuery[1], space:String[1], extensions:Extension[*]):String[1]
 {
    $select->meta::external::store::document::functions::pureToDocumentStoreQuery::processOperation(meta::external::store::document::metamodel::runtime::DatabaseType.Mongo, $extensions);
 }
@@ -402,6 +426,9 @@ function  meta::external::store::document::functions::pureToDocumentStoreQuery::
                                                    r : DocumentStoreElement[1]|$r->processOperation($dbConfig, $format, $generationState, $config, $extensions)
                                                 ]);
 
+                                                println('Alias - pureToDocumentStoreQuery::processOperation');
+                                                println($innerTerm);
+
                                                 let identifier = $dbConfig.identifierProcessor($alias.name);
 
                                                 let sqlOp = $alias.documentElement->instanceOf(SelectDocumentQuery);
@@ -423,7 +450,13 @@ function  meta::external::store::document::functions::pureToDocumentStoreQuery::
 //                                                                ) + if ($config.generateJoinTarget == $c.alias, |'',|$dbConfig.identifierProcessor($doubleQuote+$c.alias.name->toOne()+$doubleQuote) + '.') + processColumnName($c.column.name->toOne(), $dbConfig);,
                                           l:Literal[1]| processLiteral($l, $dbConfig),
                                           ll:LiteralList[1] | $ll.values->map(e | $e->processOperation($dbConfig, $format, $generationState, $config, $extensions))->joinStrings('(', ', ', ')'),
-                                          s:SelectDocumentQuery[1]| $s->processSelectDocumentQuery($sgc, false),
+                                          s:SelectDocumentQuery[1]|
+                                          
+                                                                  let fields = $s->cast(@SelectDocumentQuery).fields->map(x | ^Field(name=$x->cast(@Alias).documentElement->cast(@Field).name, type=$x->cast(@Alias).documentElement->cast(@Field).type)); 
+                                                                  let y=^SelectDocumentQuery(data=$s.data, fields=$fields);
+                                                                  $y->processSelectDocumentQuery($sgc, false);,
+                                          
+                                          //s:SelectDocumentQuery[1]| $s->processOperation($dbConfig, $format, $generationState, $config, $extensions),
 //                                          u:UnionAll[1]| '('+$u.queries->map(q|$q->processSelectSQLQuery($sgc, false))->makeString(' UNION ALL ')+')',
 //                                          u:Union[1]| '('+$u.queries->map(q|$q->processSelectSQLQuery($sgc, false))->makeString(' UNION ')+')',
 //                                          f:FreeMarkerOperationHolder[1]|processFreeMarkerOperationHolder($f, $dbConfig, $format, $generationState, $config, false, $extensions),
@@ -443,6 +476,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
    print(if(!$context.debug, |'',
             | $context.space+'*>Process Property: \''+$propertyMapping.property->at(0).name->toOne()+'\' ('+$propertyMapping->map(p|$p.owner->toOne().id+'->'+$p.targetSetImplementationId)->joinStrings(',')+') ' +'NODEID_NA'+ ',inFilter:' + $state.inFilter->toString() + '\n'+
               $context.space+'   (Q)Source Operation>  '+$srcOperation->cast(@SelectDocumentQuery)->printDebugQuery($context.space, $extensions)));
+    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processPropertyMapping');
+    println($propertyMapping);
    let res = $propertyMapping->match([
                //s:SemiStructuredRelationalPropertyMapping[*] | processSemiStructuredRelationalPropertyMapping($s, $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $joinType, $nodeId, $aggFromMap, $context->shift(), $extensions),
                r:DocumentPropertyMapping[*] | processDocumentPropertyMapping($r, $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $context->shift(), $extensions),
@@ -480,6 +515,9 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                     // Potentially add missing columns in the union!  // Duplicated Code??
                                                     let documentElement = $oldSrcOperation.data.alias.documentElement->toOne();
                                                     let propName = $documentElement->getPropertyName($property, $documentPropertyMappings, $extensions);
+
+                                                    println('DataType - propName');
+                                                    println($propName);
                                                     let result  = pair($propName, $oldSrcOperation);
 
                                                     let srcOperation = $result.second;
@@ -488,8 +526,33 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
                                                     let mappingImpl = $documentPropertyMappings->at(0).documentStoreElement;
 
+                                                    println('srcOpeartion');
+                                                    println($srcOperation.data.alias);
                                                     //let newCurrentTreeNode = $srcOperation.currentTreeNode->toOne();
                                                     let relElement = $oldSrcOperation.data.alias.documentElement->toOne();
+                                                    println('relElement');
+                                                    println($relElement);
+
+                                                    let res = if (
+                                                                      $relElement->instanceOf(SelectDocumentQuery)
+                                                                        &&
+                                                                      ($mappingImpl->instanceOf(meta::relational::metamodel::operation::Function) || $mappingImpl->instanceOf(meta::external::store::document::metamodel::Literal))
+                                                                        &&
+                                                                      $relElement->cast(@SelectDocumentQuery).fields->filter(c|$c->instanceOf(meta::external::store::document::metamodel::Alias))->cast(@meta::external::store::document::metamodel::Alias).name->contains($propName)
+                                                                    
+                                                                    ,
+                                                                    |
+                                                                      let newField = ^Field(name=$propName, type=^meta::external::store::document::metamodel::StringTypeReference(list=true));
+                                                                      //let newField = ^Field(name=$propName, type=^meta::external::store::document::metamodel::StringTypeReference(list=true));
+                                                                      ^$srcOperation(fields+=$newField);
+                                                                    ,
+                                                                    |
+                                                                      $mappingImpl->processColumnsInDocumentStoreElements($state, $srcOperation, 'nodeId', $context, $extensions);
+                                                                  );
+
+                                                    ^$res(fields = $res.fields->at(0)->usePropertyName($property, $documentPropertyMappings, $extensions));
+
+                                                                  //function  meta::external::store::document::functions::pureToDocumentStoreQuery::processColumnsInDocumentStoreElements(z:DocumentStoreElement[1], state:State[1], srcOperation:SelectDocumentQuery[1], nodeId:String[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1] 
 
 //                                                    let res = if (
 //                                                                  ($relElement->instanceOf(SelectDocumentQuery) &&
@@ -531,7 +594,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 //                                                                             )
 //                                                        )
 //                                                    );
-                                                      $srcOperation;
+                                                      //$srcOperation;
                                                     ,
                                     c:Class<Any>[1] |let srcOperation = $oldSrcOperation;
 
@@ -585,7 +648,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::u
                         //op:UnaryOperation[1]|^$op(nested=$op.nested->usePropertyName($property, $documentPropertyMappings, $extensions)),
                         op:BinaryOperation[1]|^$op(left=$op.left->usePropertyName($property, $documentPropertyMappings, $extensions), right=$op.right->usePropertyName($property, $documentPropertyMappings, $extensions)),
                         //op:VariableArityOperation[1]|^$op(args=$op.args->map(arg | $arg->usePropertyName($property, $relationalPropertyMappings, $extensions))),
-                        fn:FieldName[1] |$fn
+                        fn:FieldName[1] |$fn,
+                        f:Field[1]| $f
                     ]
                  )
 }
@@ -645,7 +709,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
    let innerJoinFilterExists = false;
    let currentDocumentElement = $mainCollection;
 
-   let currentNode = ^RootJoinDocumentTreeNode(alias=^CollectionAlias(name = 'root', documentElement = $currentDocumentElement));
+   let currentNode = ^RootJoinDocumentTreeNode(alias=^CollectionAlias(name = $mainCollection->cast(@meta::external::store::document::metamodel::NamedDocumentRelation).name, documentElement = $currentDocumentElement));
 
   //  let base = ^SelectWithCursor(
   //     select = ^SelectSQLQuery(
@@ -686,15 +750,17 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
    let groupByQuery = $base->applyGroupBy($viewSpecification, $nodeId);
 
-   let filterQuery = if ($innerJoinFilterExists, | $groupByQuery, | $groupByQuery->applyTypeFilter($viewSpecification, $nodeId, $state, $context, $extensions));
+   //let filterQuery = if ($innerJoinFilterExists, | $groupByQuery, | $groupByQuery->applyTypeFilter($viewSpecification, $nodeId, $state, $context, $extensions));
 
    // TODO: Ideally, should try to isolate pk & property queries in all cases. Restrict to graphFetch flow for now
+   /*
    let pksAndProperties = if ($state.graphFetchFlow == true,
                               | $pks->concatenate($properties)->mergeDocumentQueryData($nodeId, ^$state(shouldIsolate=true), $context, $extensions),
                               | $pks->concatenate($properties)
                           );
+                          */
 
-   let merged = $pksAndProperties->concatenate($filterQuery)->mergeDocumentQueryData($nodeId, $state, $context, $extensions);
+   //let merged = $properties->mergeDocumentQueryData($nodeId, $state, $context, $extensions);
   //  let fks = if ($viewSpecification->getDistinct() == true && !$viewSpecification->instanceOf(View),
   //                    | collectAdditionalJoinColumnsForSource($viewSpecification, $state.mapping,  $merged.data->toOne(), $merged.columns->cast(@Alias)),
   //                    | if ($state.importDataFlowAddFks == true,
@@ -703,15 +769,22 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
   //                      )
   //                );
   // Not supporting distinct & import DataFlowAddFks yet
-   let fks = ^Alias(name = 'dummyAlias', documentElement=$currentDocumentElement);
+   //let fks = ^Alias(name = 'dummyAlias', documentElement=$currentDocumentElement);
 
-   let addedFks = if ($state.importDataFlowAddFks == true, |$fks->map(a|^$a(name='fk_'+$a.name)), |$fks);
+   //let addedFks = if ($state.importDataFlowAddFks == true, |$fks->map(a|^$a(name='fk_'+$a.name)), |$fks);
+/*
+   println('merged');
+   println($merged);
+
+   println('merged fields');
+   println($merged.fields);
+   */
 
    let s = ^SelectDocumentQuery(
                   distinct = false,
-                  fields = $merged.fields->concatenate($addedFks),
-                  data = $merged.data,
-                  filteringOperation = $merged.filteringOperation
+                  fields = $properties.fields,
+                  data = $properties.data->at(0),
+                  filteringOperation = $properties.filteringOperation
                   //savedFilteringOperation = $merged.savedFilteringOperation,
                   //extraFilteringOperation = $merged.extraFilteringOperation,
                   //groupBy = $merged.groupBy
@@ -747,7 +820,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::d
               ]);
 }
 
-function  meta::external::store::document::functions::pureToDocumentStoreQuery::processColumnsInDocumentStoreElements(z:DocumentStoreElement[1], state:State[1], srcOperation:SelectDocumentQuery[1], nodeId:String[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]  // removed aggFromMap:List<ColumnGroup>[1], cancelJoinOnUnion:Boolean[1], 
+function meta::external::store::document::functions::pureToDocumentStoreQuery::processColumnsInDocumentStoreElements(z:DocumentStoreElement[1], state:State[1], srcOperation:SelectDocumentQuery[1], nodeId:String[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]  // removed aggFromMap:List<ColumnGroup>[1], cancelJoinOnUnion:Boolean[1], 
 {
    $srcOperation->validate([], $extensions);
    let result = $z->match(
@@ -1046,6 +1119,62 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::b
    $res;
 }
 
+function meta::external::store::document::functions::pureToDocumentStoreQuery::processMap(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[1]
+{
+   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processMap');
+   let res = processValueSpecificationReturnPropertyMapping($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions);
+
+   // do we need manangeIsolation?
+   //let mainQuery = $res.element->toOne()->cast(@SelectWithCursor)->manageIsolation([], $nodeId, false, $state, $context, $extensions);//$res.element->toOne()->cast(@SelectWithCursor);
+
+
+   let mainQuery = $res.element->toOne()->cast(@SelectDocumentQuery);
+   let mainQueryWithFields = ^$mainQuery(fields=[]);
+
+   let newCurrentPropertyMapping = if ($res.currentPropertyMapping->isEmpty(), | [], | $res.currentPropertyMapping);
+
+   let func = $f->instanceValuesAtParameter(1, $vars, $state.inScopeVars)->match([
+                  e:ExtendedRoutedValueSpecification[1]|$e.value->reactivate();,
+                  a:Any[*]|$a
+                ]);
+
+/*
+   let newQuery = if($func->cast(@meta::pure::metamodel::function::Function<Any>)->toOne()->containsAggregationFunctionInFunction($state.supportedFunctions),
+                     |addPkForAggregation($f, $newCurrentPropertyMapping, $mainQueryWithColumns, $state, $nodeId, $context, $extensions),
+                     |$mainQueryWithColumns
+                  );
+                  */
+   let newQuery = $mainQueryWithFields;
+
+/*
+   let milestoningContext=$newQuery.milestoningContext->concatenate($operation.milestoningContext)->first();
+
+   let isSemiStructuredPropertyMapping = ($newCurrentPropertyMapping->size() >= 1) && $newCurrentPropertyMapping->forAll(pm | $pm->instanceOf(SemiStructuredRelationalPropertyMapping));
+   let extraColumn = if($isSemiStructuredPropertyMapping && ($select.columns->size() == 1),
+                        | $select.columns->toOne()->reprocessAliases(^OldAliasToNewAlias(first = $mainQuery.currentTreeNode.alias.name->toOne(), second = $newQuery.currentTreeNode.alias->toOne())),
+                        | []);
+*/
+   $func->match(
+                [
+                  p:Property<Nil,Any|*>[1]|processProperty($p, $f.parametersValues->at(0)->byPassRouterInfo()->cast(@ValueSpecification).genericType.rawType->toOne()->cast(@Class<Any>), $newCurrentPropertyMapping, $state.propertyMappingFromRouter, ^$newQuery(fields=[]), $state, $context->shift(), $extensions),
+                  // not sure if we need QualifiedProperty
+                  //q:QualifiedProperty<Any>[1]|processQualifiedProperty($q, $newCurrentPropertyMapping, ^$newQuery(fields=[]), $vars, ^$state(qualifierBase=$res->toOne()), $context->shift(), $extensions)->toOne(),
+                  f:FunctionDefinition<Any>[1]| let sourceOp = ^$newQuery(fields=[]);
+                                                let stateUpdatedWithInputQuery = $state->updateFunctionParamScope($f.classifierGenericType.typeArguments.rawType->toOne()->cast(@FunctionType),$sourceOp);
+                                                let inScopeVarsWithPlaceholdersState = $f->addPlaceHoldersForLambdaOpenVariables($vars, $stateUpdatedWithInputQuery);
+                                                processValueSpecificationReturnPropertyMapping($f.expressionSequence->at(0), $newCurrentPropertyMapping, $sourceOp, $vars, $inScopeVarsWithPlaceholdersState, $context->shift(), $extensions)->toOne();
+                  // processPath seems to use joinType
+                  /*
+                  pa:Path<Nil,Any|*>[1] | let res = processPath($pa, 'map', '_map', $newQuery, $vars, $state, $nodeId, $aggFromMap, $context->shift(), $extensions);
+                                          if($state.inFilter || $res.element->cast(@SelectDocumentQuery).fields->isEmpty(), | $res, | let selectDocumentQuery = $res.element->cast(@SelectDocumentQuery);
+                                                                   let select = $selectDocumentQuery;
+                                                                   let newField = $select.fields->toOne()->cast(@Alias).documentStoreElement;
+                                                                   ^$res(element=^$selectDocumentQuery(columns=$newColumn));
+                                                                   );
+                  */
+                ]);
+}
+
 function meta::external::store::document::functions::pureToDocumentStoreQuery::instanceValueAtParameter(expression : FunctionExpression[1], index : Integer[1]) : Any[1]
 {
     instanceValuesAtParameter($expression,$index,[],[])->at(0);
@@ -1197,8 +1326,19 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::b
    if($uniqueName->length() > $maxSize, |$uniqueName->substring(0, $maxSize - 35) + '___' + $uniqueName->substring($maxSize - 35)->meta::pure::functions::hash::hash(meta::pure::functions::hash::HashType.MD5), |$uniqueName);
 }
 
-
-
+function meta::external::store::document::functions::pureToDocumentStoreQuery::addPlaceHoldersForLambdaOpenVariables(fn:FunctionDefinition<Any>[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1]):State[1]
+{
+   let inScopeVars = $state.inScopeVars;
+   $fn->match([
+                  l:LambdaFunction<Any>[1] | let placeHolders = $l.openVariables->map(v |if($inScopeVars->get($v)->isEmpty(),
+                                                                                             |pair($v, ^List<Any>(values=[^VarPlaceHolder(name=$v,type = $l->functionReturnType().rawType->toOne())]));,
+                                                                                             | []
+                                                                                         )
+                                                                                     );
+                                             ^$state(inScopeVars=$inScopeVars->putAll($placeHolders));,
+                  o:FunctionDefinition<Any>[1] | $state;
+   ]);
+}
 
 Class meta::external::store::document::functions::pureToDocumentStoreQuery::PureFunctionToRelationalFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>
 {

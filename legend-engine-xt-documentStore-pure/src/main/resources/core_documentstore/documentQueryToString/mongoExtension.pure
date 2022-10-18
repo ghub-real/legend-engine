@@ -23,6 +23,7 @@ import meta::external::store::document::extension::*; // for profile
 //import meta::relational::metamodel::*;
 //import meta::relational::runtime::*;
 
+
 function <<db.DocumentStoreExtensionLoader>> meta::external::store::document::functions::documentQueryToString::mongo::dbExtensionLoaderForMongo():DbExtensionLoader[1]
 {
   ^DbExtensionLoader(dbType = DatabaseType.Mongo, loader = createDbExtensionForMongo__DbExtension_1_);
@@ -39,8 +40,8 @@ function <<access.private>> meta::external::store::document::functions::document
       aliasLimit = 1000,
       isDbReservedIdentifier = {str:String[1]| $str->in($reservedWords)},
       literalProcessor = $literalProcessor,
-      selectDocumentQueryProcessor = processSelectDocumentQuery_SelectDocumentQuery_1__SqlGenerationContext_1__Boolean_1__String_1_,
-      identifierProcessor = processIdentifierWithDoubleQuotes_String_1__DbConfig_1__String_1_
+      selectDocumentQueryProcessor = processSelectDocumentQueryMongo_SelectDocumentQuery_1__SqlGenerationContext_1__Boolean_1__String_1_,
+      identifierProcessor = processIdentifierWithDoubleQuotesMongo_String_1__DbConfig_1__String_1_
    );
 }
 
@@ -51,34 +52,69 @@ function <<access.private>> meta::external::store::document::functions::document
    ];
 }
 
-//function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
-//{
-//    println($s);
-//    'Mongo Query';
-//}
-
-//function meta::external::store::document::functions::documentQueryToString::mongo::processIdentifierWithQuoteChar(identifier:String[1], quoteChar: String[1], dbConfig : DbConfig[1]):String[1]
-//{
-//  if($dbConfig.quoteIdentifiers || $identifier->startsWith('"') || $dbConfig.isDbReservedIdentifier($identifier),
-//    | '%s%s%s'->format([$quoteChar, $identifier->replace('"', ''), $quoteChar]),
-//    | $identifier
-//  );
-//}
-
-
-function meta::external::store::document::functions::documentQueryToString::mongo::processIdentifierWithDoubleQuotes(identifier:String[1], dbConfig: DbConfig[1]):String[1]
+function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongo(selectDocumentQuery:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
-  let quoteChar = '"';
-  if($dbConfig.quoteIdentifiers || $identifier->startsWith('"') || $dbConfig.isDbReservedIdentifier($identifier),
-    | '%s%s%s'->format([$quoteChar, $identifier->replace('"', ''), $quoteChar]),
-    | $identifier
-  );
-   //$identifier->processIdentifierWithQuoteChar('"', $dbConfig);
+  '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery)
 }
 
 
+function meta::external::store::document::functions::documentQueryToString::mongo::processIdentifierWithDoubleQuotesMongo(identifier:String[1], dbConfig: DbConfig[1]):String[1]
+{
+  let quoteChar = '"';
+  let a = if($dbConfig.quoteIdentifiers || $identifier->startsWith('"') || $dbConfig.isDbReservedIdentifier($identifier),
+    | '%s%s%s'->format([$quoteChar, $identifier->replace('"', ''), $quoteChar]),
+    | $identifier
+  );
+  $a;
+}
 
+/*
+function meta::external::store::document::functions::documentQueryToString::mongo::processDynaFunction(d: DynaFunction[1]): String[1]
+{
+  let name = $d.name;
+  let parameters = $d.parameters;
 
+// add all operations, greater than, lower than, etc
+  if ($name == 'equal' || $name == 'not equal',
+    | let operationSymbol = getOperationSymbol($name);
+      let key = $parameters->at(0)->cast(@Field).name;
+      let value = $parameters->at(1)->cast(@Literal).value;
+      '{ "' + $key + '": { "' + $operationSymbol + '": "' + $value + '" } }';
+    ,
+    | if ($name == 'and' || $name == 'or',
+      | let andOr = $parameters->fold({item, acc | $acc->concatenate(processDynaFunction($item->cast(@DynaFunction)))}, []);
+        '{ "$' + $name + '": [' + $andOr->joinStrings(', ') + '] }';
+      ,
+      | processDynaFunction($parameters->at(0)->cast(@DynaFunction)); // this "else" here assumes that the name of the dynaFunction is "group". Is there something else to consider?
+      )
+    );
+}
+*/
 
+function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::getOperationSymbol(op:String[1]): String[1]
+{
+  // add all operations, greater than, lower than, etc
+  if ($op == 'equal', | '$eq', | '$eq')
+}
 
+function meta::external::store::document::functions::documentQueryToString::mongo::processDocumentQuery(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
+{
+  '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery)
+}
 
+function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processPipelines(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
+{
+  '[' + processMatch($selectDocumentQuery) + ', ' + processProject($selectDocumentQuery) + ']'
+}
+
+function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processMatch(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
+{
+  if(true,| '{' + '"$match":{}', | '"$match":{"a map here to get the items"}');
+}
+
+function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processProject(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
+{
+  //println('meta::external::store::document::functions::documentQueryToString::mongo::processProject');
+  //println($selectDocumentQuery.fields->map(x | $x->cast(@Field).name));
+  '{ "$project": { ' + $selectDocumentQuery.fields->cast(@Field)->map(f | '"' + $f.name + '": 1 ')->joinStrings(',') + '} }'
+}
