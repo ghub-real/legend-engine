@@ -114,7 +114,5 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processProject(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
 {
-  //println('meta::external::store::document::functions::documentQueryToString::mongo::processProject');
-  //println($selectDocumentQuery.fields->map(x | $x->cast(@Field).name));
   '{ "$project": { ' + $selectDocumentQuery.fields->cast(@Field)->map(f | '"' + $f.name + '": 1 ')->joinStrings(',') + '} }'
 }

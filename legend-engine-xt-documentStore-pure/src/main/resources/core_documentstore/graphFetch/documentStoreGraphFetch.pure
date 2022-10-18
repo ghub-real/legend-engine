@@ -97,23 +97,8 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let oneRuntime   = ^Runtime(connections = [$dbConnection]);
    let batchSize    = if($fe.func == graphFetch_T_MANY__RootGraphFetchTree_1__Integer_1__T_MANY_, | $fe->instanceValueAtParameter(2)->cast(@Integer), | 1000);
 
-   //println($rootTree.subTrees->cast(@RoutedPropertyGraphFetchTree).propertyMapping->cast(@DocumentPropertyMapping).documentStoreElement->cast(@Field).type);
-   //let simplePrimitiveProperties11 = $rootTree.subTrees->cast(@RoutedPropertyGraphFetchTree).propertyMapping->filter(x | !$x->cast(@DocumentPropertyMapping).documentStoreElement->cast(@Field).type->instanceOf(meta::external::store::document::metamodel::ObjectIdTypeReference));
-   //let simplePrimitiveProperties11 = $rootTree.subTrees->cast(@RoutedPropertyGraphFetchTree).propertyMapping->cast(@DocumentPropertyMapping).documentStoreElement->cast(@Field).type->filter(x | !$x->instanceOf(meta::external::store::document::metamodel::ObjectIdTypeReference));
-
    let simplePrimitiveProperties = $rootTree.subTrees->filter(x | !$x->cast(@RoutedPropertyGraphFetchTree).propertyMapping->toOne()->cast(@DocumentPropertyMapping).documentStoreElement->cast(@Field).type->instanceOf(meta::external::store::document::metamodel::ObjectIdTypeReference))->cast(@PropertyGraphFetchTree).property->cast(@Property<Nil,Any|*>);
-/*
-   println('simplePrimitiveProperties11');
-   println($simplePrimitiveProperties11);
 
-
-   let simplePrimitiveProperties = $rootTree.subTrees->cast(@PropertyGraphFetchTree).property
-                                      ->filter(x | $x->instanceOf(Property))->cast(@Property<Nil,Any|*>)
-                                      ->filter(x | $x->isPrimitiveValueProperty());
-
-  println('simplePrimitiveProperties olc');
-   println($simplePrimitiveProperties);
-*/
    /* Assert conditions on sets */
    $setImpls->map(x | $x->assertConditionsOnSetImpl($simplePrimitiveProperties));
 
@@ -131,12 +116,6 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    println('documentNode');
    println($documentNode);
    
-   /*
-   let queryString = meta::external::store::document::functions::pureToDocumentStoreQuery::processDocumentQuery($selectDocumentQuery);
-   println('queryString');
-   println($queryString);
-   */
-   //println($selectDocumentQuery);
    // TODO
    //let postProcessorResult = $selectDocumentQuery->toOne()->cast(@SelectSQLQuery)->postProcessSQLQuery($store, $ext, $mapping, $oneRuntime, $exeCtx, $extensions);
    //let postProcessedQuery  = $postProcessorResult.query->cast(@SelectSQLQuery);
@@ -166,12 +145,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 {
    $tree.subTrees->cast(@RoutedPropertyGraphFetchTree)->map({st |
       let property = $st.property;
-      /*
-      println('property');
-      println($property);
-      println('$property->isPrimitiveValueProperty()');
-      println($property->isPrimitiveValueProperty());
-      */
+
       if (!$simplePrimitiveProperties->contains($st.property),
           | if ($property->isPrimitiveValueProperty(),
                 | $st->planGraphFetchExecutionPrimitiveChild($tree, $treePath, $orderedPaths, $setImpls, $store, $mapping, $runtime, $inScopeVars, $exeCtx, $extensions, $debug),
@@ -202,8 +176,6 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::planGraphFetchExecutionPrimitiveChild(currentTree: RoutedPropertyGraphFetchTree[1], parentTree: GraphFetchTree[1], parentPath: String[1], orderedPaths: String[*], parentSets: DocumentInstanceSetImplementation[*], store: DocumentStore[1], mapping: Mapping[1], runtime: Runtime[1], inScopeVars: Map<String, List<Any>>[1], exeCtx : ExecutionContext[1], extensions:Extension[*], debug : DebugContext[1]): DocumentStorePrimitiveQueryGraphFetchExecutionNode[1]
 {
-  println('meta::external::store::document::graphFetch::executionPlan::planGraphFetchExecutionPrimitiveChild');
-  println($currentTree);
    let currentPath = $parentPath + '.' + $currentTree->nodePathName();
 
    /* Assertions */
@@ -216,8 +188,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 
    /* Generate Sql Query */
    let primitiveQuery     = generatePrimitivePropertyQuery($parentSets, $currentTree, $parentTree, $mapping, $inScopeVars, $debug, $extensions);  //$mc,
-   println('primitiveQuery');
-   println($primitiveQuery);
+
    let resultFieldName  = '"node_' + $currentIdxString + '_result"';
    let namedFieldQuery   = ^$primitiveQuery(fields = ^Alias(name = $resultFieldName, documentElement = $primitiveQuery.fields->toOne()));
    //let changedDriverQuery = $namedColumnQuery->changeDriverToTempWithPkProjection(tempTableName($parentIdx), $parentSets, $extensions);
@@ -244,8 +215,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
      element='element'
     );
    let sqlNode       = $postProcessedQuery->buildDocumentQueryExecutionNode($mongoDBConnection, $extensions);
-   println('planGraphFetchExecutionPrimitiveChild sql node');
-   println($sqlNode);
+
    //let allExecNodes  = $postProcessorResult.executionNodes->concatenate($sqlNode)->concatenate($postProcessorResult.postExecutionNodes);
    //let wrappedNode   = generateExecutionNodeForPostProcessedResult($sqlNode, $allExecNodes, $postProcessorResult, $extensions);
 
@@ -263,9 +233,6 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode(query: SelectDocumentQuery[1], dbConnection: DatabaseConnection[1], extensions:Extension[*]):DocumentQueryExecutionNode[1]
 {
    let sql = $query->documentQueryToString($dbConnection.type, $dbConnection.timeZone, $dbConnection.quoteIdentifiers, $extensions);
-
-   //println('the sql is: ');
-   //println($sql);
    
    ^DocumentQueryExecutionNode
     (
@@ -279,7 +246,6 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::generatePrimitivePropertyQuery(setImpls: DocumentInstanceSetImplementation[*], propTree: RoutedPropertyGraphFetchTree[1], parentTree: GraphFetchTree[1], mapping:Mapping[1], inScopeVars: Map<String, List<Any>>[1], debug: DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
 {
-   println('meta::relational::graphFetch::executionPlan::generatePrimitivePropertyQuery');
    let isQualified    = false; // $propTree.property->instanceOf(QualifiedProperty);
    let pureToDocumentQueryState = defaultState($mapping, $inScopeVars);
    let srcSetImpl     = $setImpls->match([
@@ -288,14 +254,10 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
    ])->cast(@RootDocumentInstanceSetImplementation);
 
    let mainCollection     = $srcSetImpl.mainDocumentRelation->processDocumentRelation([], '', false, 0, false, $pureToDocumentQueryState, $debug, $extensions);
-   println('mainCollection');
-   println($mainCollection);
+
    let currentNode   = ^RootJoinDocumentTreeNode(alias=^CollectionAlias(name = 'root', documentElement = $mainCollection));
    let base = ^SelectDocumentQuery(data = $currentNode)->applyTypeFilter($srcSetImpl, '_gftm', $pureToDocumentQueryState, $debug, $extensions);
    //let base          = ^$basePreFilter(select = $basePreFilter.select->pushFilters($extensions));
-   
-   println('base');
-   println($base);
    
    let res = if ($isQualified,
                 {|
@@ -310,8 +272,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
                    processPropertyMapping($propTree.propertyMapping, $parentTree->typeFromGraphFetchTree()->cast(@Class<Any>), $base, ^$pureToDocumentQueryState(inGetterFlow = true), $debug, $extensions)->cast(@SelectDocumentQuery)
                 }
              );
-  println('res');
-  println($res);
+
   ^$res(distinct = true)->pushFilters($extensions);
 }
 

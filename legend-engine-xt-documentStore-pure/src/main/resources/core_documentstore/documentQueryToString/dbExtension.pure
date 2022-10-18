@@ -52,7 +52,6 @@ function <<access.private>> meta::external::store::document::extension::document
    ^Extension
    (
       type = $type,
-      //availableStores = [meta::external::store::document::contract::documentStoreStoreContract()],
       availableStores = meta::pure::extension::defaultExtensions().availableStores->concatenate(meta::external::store::document::contract::documentStoreStoreContract()),
       serializerExtension =  meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension_String_1__String_1_,
       graphExtension_calculateSourceTree = {tree:RootGraphFetchTree<Any>[1] |
@@ -210,17 +209,18 @@ function meta::external::store::document::extension::documentQueryToString::getD
 function meta::external::store::document::extension::documentQueryToString::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
       $sgc.dbConfig.selectDocumentQueryProcessor($s, $sgc, $isSubSelect);
-
 }
 
 function meta::external::store::document::extension::documentQueryToString::processIdentifierWithDoubleQuotes(identifier:String[1], dbConfig : DbConfig[1], quoteChar: String[1]):String[1]
 {
+  // Do we need this?
   //$dbConfig.identifierProcessor($identifier, $dbConfig, $quoteChar);
   ''
 }
 
 function meta::external::store::document::extension::documentQueryToString::processFieldName(name:String[1], dbConfig:DbConfig[1]):String[1]
 {
+  // not used currently, see if we need it
    $dbConfig.identifierProcessor($dbConfig.fieldNameToIdentifier($name));
 }
 

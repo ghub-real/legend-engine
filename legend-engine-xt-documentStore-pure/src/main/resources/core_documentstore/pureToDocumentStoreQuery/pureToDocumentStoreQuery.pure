@@ -96,9 +96,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::u
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processNoOp(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1],  context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
 {
    //Ignores the function and only processes the first parameter
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processNoOp');
-   let a = processValueSpecificationReturnPropertyMapping($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
-   $a;
+   processValueSpecificationReturnPropertyMapping($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne()
 }
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processValueSpecification(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*],  operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[*]
@@ -206,7 +204,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processValue(vals:Any[*], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[*]
 {
-    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processValue');
     let select = $operation;
     if ($vals->isEmpty(), | $state.inFilter->if(|^$select(filteringOperation = ^meta::external::store::document::metamodel::Literal(value=^DocumentNull())),|^$select(fields = ^meta::external::store::document::metamodel::Literal(value=^DocumentNull())))
                         , | $vals->map(v | $v->match([
@@ -264,10 +261,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::s
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::findSupportedFunction(fe:FunctionExpression[1], supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>[1]):meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>[0..1]
 {
-  //println('findSupportedFunction -fe');
-  //println($fe);
-  let a = $supportedFunctions->get($fe.func);
-  $a;
+  $supportedFunctions->get($fe.func)
 }
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::getSupportedFunctions():Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>[1]
@@ -426,9 +420,6 @@ function  meta::external::store::document::functions::pureToDocumentStoreQuery::
                                                    r : DocumentStoreElement[1]|$r->processOperation($dbConfig, $format, $generationState, $config, $extensions)
                                                 ]);
 
-                                                println('Alias - pureToDocumentStoreQuery::processOperation');
-                                                println($innerTerm);
-
                                                 let identifier = $dbConfig.identifierProcessor($alias.name);
 
                                                 let sqlOp = $alias.documentElement->instanceOf(SelectDocumentQuery);
@@ -476,8 +467,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
    print(if(!$context.debug, |'',
             | $context.space+'*>Process Property: \''+$propertyMapping.property->at(0).name->toOne()+'\' ('+$propertyMapping->map(p|$p.owner->toOne().id+'->'+$p.targetSetImplementationId)->joinStrings(',')+') ' +'NODEID_NA'+ ',inFilter:' + $state.inFilter->toString() + '\n'+
               $context.space+'   (Q)Source Operation>  '+$srcOperation->cast(@SelectDocumentQuery)->printDebugQuery($context.space, $extensions)));
-    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processPropertyMapping');
-    println($propertyMapping);
    let res = $propertyMapping->match([
                //s:SemiStructuredRelationalPropertyMapping[*] | processSemiStructuredRelationalPropertyMapping($s, $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $joinType, $nodeId, $aggFromMap, $context->shift(), $extensions),
                r:DocumentPropertyMapping[*] | processDocumentPropertyMapping($r, $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $context->shift(), $extensions),
@@ -516,8 +505,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                     let documentElement = $oldSrcOperation.data.alias.documentElement->toOne();
                                                     let propName = $documentElement->getPropertyName($property, $documentPropertyMappings, $extensions);
 
-                                                    println('DataType - propName');
-                                                    println($propName);
                                                     let result  = pair($propName, $oldSrcOperation);
 
                                                     let srcOperation = $result.second;
@@ -526,12 +513,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
                                                     let mappingImpl = $documentPropertyMappings->at(0).documentStoreElement;
 
-                                                    println('srcOpeartion');
-                                                    println($srcOperation.data.alias);
                                                     //let newCurrentTreeNode = $srcOperation.currentTreeNode->toOne();
                                                     let relElement = $oldSrcOperation.data.alias.documentElement->toOne();
-                                                    println('relElement');
-                                                    println($relElement);
 
                                                     let res = if (
                                                                       $relElement->instanceOf(SelectDocumentQuery)
@@ -746,9 +729,9 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
   //                 | $base
   //              );
   // Not supporting groupby
-  let pks = $base;
+  // let pks = $base;
 
-   let groupByQuery = $base->applyGroupBy($viewSpecification, $nodeId);
+   //let groupByQuery = $base->applyGroupBy($viewSpecification, $nodeId);
 
    //let filterQuery = if ($innerJoinFilterExists, | $groupByQuery, | $groupByQuery->applyTypeFilter($viewSpecification, $nodeId, $state, $context, $extensions));
 
@@ -772,13 +755,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
    //let fks = ^Alias(name = 'dummyAlias', documentElement=$currentDocumentElement);
 
    //let addedFks = if ($state.importDataFlowAddFks == true, |$fks->map(a|^$a(name='fk_'+$a.name)), |$fks);
-/*
-   println('merged');
-   println($merged);
-
-   println('merged fields');
-   println($merged.fields);
-   */
 
    let s = ^SelectDocumentQuery(
                   distinct = false,
