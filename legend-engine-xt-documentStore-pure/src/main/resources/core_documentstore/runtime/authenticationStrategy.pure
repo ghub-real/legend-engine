@@ -28,3 +28,7 @@ Class meta::external::store::document::runtime::authentication::UserNamePassword
    userNameVaultReference: String[1];
    passwordVaultReference: String[1];
 }
+
+Class meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy extends meta::external::store::document::runtime::authentication::AuthenticationStrategy
+{
+}

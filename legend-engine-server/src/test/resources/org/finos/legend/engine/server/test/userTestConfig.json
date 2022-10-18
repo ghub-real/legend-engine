@@ -77,6 +77,12 @@
       "port": 9092
     }
   },
+  "nonrelationalexecution": {
+    "tempPath": "/tmp/",
+    "temporarytestdb": {
+      "port": 9092
+    }
+  },
   "errorhandlingconfiguration": {
     "enabled": true
   }

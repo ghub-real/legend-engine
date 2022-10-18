@@ -330,6 +330,14 @@
             <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-xt-relationalStore-executionPlan-connection-authentication-default</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-documentStore-executionPlan-connection</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-documentStore-executionPlan</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
@@ -589,12 +597,6 @@
             <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-test-server-shared</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-xt-documentStore-executionPlan-connection</artifactId>
-            <version>3.15.4-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <!-- TEST -->
     </dependencies>

@@ -20,6 +20,11 @@ import org.eclipse.collections.api.factory.Maps;
 import org.finos.legend.engine.protocol.pure.v1.extension.ProtocolSubTypeInfo;
 import org.finos.legend.engine.protocol.pure.v1.extension.PureProtocolExtension;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.UserNamePasswordAuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.DatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.DocumentStore;
 
 import java.util.List;
@@ -30,7 +35,12 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
     @Override
     public List<Function0<List<ProtocolSubTypeInfo<?>>>> getExtraProtocolSubTypeInfoCollectors()
     {
-        return Lists.fixedSize.empty();
+        //return Lists.fixedSize.empty();
+        return Lists.fixedSize.with(() -> Lists.fixedSize.with(
+        ProtocolSubTypeInfo.newBuilder(DatasourceSpecification.class)
+                .withSubtype(MongoDBDatasourceSpecification.class, "mongoDB")
+                .build(),
+
 //        return Lists.fixedSize.with(() -> Lists.fixedSize.with(
 //                // Packageable element
 //                ProtocolSubTypeInfo.newBuilder(PackageableElement.class)
@@ -106,19 +116,12 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
 //                        .withSubtype(RedshiftDatasourceSpecification.class, "redshift")
 //                        .build(),
 //
-//                // AuthenticationStrategy
-//                ProtocolSubTypeInfo.newBuilder(AuthenticationStrategy.class)
-//                        .withSubtype(DefaultH2AuthenticationStrategy.class, "h2Default")
-//                        .withSubtype(TestDatabaseAuthenticationStrategy.class, "test")
-//                        .withSubtype(DelegatedKerberosAuthenticationStrategy.class, "delegatedKerberos")
-//                        .withSubtype(UserNamePasswordAuthenticationStrategy.class, "userNamePassword")
-//                        .withSubtype(SnowflakePublicAuthenticationStrategy.class, "snowflakePublic")
-//                        .withSubtype(GCPApplicationDefaultCredentialsAuthenticationStrategy.class, "gcpApplicationDefaultCredentials")
-//                        .withSubtype(ApiTokenAuthenticationStrategy.class, "apiToken")
-//                        .withSubtype(GCPWorkloadIdentityFederationAuthenticationStrategy.class, "gcpWorkloadIdentityFederation")
-//                        .withSubtype(MiddleTierUserNamePasswordAuthenticationStrategy.class, "middleTierUserNamePassword")
-//                        .build(),
-//
+                // AuthenticationStrategy
+                ProtocolSubTypeInfo.newBuilder(AuthenticationStrategy.class)
+                        .withSubtype(TestDatabaseAuthenticationStrategy.class, "test")
+                        .withSubtype(UserNamePasswordAuthenticationStrategy.class, "userNamePassword")
+                        .build()
+
 //                //Post Processor
 //                ProtocolSubTypeInfo.newBuilder(PostProcessor.class)
 //                        .withSubtype(MapperPostProcessor.class, "mapper")
@@ -130,7 +133,7 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
 //                        .withSubtype(BusinessSnapshotMilestoning.class, "businessSnapshotMilestoning")
 //                        .withSubtype(ProcessingMilestoning.class, "processingMilestoning")
 //                        .build()
-//        ));
+                        ));
     }
 
     @Override
