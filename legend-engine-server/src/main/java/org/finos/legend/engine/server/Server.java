@@ -63,7 +63,8 @@ import org.finos.legend.engine.plan.execution.PlanExecutor;
 import org.finos.legend.engine.plan.execution.api.ExecutePlanLegacy;
 import org.finos.legend.engine.plan.execution.api.ExecutePlanStrategic;
 import org.finos.legend.engine.plan.execution.service.api.ServiceModelingApi;
-import org.finos.legend.engine.plan.execution.stores.document.NonRelationalExecutor;
+import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelational;
+import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.LocalMongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbResource;
@@ -117,7 +118,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     protected RelationalStoreExecutor relationalStoreExecutor;
 
-    protected NonRelationalExecutor nonRelationalExecutor;
+    protected NonRelationalStoreExecutor nonRelationalStoreExecutor;
 
     private Environment environment;
 
@@ -172,7 +173,8 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         ChainFixingFilterHandler.apply(environment.getApplicationContext(), serverConfiguration.filterPriorities);
 
         relationalStoreExecutor = (RelationalStoreExecutor) Relational.build(serverConfiguration.relationalexecution);
-        PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(relationalStoreExecutor, ServiceStore.build(), InMemory.build());
+        nonRelationalStoreExecutor = (NonRelationalStoreExecutor) NonRelational.build(serverConfiguration.nonrelationalexecution);
+        PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(relationalStoreExecutor, nonRelationalStoreExecutor, ServiceStore.build(), InMemory.build());
 
         // Session Management
         SessionTracker sessionTracker = new SessionTracker();
@@ -297,7 +299,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         int relationalDBPort = 9092;
         try
         {
-            h2Server =  AlloyH2Server.startServer(relationalDBPort);
+            h2Server = AlloyH2Server.startServer(relationalDBPort);
         }
         catch (Exception e)
         {

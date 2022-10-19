@@ -27,7 +27,7 @@ public class LocalMongoDbClient implements NonRelationalClient
 
     public LocalMongoDbClient()
     {
-        this("localhost:27017");
+        this("mongodb://localhost:27017");
     }
 
     public LocalMongoDbClient(String uri)
