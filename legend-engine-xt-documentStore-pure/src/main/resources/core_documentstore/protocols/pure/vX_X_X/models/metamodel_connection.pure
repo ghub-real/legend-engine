@@ -1,0 +1,77 @@
+// Copyright 2021 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import meta::protocols::pure::vX_X_X::metamodel::store::document::connection::*;
+
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection extends  meta::protocols::pure::vX_X_X::metamodel::runtime::Connection
+{
+    type  : String[1];
+    debug : Boolean[0..1];
+    timeZone : String[0..1];
+    quoteIdentifiers : Boolean[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DocumentStoreConnection extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection
+{
+    datasourceSpecification: meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1];
+    authenticationStrategy: meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy[1];
+    postProcessors: meta::protocols::pure::vX_X_X::metamodel::store::document::postProcessor::PostProcessor[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::UserNamePasswordAuthenticationStrategy extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy
+{
+   baseVaultReference: String[0..1];
+   userNameVaultReference: String[1];
+   passwordVaultReference: String[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::TestDatabaseAuthenticationStrategy extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::TestDatasourceSpecification extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification
+{
+//// Default to local
+    host:String[1];
+    databaseName:String[1];
+    port:Integer[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDatasourceSpecification extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification
+{
+    clusterID:String[0..1];
+    host:String[1];
+    databaseName:String[1];
+    port:Integer[1];
+
+}
+
+Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy
+{
+   _type: String[1];
+}
+
+Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::store::document::postProcessor::PostProcessor
+{
+   _type:String[1];
+}
+
+Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification
+{
+   _type: String[1];
+}
+
+//Class meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::
+//Class meta::protocols::pure::vX_X_X::metamodel::connection::store::service::ServiceStoreConnection-- Wrong

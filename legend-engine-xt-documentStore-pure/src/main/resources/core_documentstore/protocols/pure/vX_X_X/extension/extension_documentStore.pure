@@ -49,7 +49,11 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
                                                         // x: EmbeddedRelationalInstanceSetImplementation[1]|$x->processProperties($m, $extensions),
                                                         // ag:	meta::pure::mapping::aggregationAware::AggregationAwareSetImplementation[1]| $ag.mainSetImplementation->extractStores($m, $extensions)->concatenate($ag.aggregateSetImplementations->map(a|$a.setImplementation->extractStores($m, $extensions)))
                                                      ]
-                                                   }
+                                                   },
+      transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
+      [
+         db:meta::external::store::document::metamodel::runtime::DatabaseConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection($extensions)
+      ]}
 
 //      transfers_store_transformConnection =
 //          [
@@ -102,4 +106,18 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
    )
 }
 
+
+Class meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension extends meta::protocols::pure::vX_X_X::extension::ModuleSerializerExtension
+{
+   // Removed. , meta::protocols::pure::vX_X_X::metamodel::store::relational::PostProcessorWithParameter[*]
+   transfers_connection_transformDatabaseConnection : meta::pure::metamodel::function::Function<{String[1], String[1], String[1] -> meta::pure::metamodel::function::Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1]}>[*]}>[0..1];
+   //transfers_connection_transformPostProcessors : Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::relational::postProcessor::PostProcessor[1]}>[*];
+   transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy[1]}>[*];
+   transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1]}>[*];
+   //transfers_connection_transformPostProcessorParameters : Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::relational::PostProcessorParameter[1]}>[*];
+   //transfers_milestoning_transformMilestoning : Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::relational::Milestoning[1]}>[*];
+   reverse_transfers_typeLookups: Pair<String, String>[*];
+   reverse_transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::document::runtime::authentication::AuthenticationStrategy[1]}>[*];
+   reverse_transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1]}>[*];
+}
 

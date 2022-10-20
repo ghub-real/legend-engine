@@ -18,8 +18,9 @@ Class <<typemodifiers.abstract>> meta::external::store::document::runtime::conne
 {
 }
 
-Class meta::external::store::document::runtime::connections::StaticDatasourceSpecification extends meta::external::store::document::runtime::connections::specification::DatasourceSpecification
+Class meta::external::store::document::runtime::connections::TestDatasourceSpecification extends meta::external::store::document::runtime::connections::specification::DatasourceSpecification
 {
+    // Test is Local Mongo by default
    host: String[1];
    port: Integer[1];
    databaseName: String[1];
