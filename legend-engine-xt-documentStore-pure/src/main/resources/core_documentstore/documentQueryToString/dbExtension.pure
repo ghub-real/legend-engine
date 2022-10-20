@@ -71,8 +71,10 @@ function <<access.private>> meta::external::store::document::extension::document
 
 function meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension(version:String[1]):String[1]
 {
-   'meta::protocols::pure::'+$version+'::extension::getRelationalExtension_String_1__SerializerExtension_1_';
+   'meta::protocols::pure::'+$version+'::extension::store::document::getDocumentStoreExtension_String_1__SerializerExtension_1_';
+   //'::extension::getRelationalExtension_String_1__SerializerExtension_1_';
 }
+
 
 function meta::external::store::document::extension::documentQueryToString::processOperation(documentStoreElement:DocumentStoreElement[1], dbType:DatabaseType[1], extensions:Extension[*]):String[1]
 {

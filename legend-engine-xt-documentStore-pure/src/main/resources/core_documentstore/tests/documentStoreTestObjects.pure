@@ -102,9 +102,41 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
   meta::pure::functions::collection::pair($mongoStore, $firmDocumentSetImpl);
 }
 
+
+
+function meta::external::store::document::tests::object::getLocalMongoRuntime(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::pure::runtime::Runtime[1]
+{
+  ^meta::pure::runtime::Runtime(connections =
+    meta::external::store::document::tests::object::localMongoDatabaseConnection($dataStore));
+}
+
+
+function meta::external::store::document::tests::object::localMongoDatabaseConnection(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::external::store::document::metamodel::runtime::DatabaseConnection[1]
+{
+    ^meta::external::store::document::metamodel::runtime::DatabaseConnection(
+        element = $dataStore,
+        type = meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,
+        timeZone = 'GMT'
+    );
+}
+
+Class meta::external::store::document::tests::object::TestSetup 
+{
+   mapping: meta::pure::mapping::Mapping[1];
+   runtime: meta::pure::runtime::Runtime[1];
+}
+
+function meta::external::store::document::tests::object::getTestSetup(): meta::external::store::document::tests::object::TestSetup[1]
+{
+  let mongoStoreAndMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
+  let mapping = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second);
+  let runtime = meta::external::store::document::tests::object::getLocalMongoRuntime($mongoStoreAndMapping.first);
+  ^meta::external::store::document::tests::object::TestSetup(mapping = $mapping, runtime = $runtime);
+}
+
 function meta::external::store::document::tests::object::getCollection(): meta::external::store::document::metamodel::Collection[1]
 {
-  let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+  // let mongoStore = meta::external::store::document::tests::object::getMongoStore();
 
   let allFields = meta::external::store::document::tests::object::getAllFields();
 
@@ -120,7 +152,7 @@ function meta::external::store::document::tests::object::getCollection(): meta::
 
 function meta::external::store::document::tests::object::getCollectionWithLessFieldsThanMapping(): meta::external::store::document::metamodel::Collection[1]
 {
-  let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+  // let mongoStore = meta::external::store::document::tests::object::getMongoStore();
 
   let allFields = meta::external::store::document::tests::object::getAllFields();
 

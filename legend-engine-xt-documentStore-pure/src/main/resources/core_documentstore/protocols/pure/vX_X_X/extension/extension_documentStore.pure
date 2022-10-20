@@ -1,0 +1,105 @@
+// Copyright 2021 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::pure::mapping::*;
+
+import meta::external::store::document::metamodel::*;
+import meta::external::store::document::metamodel::mapping::*;
+import meta::external::store::document::metamodel::runtime::*;
+
+function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentStoreExtension(type:String[1]):meta::pure::extension::SerializerExtension[1]
+{
+   let res = [
+      pair('documentStore', | meta::protocols::pure::vX_X_X::extension::store::document::getDocumentStoreExtension())
+   ]->filter(f|$f.first == $type);
+   assert($res->isNotEmpty(), |'Can\'t find the type '+$type);
+   $res->at(0).second->eval();
+}
+
+function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentStoreExtension():meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X[1]
+{
+   ^meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X
+   (
+     scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+                                                     [
+                                                        rsi: RootDocumentInstanceSetImplementation[1] |
+                                                                          // Main Store
+                                                                          let mainCollectionAlias = $rsi.mainCollectionAlias;
+                                                                          let mainStore = $mainCollectionAlias.documentStore;    // No schema stuff if ($mainCollectionAlias.documentStore->isEmpty(), | $rsi.mainTable.schema.database, | $mainTableAlias.database->toOne());
+                                                                          // Filter
+                                                                          // let filter = $rsi.resolveFilter();
+                                                                          // let fromFilter = $filter.database;
+                                                                          // let fromFilterOpertation = $filter.filter.operation->meta::relational::functions::pureToSqlQuery::extractStore();
+                                                                          // let fromFilterJoins = $filter.joinTreeNode->map(x|$x->meta::relational::functions::pureToSqlQuery::flatten()).database;
+                                                                          // Properties
+                                                                          // let fromProperties = $rsi->processProperties($m, $extensions);
+                                                                          // All
+                                                                          $mainStore; //->concatenate($fromFilter)->concatenate($fromFilterOpertation)->concatenate($fromFilterJoins)->concatenate($fromProperties);,
+                                                        // x: EmbeddedRelationalInstanceSetImplementation[1]|$x->processProperties($m, $extensions),
+                                                        // ag:	meta::pure::mapping::aggregationAware::AggregationAwareSetImplementation[1]| $ag.mainSetImplementation->extractStores($m, $extensions)->concatenate($ag.aggregateSetImplementations->map(a|$a.setImplementation->extractStores($m, $extensions)))
+                                                     ]
+                                                   }
+
+//      transfers_store_transformConnection =
+//          [
+//             serviceStoreConnection:ServiceStoreConnection[1] | $serviceStoreConnection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::service::transformServiceStoreConnection()
+//          ],
+//      transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+//          [
+//             ser:meta::external::store::service::executionPlan::nodes::RestServiceExecutionNode[1]|
+//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::RestServiceExecutionNode(
+//                   _type            = 'restService',
+//                   resultType       = $ser.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+//                   url              = $ser.url,
+//                   method           = $ser.method,
+//                   mimeType         = $ser.mimeType,
+//                   securitySchemes  = $ser.securitySchemes->map(s | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformSecurityScheme($extensions)),
+//                   requestBodyDescription = if($ser.requestBodyDescription->isEmpty(),
+//                                               |[],
+//                                               |^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::RequestBodyDescription(
+//                                                    mimeType = $ser.requestBodyDescription.mimeType->toOne(),
+//                                                    resultKey = $ser.requestBodyDescription.resultKey->toOne()
+//                                                 )),
+//                   params           = $ser.params->map(p | $p->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStoreParameter())
+//                ),
+//             spr:meta::external::store::service::executionPlan::nodes::ServiceParametersResolutionExecutionNode[1]|
+//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::ServiceParametersResolutionExecutionNode(
+//                   _type                      = 'serviceParametersResolution',
+//                   resultType                 = $spr.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+//                   requestParametersBuildInfo = $spr.requestParametersBuildInfo->map(p | $p->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformServiceRequestParametersBuildInfo($extensions))
+//                ),
+//             limit:meta::external::store::service::executionPlan::nodes::LimitExecutionNode[1]|
+//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::LimitExecutionNode(
+//                   _type='limit',
+//                   resultType=$limit.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+//                   limit = $limit.limit
+//                )
+//          ]},
+//      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
+//            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformRootServiceInstanceSetImplementation($mapping, $extensions),
+//            esi:EmbeddedServiceStoreSetImplementation[1] | []
+//          ]},
+//      transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
+//         [
+//            s:ServiceStore[1] | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStore($extensions)
+//         ]},
+//      scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+//         [
+//            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::extension::store::service::extractServiceStore(),
+//            esi:EmbeddedServiceStoreSetImplementation[1] | $esi->meta::protocols::pure::vX_X_X::extension::store::service::extractServiceStore()
+//         ]}
+   )
+}
+
+
