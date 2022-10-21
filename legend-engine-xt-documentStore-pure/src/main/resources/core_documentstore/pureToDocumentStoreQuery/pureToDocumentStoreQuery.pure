@@ -57,6 +57,8 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::Stat
    shouldIsolate: Boolean[0..1];
    qualifierBase:OperationWithParentPropertyMapping[0..1];
    functionReferenceScope : FunctionParamScope[0..1];
+   inIf:Boolean[0..1];
+   inIfTrueFalseStmt:Boolean[0..1];
 }
 
 

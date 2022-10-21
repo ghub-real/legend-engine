@@ -57,7 +57,7 @@ function meta::external::store::document::functions::documentQueryToString::mong
 {
   println('meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongo');
   println($selectDocumentQuery);
-  let a = '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery);
+  let a = '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery) + ' }';
   $a;
 }
 
@@ -112,7 +112,7 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processMatch(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
 {
-  if(!$selectDocumentQuery.filteringOperation->isEmpty(),| '{' + '"$match":' + processDynaFunctionMongo($selectDocumentQuery.filteringOperation->cast(@DynaFunction)->toOne()) , | '"$match":{}');
+  if(!$selectDocumentQuery.filteringOperation->isEmpty(),| '{' + '"$match":' + processDynaFunctionMongo($selectDocumentQuery.filteringOperation->cast(@DynaFunction)->toOne()) + ' }' , | '"$match":{}');
 }
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processProject(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
