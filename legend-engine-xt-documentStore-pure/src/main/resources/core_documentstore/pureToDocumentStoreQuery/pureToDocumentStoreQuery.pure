@@ -454,7 +454,7 @@ function  meta::external::store::document::functions::pureToDocumentStoreQuery::
                                           s:SelectDocumentQuery[1]|
                                           
                                                                   let fields = $s->cast(@SelectDocumentQuery).fields->map(x | ^Field(name=$x->cast(@Alias).documentElement->cast(@Field).name, type=$x->cast(@Alias).documentElement->cast(@Field).type)); 
-                                                                  let y=^SelectDocumentQuery(data=$s.data, fields=$fields);
+                                                                  let y=^SelectDocumentQuery(data=$s.data, fields=$fields, filteringOperation=$s->cast(@SelectDocumentQuery).filteringOperation);
                                                                   $y->processSelectDocumentQuery($sgc, false);,
                                           
                                           //s:SelectDocumentQuery[1]| $s->processOperation($dbConfig, $format, $generationState, $config, $extensions),
@@ -1480,6 +1480,15 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
   //println($rightSide);
 
   $rightSide;
+
+// function meta::external::store::document::functions::pureToDocumentStoreQuery::mergeDocumentQueryData(preQuerySet:SelectDocumentQuery[*], nodeId:String[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
+  let merged = [$leftSide, $rightSide]->cast(@SelectDocumentQuery)->mergeDocumentQueryData('', $state, $context, $extensions);
+
+  let mergedWithCollapsedFilteringOperation = ^$merged(filteringOperation = $merged.filteringOperation->tail()->fold({f,a|[$a->toOne(),$f]->andFilters($extensions)}, $merged.filteringOperation->head()));
+
+  println('mergedWithCollapsedFilteringOperation');
+  println($mergedWithCollapsedFilteringOperation);
+  $mergedWithCollapsedFilteringOperation;
 }
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processEquals(
@@ -1552,8 +1561,14 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
    let selectDocumentQuery = $left.element->extractDocumentQuery();
     println('meta::external::store::document::functions::pureToDocumentStoreQuery::processEquals - result');
-    println($selectDocumentQuery);
-    $selectDocumentQuery->toOne();
+    //println($selectDocumentQuery);
+    //$selectDocumentQuery->toOne();
+    
+    let res = if ($state.inFilter, | ^$mergedNoSQL(fields=$operation.fields, filteringOperation = $filteringOperation), |  ^$mergedNoSQL(fields=$filteringOperation));
+    println($res);
+
+    $res;
+
 /*
    ^$selectDocumentQuery(data = $state.inFilter->if(
                                     |^$mergedNoSQL(

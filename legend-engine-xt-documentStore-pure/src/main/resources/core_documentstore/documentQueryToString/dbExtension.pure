@@ -129,6 +129,11 @@ Class meta::external::store::document::extension::documentQueryToString::DbConfi
    {
      $this.dbExtension.identifierProcessor->eval($s, $this);
    }: String[1];
+
+   dynaFuncDispatch(d:DynaFunction[1])
+   {
+     $this.dbExtension.dynaFuncDispatch->eval($d);
+   }: String[1];
 }
 
 Class meta::external::store::document::extension::documentQueryToString::DbExtensionLoader
@@ -149,6 +154,7 @@ Class meta::external::store::document::extension::documentQueryToString::DbExten
    collectionNameToIdentifier: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[0..1];
    fieldNameToIdentifier: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[0..1];
    identifierProcessor: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[1];
+   dynaFuncDispatch: meta::pure::metamodel::function::Function<{DynaFunction[1] -> String[1]}>[1];
 }
 
 Class meta::external::store::document::extension::documentQueryToString::SqlGenerationContext
@@ -209,6 +215,11 @@ function meta::external::store::document::extension::documentQueryToString::getD
 function meta::external::store::document::extension::documentQueryToString::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
       $sgc.dbConfig.selectDocumentQueryProcessor($s, $sgc, $isSubSelect);
+}
+
+function meta::external::store::document::extension::documentQueryToString::dynaFuncDispatch(d:DynaFunction[1], dbConfig:DbConfig[1]):String[1]
+{
+      $dbConfig.dynaFuncDispatch($d);
 }
 
 function meta::external::store::document::extension::documentQueryToString::processIdentifierWithDoubleQuotes(identifier:String[1], dbConfig : DbConfig[1], quoteChar: String[1]):String[1]
