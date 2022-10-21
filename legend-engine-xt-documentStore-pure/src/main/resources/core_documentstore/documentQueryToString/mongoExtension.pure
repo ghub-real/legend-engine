@@ -42,7 +42,7 @@ function <<access.private>> meta::external::store::document::functions::document
       literalProcessor = $literalProcessor,
       selectDocumentQueryProcessor = processSelectDocumentQueryMongo_SelectDocumentQuery_1__SqlGenerationContext_1__Boolean_1__String_1_,
       identifierProcessor = processIdentifierWithDoubleQuotesMongo_String_1__DbConfig_1__String_1_,
-      dynaFuncDispatch = processDynaFunctionMongo_DynaFunction_1__String_1_
+      dynaFuncDispatch = processDynaFunctionMongo_DynaFunction_1__Boolean_1__String_1_
    );
 }
 
@@ -72,24 +72,29 @@ function meta::external::store::document::functions::documentQueryToString::mong
   $a;
 }
 
-function meta::external::store::document::functions::documentQueryToString::mongo::processDynaFunctionMongo(d: DynaFunction[1]): String[1]
+function meta::external::store::document::functions::documentQueryToString::mongo::processDynaFunctionMongo(d: DynaFunction[1], isNegation: Boolean[1]): String[1]
 {
   println('meta::external::store::document::functions::documentQueryToString::mongo::processDynaFunction');
   let name = $d.name;
   let parameters = $d.parameters;
 
 // add all operations, greater than, lower than, etc
-  if ($name == 'equal' || $name == 'not equal',
-    | let operationSymbol = getOperationSymbol($name);
-      let key = $parameters->at(0)->cast(@Field).name;
-      let value = $parameters->at(1)->cast(@Literal).value;
-      '{ "' + $key + '": { "' + $operationSymbol + '": "' + $value->cast(@String) + '" } }';
+
+  if ($name == 'equal' || $name == 'not',
+    | if($name == 'not',
+      | let negationString = processDynaFunctionMongo($parameters->at(0)->cast(@DynaFunction), true);,
+      | let key = $parameters->at(0)->cast(@Field).name;
+        let value = $parameters->at(1)->cast(@Literal).value;
+        let operationSymbol = if ($isNegation, | '$ne', | getOperationSymbol($name));
+        '{ "' + $key + '": { "' + $operationSymbol + '": "' + $value->cast(@String) + '" } }';
+      )
     ,
     | if ($name == 'and' || $name == 'or',
-      | let andOr = $parameters->fold({item, acc | $acc->concatenate(processDynaFunctionMongo($item->cast(@DynaFunction)))}, []);
-        '{ "$' + $name + '": [' + $andOr->joinStrings(', ') + '] }';
+      | let andOrNot = $parameters->fold({item, acc | $acc->concatenate(processDynaFunctionMongo($item->cast(@DynaFunction), false))}, []);
+        let operationSymbol = getOperationSymbol($name);
+        '{ "' + $operationSymbol + '": [' + $andOrNot->joinStrings(', ') + '] }';
       ,
-      | processDynaFunctionMongo($parameters->at(0)->cast(@DynaFunction)); // this "else" here assumes that the name of the dynaFunction is "group". Is there something else to consider?
+      | processDynaFunctionMongo($parameters->at(0)->cast(@DynaFunction), false); // this "else" here assumes that the name of the dynaFunction is "group". Is there something else to consider?
       )
     );
 }
@@ -97,12 +102,19 @@ function meta::external::store::document::functions::documentQueryToString::mong
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::getOperationSymbol(op:String[1]): String[1]
 {
   // add all operations, greater than, lower than, etc
-  if ($op == 'equal', | '$eq', | '$eq')
-}
-
-function meta::external::store::document::functions::documentQueryToString::mongo::processDocumentQuery(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
-{
-  '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery)
+  if ($op == 'and',
+    | '$and',
+    | if ($op == 'or',
+      | '$or',
+      | if ($op == 'not',
+        | '$ne',
+        | if ($op == 'equal',
+          | '$eq',
+          | 'wrong operation'
+          )
+        )
+      )
+    )
 }
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processPipelines(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
@@ -112,7 +124,7 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processMatch(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
 {
-  if(!$selectDocumentQuery.filteringOperation->isEmpty(),| '{' + '"$match":' + processDynaFunctionMongo($selectDocumentQuery.filteringOperation->cast(@DynaFunction)->toOne()) + ' }' , | '"$match":{}');
+  if(!$selectDocumentQuery.filteringOperation->isEmpty(),| '{' + '"$match":' + processDynaFunctionMongo($selectDocumentQuery.filteringOperation->cast(@DynaFunction)->toOne(), false) + ' }' , | '"$match":{}');
 }
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processProject(selectDocumentQuery:SelectDocumentQuery[1]): String[1]

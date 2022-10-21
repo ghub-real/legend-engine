@@ -276,8 +276,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::g
       ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::collection::filter_T_MANY__Function_1__T_MANY_, second=meta::external::store::document::functions::pureToDocumentStoreQuery::processFilter_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_),
       ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::boolean::equal_Any_MANY__Any_MANY__Boolean_1_, second=meta::external::store::document::functions::pureToDocumentStoreQuery::processEquals_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_),
       ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::boolean::and_Boolean_1__Boolean_1__Boolean_1_,second=meta::external::store::document::functions::pureToDocumentStoreQuery::processDynaFunction_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_),
-      ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::boolean::or_Boolean_1__Boolean_1__Boolean_1_,second=meta::external::store::document::functions::pureToDocumentStoreQuery::processDynaFunction_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_)
-      //^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::collection::map_T_MANY__Function_1__V_MANY_, second=meta::external::store::document::functions::pureToDocumentStoreQuery::processMap_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__OperationWithParentPropertyMapping_1_)
+      ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::boolean::or_Boolean_1__Boolean_1__Boolean_1_,second=meta::external::store::document::functions::pureToDocumentStoreQuery::processDynaFunction_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_),
+      ^PureFunctionToRelationalFunctionPair(first=meta::pure::functions::boolean::not_Boolean_1__Boolean_1_,second=meta::external::store::document::functions::pureToDocumentStoreQuery::processNot_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__DocumentStoreElement_1_)
       ]);
 }
 
@@ -1860,6 +1860,26 @@ function <<access.private>> meta::external::store::document::functions::pureToDo
                                                                          $currentPropertyMapping;
                                                                      ), $operation, $vars, $state, $context, $extensions));
    pair(^List<DocumentStoreElement>(values=$pred->concatenate($sides)),{r:DocumentStoreElement[1]|^OperationWithParentPropertyMapping(element=$r, currentPropertyMapping=$foundEnumPropertyMapping)});
+}
+
+function meta::external::store::document::functions::pureToDocumentStoreQuery::processNot(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
+{
+   processUnary($f, $currentPropertyMapping, $operation, {a|^DynaFunction(name = 'not', parameters = $a)}, $vars, $state, $context, $extensions)->cast(@SelectDocumentQuery)->moveExtraFilterToFilter($extensions)
+}
+
+function meta::external::store::document::functions::pureToDocumentStoreQuery::processUnary(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], f:meta::pure::metamodel::function::Function<{DocumentStoreElement[1]->DocumentStoreElement[1]}>[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
+{
+   let existingNoSqlQuery = processValueSpecification($expression.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne()->cast(@SelectDocumentQuery);
+   //let existingSqlQuery = $nested.select;
+   $state.inFilter->if(
+                  |^$existingNoSqlQuery(
+                        filteringOperation = $f->eval($existingNoSqlQuery.filteringOperation->toOne())
+                    )
+                  ,
+                  |^$existingNoSqlQuery(
+                        fields = $f->eval($existingNoSqlQuery.fields->toOne())
+                    )
+               );
 }
 
 Class meta::external::store::document::functions::pureToDocumentStoreQuery::PureFunctionToRelationalFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->DocumentStoreElement[1]}>>
