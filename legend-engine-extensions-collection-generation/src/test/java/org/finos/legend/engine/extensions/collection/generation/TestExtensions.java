@@ -14,7 +14,6 @@
 
 package org.finos.legend.engine.extensions.collection.generation;
 
-import java.util.Set;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.factory.Sets;
 import org.eclipse.collections.api.list.MutableList;
@@ -320,6 +319,7 @@ public class TestExtensions
                 .with("core_analytics_mapping")
                 .with("core_data_space")
                 .with("core_diagram")
+                .with("core_documentstore")
                 .with("core_external_format_avro")
                 .with("core_external_format_rosetta")
                 .with("core_external_language_morphir")
