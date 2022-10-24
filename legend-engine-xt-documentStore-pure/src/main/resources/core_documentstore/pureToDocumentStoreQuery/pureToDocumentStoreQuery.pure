@@ -27,7 +27,6 @@ import meta::external::store::document::extension::documentQueryToString::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::documentmappingspecification::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::metamodel::*;
 import meta::external::store::document::mapping::*;
-import meta::external::document::mapping::*;
 
 
 //Class meta::external::store::document::functions::pureToDocumentStoreQuery::DocumentStoreQuery
@@ -526,7 +525,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                     let res = if (
                                                                       $relElement->instanceOf(SelectDocumentQuery)
                                                                         &&
-                                                                      ($mappingImpl->instanceOf(meta::relational::metamodel::operation::Function) || $mappingImpl->instanceOf(meta::external::store::document::metamodel::Literal))
+                                                                      ($mappingImpl->instanceOf(meta::external::store::document::metamodel::Operation) || $mappingImpl->instanceOf(meta::external::store::document::metamodel::Literal))
                                                                         &&
                                                                       $relElement->cast(@SelectDocumentQuery).fields->filter(c|$c->instanceOf(meta::external::store::document::metamodel::Alias))->cast(@meta::external::store::document::metamodel::Alias).name->contains($propName)
                                                                     
@@ -1658,7 +1657,7 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::Enum
   currentPropertyMapping : OperationWithParentPropertyMapping[1];
 }
 
-// the relational equivalent is not the corresponding file
+// TODO: DO WE NEED THIS??
 Class meta::external::store::document::mapping::SemiStructuredDocumentPropertyMapping extends DocumentPropertyMapping
 {
 }

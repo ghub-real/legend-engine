@@ -19,9 +19,14 @@ import meta::external::store::document::runtime::connections::*;
 Class <<typemodifiers.abstract>> meta::external::store::document::runtime::connections::PostProcessor {}
 
 
-Class meta::external::store::document::runtime::connections::Mapper extends meta::relational::runtime::PostProcessorParameter {
+Class meta::external::store::document::runtime::connections::Mapper extends meta::external::store::document::runtime::PostProcessorParameter {
    from: String[1];
    to: String[1];
+}
+
+Class meta::external::store::document::runtime::PostProcessorParameter
+{
+
 }
 
 Class meta::external::store::document::runtime::connections::MapperPostProcessor extends PostProcessor

@@ -215,7 +215,7 @@ function meta::external::store::document::mapping::functions::documentStorePlanS
 
 function meta::external::store::document::mapping::functions::updateConnection(conn:Connection[1], extensions:Extension[*]):Connection[1]
 {
-   $conn->match($extensions->map(e|$e.moduleExtension('documentStore')->cast(@DocumentStoreExtension).relational_plan_updateConnection)->concatenate([
+   $conn->match($extensions->map(e|$e.moduleExtension('documentStore')->cast(@DocumentStoreExtension).documentStore_plan_updateConnection)->concatenate([
       c:DatabaseConnection[1] | $c 
    ])->toOneMany())
 }

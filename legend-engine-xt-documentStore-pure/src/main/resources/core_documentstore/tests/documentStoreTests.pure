@@ -82,9 +82,6 @@ Association meta::external::store::document::tests::simple::Firm_Person
 ###Mapping
 import meta::external::store::document::tests::simple::*;
 
-Mapping meta::external::store::document::tests::simple::MyDocStoreMapping
-(
-)
 
 
 Mapping meta::external::store::document::tests::simple::simpleRelationalMapping

@@ -17,11 +17,6 @@ import meta::external::store::document::extension::documentQueryToString::*;
 import meta::external::store::document::metamodel::*;
 import meta::external::store::document::functions::documentQueryToString::*;
 import meta::external::store::document::extension::*; // for profile
-//import meta::relational::functions::sqlQueryToString::default::*;
-//import meta::relational::functions::sqlQueryToString::*;
-//import meta::relational::metamodel::operation::*;
-//import meta::relational::metamodel::*;
-//import meta::relational::runtime::*;
 
 
 function <<db.DocumentStoreExtensionLoader>> meta::external::store::document::functions::documentQueryToString::mongo::dbExtensionLoaderForMongo():DbExtensionLoader[1]

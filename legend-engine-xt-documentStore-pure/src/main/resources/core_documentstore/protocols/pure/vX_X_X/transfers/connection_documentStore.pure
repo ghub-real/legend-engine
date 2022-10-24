@@ -18,7 +18,6 @@ import meta::protocols::pure::vX_X_X::metamodel::store::document::connection::*;
 import meta::protocols::pure::vX_X_X::metamodel::domain::*;
 import meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::*;
 import meta::protocols::pure::vX_X_X::metamodel::runtime::*;
-import meta::relational::metamodel::*;
 import meta::pure::functions::meta::*;
 //import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::*;
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::*;

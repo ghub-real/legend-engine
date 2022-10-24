@@ -27,3 +27,10 @@ Class meta::external::store::document::runtime::connections::DocumentStoreConnec
     authenticationStrategy: meta::external::store::document::runtime::authentication::AuthenticationStrategy[1];
     postProcessors: meta::external::store::document::runtime::connections::PostProcessor[*];
 }
+
+Class meta::external::store::document::runtime::connections::TestDocumentStoreConnection extends meta::external::store::document::runtime::connections::DocumentStoreConnection
+{
+    {doc.doc = 'This is used to seed test data - array of json.'}
+    testDataSetupJson : String[0..1];
+}
+

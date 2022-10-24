@@ -15,10 +15,7 @@
 import meta::external::store::document::metamodel::*;
 import meta::pure::store::*;
 import meta::pure::runtime::*;
-//import meta::relational::metamodel::*;
-//import meta::relational::runtime::*;
-//import meta::relational::metamodel::execute::*;
-//import meta::relational::functions::typeInference::*;
+
 
 Class meta::external::store::document::metamodel::runtime::DocumentStoreExecutionContext extends ExecutionContext
 {

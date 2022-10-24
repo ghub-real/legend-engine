@@ -14,10 +14,10 @@
 
 //import meta::external::store::document::tests::object::*;
 
-// ###Relational
-// Database meta::external::store::document::tests::object::TestMongoStore
-// (
-// )
+###Mapping
+Mapping meta::external::store::document::tests::object::MyDocStoreMapping
+(
+)
 
 ###Pure
 import meta::external::store::document::metamodel::mapping::*;
@@ -120,7 +120,7 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
                 id = 'firm_set',
                 root = true,
                 class = $domainClass,
-                parent =  meta::external::store::document::tests::simple::MyDocStoreMapping,
+                parent =  meta::external::store::document::tests::object::MyDocStoreMapping,
                 userDefinedPrimaryKey = false,
                 mainCollectionAlias = $collectionAlias,
                 propertyMappings = $firmPropMappings);
