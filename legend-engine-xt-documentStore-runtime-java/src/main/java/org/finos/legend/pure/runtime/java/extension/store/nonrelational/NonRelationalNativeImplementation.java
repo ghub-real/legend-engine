@@ -12,20 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification;
+package org.finos.legend.pure.runtime.java.extension.store.nonrelational;
 
-public class MongoDBDatasourceSpecification extends DatasourceSpecification
+import org.finos.legend.pure.runtime.java.extension.store.nonrelational.shared.IClientManagerHandler;
+
+public class NonRelationalNativeImplementation
 {
-    public String host;
-    public int port;
-    public String databaseName;
-    public String clusterID;
+    private static final IClientManagerHandler connectionManagerHandler = IClientManagerHandler.CLIENT_MANAGER_HANDLER;
 
-
-
-    @Override
-    public <T> T accept(DatasourceSpecificationVisitor<T> datasourceSpecificationVisitor)
-    {
-        return datasourceSpecificationVisitor.visit(this);
-    }
 }

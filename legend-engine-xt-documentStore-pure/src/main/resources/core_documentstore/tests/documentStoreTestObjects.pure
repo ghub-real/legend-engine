@@ -13,23 +13,50 @@
 // limitations under the License.
 
 //import meta::external::store::document::tests::object::*;
+
+// ###Relational
+// Database meta::external::store::document::tests::object::TestMongoStore
+// (
+// )
+
+###Pure
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::*;
 import meta::pure::functions::collection::*;
-
-function meta::external::store::document::tests::object::getMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
+function meta::external::store::document::tests::object::TestMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
 {
   let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
-        package  = meta::external::store::document::metamodel,
-        name     = 'MyMongoStore'
+        package  = meta::external::store::document::tests::object,
+        name     = 'TestMongoStore'
     );
+   let allFields = meta::external::store::document::tests::object::getAllFields();
 
-    $mongoStore;
+   let docCollection = [
+           ^meta::external::store::document::metamodel::Collection(
+             id='101',
+             name='personDocument',
+             fields = $allFields
+           )
+   ];
+
+  $mongoStore->mutateAdd('collections', $docCollection);
+  $mongoStore;
 }
+
+
+// function meta::external::store::document::tests::object::getMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
+// {
+//   let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
+//         package  = meta::external::store::document::tests::object,
+//         name     = 'MyMongoStore'
+//     );
+
+//     $mongoStore;
+// }
 
 function meta::external::store::document::tests::object::getAllFields(): meta::external::store::document::metamodel::Field[*]
 {
-    let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+    //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
 
     let field1 = ^meta::external::store::document::metamodel::Field(
           name = 'fName',
@@ -43,7 +70,6 @@ function meta::external::store::document::tests::object::getAllFields(): meta::e
     );
     let field3 = ^meta::external::store::document::metamodel::Field(
           name = 'oNames',
-          //type = ^meta::external::store::document::metamodel::StringTypeReference(list=true),
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=true),
           nullable = false
     );
@@ -54,7 +80,8 @@ function meta::external::store::document::tests::object::getAllFields(): meta::e
 function meta::external::store::document::tests::object::getDocumentStoreAndMapping() : meta::pure::functions::collection::Pair<DocumentStore, RootDocumentInstanceSetImplementation>[1]
 {
     let domainClass = meta::external::store::document::tests::simple::Person;
-    let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+    //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+    let mongoStore = meta::external::store::document::tests::object::TestMongoStore();
     let allFields = meta::external::store::document::tests::object::getAllFields();
 
     let docCollection = [
@@ -102,6 +129,11 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
   meta::pure::functions::collection::pair($mongoStore, $firmDocumentSetImpl);
 }
 
+function meta::external::store::document::tests::object::TestLocalMongoRuntime():meta::pure::runtime::Runtime[1]
+{
+  meta::external::store::document::tests::object::getLocalMongoRuntime(
+    meta::external::store::document::tests::object::TestMongoStore())
+}
 
 
 function meta::external::store::document::tests::object::getLocalMongoRuntime(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::pure::runtime::Runtime[1]
@@ -111,11 +143,13 @@ function meta::external::store::document::tests::object::getLocalMongoRuntime(da
 }
 
 
-function meta::external::store::document::tests::object::localMongoDatabaseConnection(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::external::store::document::metamodel::runtime::DatabaseConnection[1]
+function meta::external::store::document::tests::object::localMongoDatabaseConnection(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::external::store::document::runtime::connections::DocumentStoreConnection[1]
 {
-    ^meta::external::store::document::metamodel::runtime::DatabaseConnection(
+    ^meta::external::store::document::runtime::connections::DocumentStoreConnection(
         element = $dataStore,
         type = meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,
+        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='local',port=27017,databaseName='myCollection'),
+        authenticationStrategy = ^meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy(),
         timeZone = 'GMT'
     );
 }

@@ -91,6 +91,7 @@
         <module>legend-engine-xt-documentStore-protocol</module>
         <module>legend-engine-xt-documentStore-executionPlan-connection</module>
         <module>legend-engine-xt-documentStore-executionPlan</module>
+        <module>legend-engine-xt-documentStore-runtime-java</module>
 
         <module>legend-engine-xt-relationalStore-executionPlan</module>
         <module>legend-engine-xt-relationalStore-executionPlan-connection</module>
@@ -781,6 +782,11 @@
             <dependency>
                 <groupId>org.finos.legend.engine</groupId>
                 <artifactId>legend-engine-xt-documentStore-executionPlan-connection</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.finos.legend.engine</groupId>
+                <artifactId>legend-engine-xt-documentStore-runtime-java</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

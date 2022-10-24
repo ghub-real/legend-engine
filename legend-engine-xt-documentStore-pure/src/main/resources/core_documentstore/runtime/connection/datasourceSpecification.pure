@@ -26,7 +26,7 @@ Class meta::external::store::document::runtime::connections::TestDatasourceSpeci
    databaseName: String[1];
 }
 
-Class meta::external::store::document::runtime::connections::MongoDatasourceSpecification extends meta::external::store::document::runtime::connections::specification::DatasourceSpecification
+Class meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification extends meta::external::store::document::runtime::connections::specification::DatasourceSpecification
 {
    {doc.doc ='clusterID'} clusterID:String[0..1];
    {doc.doc ='the full host url'}  host:String[1];

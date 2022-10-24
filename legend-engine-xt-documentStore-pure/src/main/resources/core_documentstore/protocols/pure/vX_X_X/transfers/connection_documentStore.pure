@@ -144,9 +144,9 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatasourceSpecification(ds: meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1]
 {
    $ds->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformDatasourceSpecification->concatenate([
-      m:meta::external::store::document::runtime::connections::MongoDatasourceSpecification[1] |
-         ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDatasourceSpecification(
-            _type = 'mongo',
+      m:meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification[1] |
+         ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(
+            _type = 'mongoDB',
             host = $m.host,
             port = $m.port,
             databaseName = $m.databaseName,

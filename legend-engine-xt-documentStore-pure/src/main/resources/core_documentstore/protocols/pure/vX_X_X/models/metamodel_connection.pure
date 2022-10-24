@@ -49,7 +49,7 @@ Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::leg
     port:Integer[1];
 }
 
-Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDatasourceSpecification extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification extends meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification
 {
     clusterID:String[0..1];
     host:String[1];

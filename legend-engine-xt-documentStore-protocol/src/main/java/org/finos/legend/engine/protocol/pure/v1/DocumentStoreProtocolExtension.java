@@ -22,6 +22,8 @@ import org.finos.legend.engine.protocol.pure.v1.extension.PureProtocolExtension;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.UserNamePasswordAuthenticationStrategy;
@@ -69,10 +71,10 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
 //                        .withSubtype(InlineEmbeddedPropertyMapping.class, "inlineEmbeddedPropertyMapping")
 //                        .withSubtype(OtherwiseEmbeddedRelationalPropertyMapping.class, "otherwiseEmbeddedPropertyMapping")
 //                        .build(),
-//                // Connection
-//                ProtocolSubTypeInfo.newBuilder(Connection.class)
-//                        .withSubtype(RelationalDatabaseConnection.class, "RelationalDatabaseConnection")
-//                        .build(),
+                // Connection
+                ProtocolSubTypeInfo.newBuilder(Connection.class)
+                        .withSubtype(DataStoreConnection.class, "DocumentStoreConnection")
+                        .build(),
 //                // Execution context
 //                ProtocolSubTypeInfo.newBuilder(ExecutionContext.class)
 //                        .withSubtype(RelationalExecutionContext.class, "RelationalExecutionContext")

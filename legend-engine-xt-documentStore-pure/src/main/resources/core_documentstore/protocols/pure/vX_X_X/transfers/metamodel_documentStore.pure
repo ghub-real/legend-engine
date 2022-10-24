@@ -1,0 +1,135 @@
+// Copyright 2022 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+###Pure
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::*;
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformDataStore(db:meta::external::store::document::metamodel::DocumentStore[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore[1]
+{
+
+    ^meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore
+   (
+      _type = 'document',
+      name = $db.name->toOne(),
+      package = if($db.package->isEmpty(), |[], |$db.package->toOne()->elementToPath()),
+      collections = $db.collections->map(s| $s->match([
+        c:meta::external::store::document::metamodel::Collection[1]| $c->transformCollection($extensions)
+      ]))
+//      joins = $db.joins->map(s|$s->transformJoin($db)),
+//      filters = $db.filters->map(s|$s->transformFilter($db)),
+//      includedStores = $db.includes->map(i|$i->elementToPath())
+   )
+}
+
+
+function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformCollection(collection:meta::external::store::document::metamodel::Collection[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::Collection[1]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::document::Collection
+   (
+      name = $collection.name->toOne(),
+      fields = $collection.fields->map(c|$c->transformField()),
+      primaryKey = $collection.primaryKey->map(c|$c.name->toOne())
+      //milestoning = $table.milestoning->map(m|$m->transformMilestoning($extensions))
+   )
+}
+
+function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformField(c:meta::external::store::document::metamodel::DocumentStoreElement[1]):meta::protocols::pure::vX_X_X::metamodel::store::document::Field[1]
+{
+   $c->match([
+                c:meta::external::store::document::metamodel::Field[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::Field
+                            (
+                               name = $c.name->toOne(),
+                               type = $c.type->pureDataTypeToAlloyDataType(),
+                               nullable = if($c.nullable == true,|true,|false)
+                            )
+             ])
+}
+
+function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::pureDataTypeToAlloyDataType(c:meta::external::store::document::metamodel::TypeReference[1]):meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference[1]
+{
+   $c->match(
+               [
+                  b:meta::external::store::document::metamodel::BooleanTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::BooleanTypeReference(_type='Boolean',list=$b.list),
+                  da:meta::external::store::document::metamodel::DateTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::DateTypeReference(_type='Date',list=$da.list),
+                  do:meta::external::store::document::metamodel::DoubleTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::DoubleTypeReference(_type='Real',list=$do.list),
+                  dc:meta::external::store::document::metamodel::DecimalTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::DecimalTypeReference(_type='Decimal',list=$dc.list),
+                  i:meta::external::store::document::metamodel::IntegerTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::IntegerTypeReference(_type='Integer',list=$i.list),
+                  l:meta::external::store::document::metamodel::LongTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::LongTypeReference(_type='Long',list=$l.list),
+                  oid:meta::external::store::document::metamodel::ObjectIdTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::ObjectIdTypeReference(_type='ObjectId',list=$oid.list),
+                  obj:meta::external::store::document::metamodel::ObjectTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::ObjectTypeReference(_type='Object',list=$obj.list,type = $obj.type->elementToPath(), binding = $obj.binding->elementToPath()),
+                  s:meta::external::store::document::metamodel::StringTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::StringTypeReference(_type='String',list=$s.list)
+                ]
+   )
+}
+
+// function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::alloyTypeToString(c:meta::relational::metamodel::datatype::DataType[1]):String[1]
+// {
+//    $c->match(
+//                [
+//                   r:Varchar[1]|'VARCHAR('+$r.size->toString()+')',
+//                   r:Char[1]|'CHAR('+$r.size->toString()+')',
+//                   d:meta::relational::metamodel::datatype::Decimal[1]|'DECIMAL('+$d.precision->toString()+','+$d.scale->toString()+')',
+//                   r:Numeric[1]|'NUMERIC('+$r.precision->toString()+','+$r.scale->toString()+')',
+//                   r:Double[1]|'DOUBLE',
+//                   r:Bit[1]|'BIT',
+//                   t:BigInt[1]|'BIGINT',
+//                   t:TinyInt[1]|'TINYINT',
+//                   s:SmallInt[1]|'SMALLINT',
+//                   v:Varbinary[1]|'VARBINARY('+$v.size->toString()+')',
+//                   b:meta::relational::metamodel::datatype::Binary[1]|'BINARY('+$b.size->toString()+')',
+//                   i:meta::relational::metamodel::datatype::Integer[1]|'INTEGER',
+//                   d:meta::relational::metamodel::datatype::Date[1]|'DATE',
+//                   d:meta::relational::metamodel::datatype::Timestamp[1]|'TIMESTAMP',
+//                   d:meta::relational::metamodel::datatype::Float[1]|'FLOAT',
+//                   r:meta::relational::metamodel::datatype::Real[1]|'REAL',
+//                   r:meta::relational::metamodel::datatype::Other[1]|'OTHER',
+//                   r:meta::relational::metamodel::datatype::Array[1]|'ARRAY',
+//                   d:meta::relational::metamodel::datatype::DbSpecificDataType[1]|$d.dbSpecificSql,
+//                   d:meta::relational::metamodel::datatype::DataType[1]|'' //columns mapped to functions do not yet support specific DataTypes
+//                 ]
+//    );
+// }
+
+// function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::tableToTablePtr(table:meta::relational::metamodel::relation::Table[1]):meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr[1]
+// {
+//     ^meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr(
+//        _type = 'table',
+//        table = $table.name,
+//        schema = $table.schema.name,
+//        database = $table.schema.database ->elementToPath(),
+//        mainTableDb = $table.schema.database ->elementToPath()
+//     )
+// }
+
+// function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::setRelationToTablePtr(s:meta::pure::store::set::SetRelation[1]):meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr[1]
+// {
+//    $s->match([
+//       t:meta::relational::metamodel::relation::Table[1]|
+//           ^meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr(
+//                                        _type = 'Table',
+//                                        table = $t.name,
+//                                        database = $t.schema.database->elementToPath(),
+//                                        mainTableDb = $t.schema.database->elementToPath(),
+//                                        schema = $t.schema.name);,
+//       v:meta::relational::metamodel::relation::View[1]|
+//           ^meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr(
+//                                        _type = 'View',
+//                                        table = $v.name,
+//                                        database = $v.schema.database->elementToPath(),
+//                                        mainTableDb = $v.schema.database->elementToPath(),
+//                                        schema = $v.schema.name);,
+//       s:meta::pure::store::set::SetRelation[1]| fail('not implemented');
+//            ^meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr(_type = 'Table',table = 'table',database = 'db',mainTableDb = 'db',schema = 'schema');
+//    ])
+// }

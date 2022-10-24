@@ -33,6 +33,7 @@ Class <<typemodifiers.abstract>> meta::external::store::document::metamodel::Doc
 Class meta::external::store::document::metamodel::DocumentRelation extends DocumentStoreElement, meta::pure::store::set::SetRelation
 {
    fields : DocumentStoreElement[*];
+   primaryKey : Field[*];
 }
 
 

@@ -17,6 +17,7 @@ import meta::pure::mapping::*;
 import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::runtime::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::*;
 
 function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentStoreExtension(type:String[1]):meta::pure::extension::SerializerExtension[1]
 {
@@ -31,7 +32,7 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
 {
    ^meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X
    (
-     scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+    scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
                                                      [
                                                         rsi: RootDocumentInstanceSetImplementation[1] |
                                                                           // Main Store
@@ -50,10 +51,15 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
                                                         // ag:	meta::pure::mapping::aggregationAware::AggregationAwareSetImplementation[1]| $ag.mainSetImplementation->extractStores($m, $extensions)->concatenate($ag.aggregateSetImplementations->map(a|$a.setImplementation->extractStores($m, $extensions)))
                                                      ]
                                                    },
-      transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
-      [
-         db:meta::external::store::document::metamodel::runtime::DatabaseConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection($extensions)
-      ]}
+    transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
+    [
+        db:meta::external::store::document::metamodel::runtime::DatabaseConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection($extensions)
+    ]},
+   transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
+   [
+   d:meta::external::store::document::metamodel::DocumentStore[1] | $d->transformDataStore($extensions)
+   ]}
+
 
 //      transfers_store_transformConnection =
 //          [

@@ -14,7 +14,85 @@
 import meta::protocols::pure::vX_X_X::metamodel::store::document::*;
 
 
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore extends meta::protocols::pure::vX_X_X::metamodel::store::Store
+{
+   collections : meta::protocols::pure::vX_X_X::metamodel::store::document::Collection[*];
+   //joins : meta::protocols::pure::vX_X_X::metamodel::store::relational::Join[*];
+   //filters : meta::protocols::pure::vX_X_X::metamodel::store::relational::Filter[*];
+}
 
 
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentRelation
+{
+   fields : meta::protocols::pure::vX_X_X::metamodel::store::document::Field[*];
+   primaryKey : String[*];
+}
 
-//Class meta::protocols::pure::vX_X_X::metamodel::store::service::ServiceStore extends meta::protocols::pure::vX_X_X::metamodel::store::Store
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::Collection extends meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentRelation
+{
+   name : String[1];
+   //milestoning : meta::protocols::pure::vX_X_X::metamodel::store::relational::Milestoning[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::Field
+{
+   name : String[1];
+   type : meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference[1];
+   nullable : Boolean[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+   _type : String[1];
+   list  : Boolean[1];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::document::CoreDataType extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+// {
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::StringTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::BooleanTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::IntegerTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::LongTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::DateTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::DoubleTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::DecimalTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::ObjectIdTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::ObjectTypeReference extends meta::protocols::pure::vX_X_X::metamodel::store::document::TypeReference
+{
+   type    : String[1];
+   binding : String[1];
+}
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::element::RelationalElement
+{
+   _type : String[1];
+}
+
+
