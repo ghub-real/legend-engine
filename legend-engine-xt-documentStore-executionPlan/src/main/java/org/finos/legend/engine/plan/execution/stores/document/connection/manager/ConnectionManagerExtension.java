@@ -14,7 +14,6 @@
 
 package org.finos.legend.engine.plan.execution.stores.document.connection.manager;
 
-
 import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.strategy.OAuthProfile;
 
 import java.util.List;

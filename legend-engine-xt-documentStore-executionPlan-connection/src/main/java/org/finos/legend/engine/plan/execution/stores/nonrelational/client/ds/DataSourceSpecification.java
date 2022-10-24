@@ -15,10 +15,10 @@
 package org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds;
 
 import org.finos.legend.engine.authentication.credential.CredentialSupplier;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.LocalMongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ConnectionKey;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
-import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds.state.IdentityState;
 import org.finos.legend.engine.shared.core.identity.Identity;
 import org.finos.legend.engine.shared.core.identity.credential.LegendKerberosCredential;

@@ -14,7 +14,6 @@
 
 package org.finos.legend.engine.plan.execution.stores.document.connection.manager.strategic;
 
-
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds.DataSourceSpecification;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds.DataSourceSpecificationKey;
@@ -24,7 +23,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.n
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.DatasourceSpecification;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.DatasourceSpecificationVisitor;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification;
-
 
 public class
 DataSourceSpecificationTransformer implements DatasourceSpecificationVisitor<DataSourceSpecification>

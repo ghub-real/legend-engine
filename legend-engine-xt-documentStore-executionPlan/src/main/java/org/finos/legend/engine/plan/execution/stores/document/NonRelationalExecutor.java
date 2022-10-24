@@ -14,7 +14,6 @@
 
 package org.finos.legend.engine.plan.execution.stores.document;
 
-
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import org.eclipse.collections.api.factory.Lists;
