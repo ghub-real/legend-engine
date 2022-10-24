@@ -297,12 +297,14 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
        graphFetchProperties = $simplePrimitiveProperties
     );
 }
+/*
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::pushFilters(query: SelectDocumentQuery[1], extensions:Extension[*]):SelectDocumentQuery[1]
 {
    $query
       ->pushSavedFilteringOperation($extensions)
       //->pushExtraFilteringOperation($extensions)
 }
+*/
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::tempTableName(index: Integer[1]):String[1]
 {

@@ -567,10 +567,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                           |^$selectDocumentQuery(leftSideOfFilter=[]),
                                                           |$selectDocumentQuery
                                                         ),
-                                                       |^$selectDocumentQuery(savedFilteringOperation = $selectDocumentQuery.savedFilteringOperation
-                                                                                                                ->concatenate(pair($res.leftSideOfFilter->toOne(), $srcOperation.filteringOperation->toOne()))
-                                                                                                                ->map(f|pair($f.second->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second
-                                                                    )
+                                                       |$selectDocumentQuery
                                                     );
                                                     
                                                     
@@ -1043,8 +1040,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
                                            ^MergeResultContainer(
                                               node = $new_a.data->toOne(),
                                               fields = $new_q.fields,
-                                              filteringOperation = $new_q.filteringOperation,
-                                              savedFilteringOperation = $new_q.savedFilteringOperation
+                                              filteringOperation = $new_q.filteringOperation//,
+                                              //savedFilteringOperation = $new_q.savedFilteringOperation
                                             ),
                                             $new_q.data->toOne(),
                                             $id,
@@ -1063,16 +1060,16 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
                             //fields = $new_a.fields->concatenate($merged.fields)->removeDuplicates({a,b|$a->match([a:Alias[1]|$a.name,a:Any[1]|'']) == $b->match([b:Alias[1]|$b.name,b:Any[1]|'x'])}),
                             fields = $new_a.fields,
                             data = $merged.node->cast(@RootJoinDocumentTreeNode),
-                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation),
-                            savedFilteringOperation = $new_a.savedFilteringOperation->map(p|pair($p.first, $p.second))->concatenate($merged.savedFilteringOperation)
+                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation)//,
+                            //savedFilteringOperation = $new_a.savedFilteringOperation->map(p|pair($p.first, $p.second))->concatenate($merged.savedFilteringOperation)
                          );
                    ,| //let flds = $a.fields->filter(c|$c->instanceOf(WindowColumn));
                         ^$a
                          (
                             fields = $a.fields->concatenate($q.fields),
                             //fields = $a.fields->concatenate($q.columns)->filter(c|!$c->instanceOf(WindowColumn))->removeDuplicates({a,b|$a->match([a:Alias[1]|$a.name,a:Any[1]|'']) == $b->match([b:Alias[1]|$b.name,b:Any[1]|'x'])})->concatenate($cols),
-                            filteringOperation += $q.filteringOperation,
-                            savedFilteringOperation += $q.savedFilteringOperation
+                            filteringOperation += $q.filteringOperation
+                            //savedFilteringOperation += $q.savedFilteringOperation
                          );
                );
         }, $preQuerySet->first()->toOne()
@@ -1080,11 +1077,13 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
 
     let filtered = ^$res
     (
-      leftSideOfFilter = if($preQuerySet->at(0).leftSideOfFilter->isEmpty(),|[],|$preQuerySet->at(0).leftSideOfFilter->toOne()),
+      leftSideOfFilter = if($preQuerySet->at(0).leftSideOfFilter->isEmpty(),|[],|$preQuerySet->at(0).leftSideOfFilter->toOne())
+      /*
       savedFilteringOperation = $res.savedFilteringOperation->map(f|pair($f.second->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second
                                                             ->map(p| let originalQuery = $preQuerySet->filter(q|!$q.data->isEmpty() && $q.data->toOne()->getAllNodes()->contains($p.first));
                                                                      pair(if ($originalQuery->isEmpty(),|$p.first,|$p.first), $p.second);
                                                              )
+                                                             */
    );
 
 
@@ -1182,13 +1181,14 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
         (
            node = $newNode,
            fields = $parentTargetTreeNode.fields,
-           filteringOperation = $parentTargetTreeNode.filteringOperation,
+           filteringOperation = $parentTargetTreeNode.filteringOperation//,
+           /*
            savedFilteringOperation = $parentTargetTreeNode.savedFilteringOperation->map(p|
 																															 pair(
                                                                                            if($p.first == $sourceTreeNode, |$newNode, |$p.first),
 																																  $p.second
 																																 );
-                                                                                    )
+                                                                                    )*/
         );
 }
 
@@ -1302,7 +1302,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::t
       //->applyPostProcessingForTempTableAsDriver($state, $debug, $extensions)
       //->manageDeepMapClassColumns($functionExpression, $debug, $state, $extensions);
 
-  $sel->pushSavedFilteringOperation($extensions); //->pushExtraFilteringOperation($extensions); //->orderImmediateChildNodeByJoinAliasDependencies();
+    $sel;
+  //$sel->pushSavedFilteringOperation($extensions); //->pushExtraFilteringOperation($extensions); //->orderImmediateChildNodeByJoinAliasDependencies();
 
 }
 
@@ -1337,16 +1338,18 @@ function <<access.private>> meta::external::store::document::functions::pureToDo
    )
 }
 
+/*
 function meta::external::store::document::functions::pureToDocumentStoreQuery::pushSavedFilteringOperation(s:SelectDocumentQuery[1], extensions:Extension[*]):SelectDocumentQuery[1]
 {
    if ($s.savedFilteringOperation->isEmpty(),
          |$s,
          |^$s(
-               savedFilteringOperation = [],
+               //savedFilteringOperation = [],
                filteringOperation = $s.filteringOperation->concatenate($s.savedFilteringOperation.second)->andFilters($extensions)
           )
    );
 }
+*/
 
 //function meta::external::store::document::functions::pureToDocumentStoreQuery::pushExtraFilteringOperation(s:SelectDocumentQuery[1], extensions:Extension[*]):SelectDocumentQuery[1]
 //{
@@ -1903,7 +1906,7 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::Merg
    node : DocumentTreeNode[1];
    fields : DocumentStoreElement[*];
    filteringOperation : DocumentStoreElement[*];
-   savedFilteringOperation : Pair<DocumentTreeNode, DocumentStoreElement>[*];
+   //savedFilteringOperation : Pair<DocumentTreeNode, DocumentStoreElement>[*];
    leftSideOfFilter : DocumentStoreElement[0..1];
    //extraFilteringOperation : DocumentStoreElement[*];
    //oldToNewAliases : OldAliasToNewAlias[*];
