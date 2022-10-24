@@ -12,7 +12,7 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::meta
 
 Class meta::external::store::document::functions::pureToDocumentStoreQuery::metamodel::FreeMarkerOperationHolder extends DocumentStoreElement
 [
-   parameterType : $this.parameters->forAll(param| $param->instanceOf(Literal) || $param->instanceOf(meta::relational::functions::pureToSqlQuery::metamodel::FreeMarkerOperationHolder) || $param->instanceOf(DynaFunction))
+   parameterType : $this.parameters->forAll(param| $param->instanceOf(Literal) || $param->instanceOf(meta::external::store::document::functions::pureToDocumentStoreQuery::metamodel::FreeMarkerOperationHolder) || $param->instanceOf(DynaFunction))
 ]
 {
    name : String[1];

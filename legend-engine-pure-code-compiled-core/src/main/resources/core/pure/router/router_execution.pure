@@ -59,6 +59,10 @@ function meta::pure::router::execution::executeExpression(clusters:ClusteredValu
 
 function <<access.private>> meta::pure::router::execution::getStoreQuery(store: Store[1], fe : FunctionExpression[1], inScopeVars : Map<String, List<Any>>[1]):meta::pure::mapping::StoreQuery[1]
 {
+  // println('-----Get Store Query start');
+  // println($store);
+  // println($fe);
+  // println('-----Get Store Query end');
    ^meta::pure::mapping::StoreQuery(store=$store, fe=$fe, inScopeVars=$inScopeVars);
 }
 
@@ -88,6 +92,7 @@ function meta::pure::router::execution::resolve(v:Container[1], openVariables:Ma
                                                                [
                                                                   fe:FunctionExpression[1]| print(if($debug.debug,|$debug.space+'Store Execution  :'+$v.value->evaluateAndDeactivate()->asString()+'\n',|''));
                                                                                             let storeQuery = getStoreQuery($c.store, $fe, $openVariables);//^meta::pure::router::execution::StoreQuery(fe=$fe, inScopeVars=$openVariables);
+                                                                                            print($c.s);
                                                                                             $c.s.executeStoreQuery->toOne()->eval($storeQuery, $recurseExec.value->cast(@ExtendedRoutedValueSpecification), $c.mapping, $c.runtime, $c.exeCtx, $extensions, ^$debug(space = $debug.space+' '));,
                                                                   i:InstanceValue[1] | ^Result<Any|*>(values = if ($i.genericType.rawType->toOne()->_subTypeOf(Function),|$i.values, |$i->reactivate($openVariables)))
                                                                ]

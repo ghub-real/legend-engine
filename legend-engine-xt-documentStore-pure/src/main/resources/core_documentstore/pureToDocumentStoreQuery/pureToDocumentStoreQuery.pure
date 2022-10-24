@@ -1290,7 +1290,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                           |$state.inFilter->if( | $leftSide.filteringOperation,
                                                                                 | let byPassedLeft = $leftSidePure->byPassRouterInfo();
                                                                                   let isDataTypeInput = $byPassedLeft.genericType.rawType->isNotEmpty() && $byPassedLeft.genericType.rawType->toOne()->instanceOf(DataType);
-                                                                                  let isSemiStructuredPropertyMapping = ($leftSideOp.currentPropertyMapping->size() >= 1) && $leftSideOp.currentPropertyMapping->forAll(pm | $pm->instanceOf(meta::external::document::mapping::SemiStructuredDocumentPropertyMapping));
+                                                                                  let isSemiStructuredPropertyMapping = ($leftSideOp.currentPropertyMapping->size() >= 1) && $leftSideOp.currentPropertyMapping->forAll(pm | $pm->instanceOf(meta::external::store::document::mapping::SemiStructuredDocumentPropertyMapping));
                                                                                   if ($isDataTypeInput || $isSemiStructuredPropertyMapping, | $leftSide.fields, | []);)),
     data=$tree
   );
@@ -1440,7 +1440,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::e
              assertEquals($enumPropMapping.property, $property, 'The mapping must be for the enum property');
              );
 
-    let sourceVal = if ($enumPropMapping->instanceOf(meta::external::document::mapping::SemiStructuredDocumentPropertyMapping),
+    let sourceVal = if ($enumPropMapping->instanceOf(meta::external::store::document::mapping::SemiStructuredDocumentPropertyMapping),
                         | $enum->id(),
                         | $enumPropMapping.transformer->toOne()->cast(@EnumerationMapping<Any> ).toSourceValues($enum)
                     );
@@ -1659,7 +1659,7 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::Enum
 }
 
 // the relational equivalent is not the corresponding file
-Class meta::external::document::mapping::SemiStructuredDocumentPropertyMapping extends DocumentPropertyMapping
+Class meta::external::store::document::mapping::SemiStructuredDocumentPropertyMapping extends DocumentPropertyMapping
 {
 }
 
