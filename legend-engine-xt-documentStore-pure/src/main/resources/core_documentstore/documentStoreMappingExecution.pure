@@ -1,0 +1,27 @@
+import meta::pure::mapping::*;
+import meta::external::store::document::mapping::*;
+
+function meta::external::store::document::mapping::fetchEnumFullPath(enum:EnumerationMapping<Any>[*]):String[1]
+{
+  $enum.parent->toOne()->elementToPath()->replace('::', '_') + '_' + $enum.name->toOne();
+}
+
+function meta::external::store::document::mapping::findPropertySequence(v:ValueSpecification[1]):Pair<Class<Any>,AbstractProperty<Any>>[*]
+{
+   $v->match([
+               fe:FunctionExpression[1]|
+                     $fe.func->match(
+                        [
+                           p:AbstractProperty<Any>[1]|pair($fe.parametersValues->at(0).genericType.rawType->cast(@Class<Any>)->toOne(), $p)->concatenate(if($fe.parametersValues->size()==1,|$fe.parametersValues->at(0)->findPropertySequence(),|[]));,
+                           f:NativeFunction<Any>[1]|if(($f == map_T_m__Function_1__V_m_ || $f == map_T_MANY__Function_1__V_MANY_) && $fe.parametersValues->at(1)->byPassRouterInfo()->instanceOf(InstanceValue),|pair($fe.parametersValues->at(0).genericType.rawType->cast(@Class<Any>)->toOne(), $fe.parametersValues->at(1)->byPassRouterInfo()->cast(@InstanceValue).values->at(0)
+                           ->match([a:AbstractProperty<Any>[1]|$a,
+                                    l:LambdaFunction<Any>[1] |$l.expressionSequence->at(0)->byPassRouterInfo()->cast(@FunctionExpression).func;
+                                   ])
+                           ->cast(@AbstractProperty<Any>))->concatenate($fe.parametersValues->at(0)->findPropertySequence()),|[]),
+                           a:Any[1]|[]
+                        ]
+                 );,
+               e:ExtendedRoutedValueSpecification[1]|$e->byPassRouterInfo()->findPropertySequence(),
+               a:Any[1]|[];
+            ])
+}
