@@ -112,9 +112,6 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
     );
    
    let documentNode       = $selectDocumentQuery->meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode($mongoDBConnection, $extensions);
-
-   println('documentNode');
-   println($documentNode);
    
    // TODO
    //let postProcessorResult = $selectDocumentQuery->toOne()->cast(@SelectSQLQuery)->postProcessSQLQuery($store, $ext, $mapping, $oneRuntime, $exeCtx, $extensions);
@@ -273,7 +270,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
                 }
              );
 
-  ^$res(distinct = true)->pushFilters($extensions);
+  ^$res(distinct = true);
 }
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::createPureToDocumentQueryState(simplePrimitiveProperties: Property<Nil,Any|*>[*], inScopeVars: Map<String, List<Any>>[1], mapping: Mapping[1], exeCtx: ExecutionContext[1]):State[1]
@@ -296,12 +293,6 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
        graphFetchFlow       = true,
        graphFetchProperties = $simplePrimitiveProperties
     );
-}
-function <<access.private>> meta::external::store::document::graphFetch::executionPlan::pushFilters(query: SelectDocumentQuery[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-   $query
-      ->pushSavedFilteringOperation($extensions)
-      //->pushExtraFilteringOperation($extensions)
 }
 
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::tempTableName(index: Integer[1]):String[1]

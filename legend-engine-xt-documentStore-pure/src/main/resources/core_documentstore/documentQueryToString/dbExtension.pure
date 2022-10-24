@@ -78,7 +78,7 @@ function meta::external::store::document::extension::documentQueryToString::docu
 
 function meta::external::store::document::extension::documentQueryToString::processOperation(documentStoreElement:DocumentStoreElement[1], dbType:DatabaseType[1], extensions:Extension[*]):String[1]
 {
-   processOperation($documentStoreElement, createDbConfig($dbType, [], []), ^Format(newLine='', indent=''), ^Config(), $extensions);
+   processOperation($documentStoreElement, createDbConfig($dbType, [], []), ^Format(newLine='', indent=''), ^Config(), $extensions)
 }
 
 
@@ -131,6 +131,11 @@ Class meta::external::store::document::extension::documentQueryToString::DbConfi
    {
      $this.dbExtension.identifierProcessor->eval($s, $this);
    }: String[1];
+
+   dynaFuncDispatch(d:DynaFunction[1], b: Boolean[1])
+   {
+     $this.dbExtension.dynaFuncDispatch->eval($d, $b);
+   }: String[1];
 }
 
 Class meta::external::store::document::extension::documentQueryToString::DbExtensionLoader
@@ -151,6 +156,7 @@ Class meta::external::store::document::extension::documentQueryToString::DbExten
    collectionNameToIdentifier: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[0..1];
    fieldNameToIdentifier: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[0..1];
    identifierProcessor: meta::pure::metamodel::function::Function<{String[1], DbConfig[1] -> String[1]}>[1];
+   dynaFuncDispatch: meta::pure::metamodel::function::Function<{DynaFunction[1], Boolean[1] -> String[1]}>[1];
 }
 
 Class meta::external::store::document::extension::documentQueryToString::SqlGenerationContext
@@ -211,6 +217,11 @@ function meta::external::store::document::extension::documentQueryToString::getD
 function meta::external::store::document::extension::documentQueryToString::processSelectDocumentQuery(s:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
       $sgc.dbConfig.selectDocumentQueryProcessor($s, $sgc, $isSubSelect);
+}
+
+function meta::external::store::document::extension::documentQueryToString::dynaFuncDispatch(d:DynaFunction[1], dbConfig:DbConfig[1]):String[1]
+{
+      $dbConfig.dynaFuncDispatch($d, false);
 }
 
 function meta::external::store::document::extension::documentQueryToString::processIdentifierWithDoubleQuotes(identifier:String[1], dbConfig : DbConfig[1], quoteChar: String[1]):String[1]
@@ -369,7 +380,7 @@ function meta::external::store::document::extension::documentQueryToString::docu
 
 function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], format:Format[1], extensions:Extension[*]):String[1]
 {
-   processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions)
+  processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions)
 }
 
 
@@ -421,8 +432,6 @@ function meta::external::store::document::functions::typeInference::inferDocumen
       l : Any[1] | if($failOnMatchFailure, | fail('Not supported yet!'); ^meta::external::store::document::metamodel::CoreDataType(list=false);, |[]);
    ]);
 }
-
-
 
 function meta::external::store::document::functions::typeInference::inferDynaFunctionReturnType(d: DynaFunction[1], failOnMatchFailure:Boolean[1]):meta::external::store::document::metamodel::TypeReference[0..1]
 {
