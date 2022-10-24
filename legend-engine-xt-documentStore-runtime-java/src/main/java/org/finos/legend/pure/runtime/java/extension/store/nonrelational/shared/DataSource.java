@@ -39,6 +39,21 @@ public class DataSource
         this.serverPrincipal = serverPrincipal;
     }
 
+    public static DataSource newDataSource(CoreInstance dataSource, ProcessorSupport processorSupport)
+    {
+        String host = Instance.getValueForMetaPropertyToOneResolved(dataSource, "host", processorSupport).getName();
+        Number port = PrimitiveUtilities.getIntegerValue(Instance.getValueForMetaPropertyToOneResolved(dataSource, "port", processorSupport));
+        String dataSourceName = Instance.getValueForMetaPropertyToOneResolved(dataSource, M3Properties.name, processorSupport).getName();
+        String serverPrincipal = PrimitiveUtilities.getStringValue(Instance.getValueForMetaPropertyToOneResolved(dataSource, "serverPrincipal", processorSupport), null);
+
+        return new DataSource(host, (Integer) port, dataSourceName, serverPrincipal);
+    }
+
+    public static DataSource newDataSource(String host, int port, String dataSourceName)
+    {
+        return new DataSource(host, port, dataSourceName, null);
+    }
+
     public String getHost()
     {
         return host;
@@ -62,8 +77,14 @@ public class DataSource
     @Override
     public boolean equals(Object o)
     {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
         DataSource that = (DataSource) o;
         return Objects.equals(host, that.host) && Objects.equals(port, that.port) && Objects.equals(dataSourceName, that.dataSourceName) && Objects.equals(serverPrincipal, that.serverPrincipal);
     }
@@ -72,20 +93,5 @@ public class DataSource
     public int hashCode()
     {
         return Objects.hash(host, port, dataSourceName, serverPrincipal);
-    }
-
-    public static DataSource newDataSource(CoreInstance dataSource, ProcessorSupport processorSupport)
-    {
-        String host = Instance.getValueForMetaPropertyToOneResolved(dataSource, "host", processorSupport).getName();
-        Number port = PrimitiveUtilities.getIntegerValue(Instance.getValueForMetaPropertyToOneResolved(dataSource, "port", processorSupport));
-        String dataSourceName = Instance.getValueForMetaPropertyToOneResolved(dataSource, M3Properties.name, processorSupport).getName();
-        String serverPrincipal = PrimitiveUtilities.getStringValue(Instance.getValueForMetaPropertyToOneResolved(dataSource, "serverPrincipal", processorSupport), null);
-
-        return new DataSource(host, (Integer)port, dataSourceName, serverPrincipal);
-    }
-
-    public static DataSource newDataSource(String host, int port, String dataSourceName)
-    {
-        return new DataSource(host, port, dataSourceName, null);
     }
 }
