@@ -55,13 +55,10 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongo(selectDocumentQuery:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
-  println('meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongo');
-  println($selectDocumentQuery);
-  let a = '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery) + ' }';
-  $a;
+  '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery) + ' }';
 }
 
-
+// not used
 function meta::external::store::document::functions::documentQueryToString::mongo::processIdentifierWithDoubleQuotesMongo(identifier:String[1], dbConfig: DbConfig[1]):String[1]
 {
   let quoteChar = '"';
@@ -74,11 +71,9 @@ function meta::external::store::document::functions::documentQueryToString::mong
 
 function meta::external::store::document::functions::documentQueryToString::mongo::processDynaFunctionMongo(d: DynaFunction[1], isNegation: Boolean[1]): String[1]
 {
-  println('meta::external::store::document::functions::documentQueryToString::mongo::processDynaFunction');
   let name = $d.name;
   let parameters = $d.parameters;
 
-// add all operations, greater than, lower than, etc
 
   if ($name == 'equal' || $name == 'not',
     | if($name == 'not',

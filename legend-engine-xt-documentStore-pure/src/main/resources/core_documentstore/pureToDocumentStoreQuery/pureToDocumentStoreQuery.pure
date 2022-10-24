@@ -288,8 +288,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
    print(if(!$context.debug, |'', | $context.space+'>Process Property Function Expression: ' + $fe.func.name->toOne() + ', property owner:' + $propertyOwner.genericType->genericTypeClass().name->toOne() + ', inFilter:' + $state.inFilter->toString() + '\n'));
 
    let leftSide = processValueSpecificationReturnPropertyMapping($fe.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions)->toOne();
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processPropertyFunctionExpression');
-   println($leftSide.element);
    let result = $leftSide.element->match(
                      [
                         c : ClassInstanceHolder[1] |
@@ -332,8 +330,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
                      ]
                    );
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processPropertyFunctionExpression - $result');
-   println($result.element);
    $result;
 }
 
@@ -369,8 +365,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 // Uses function from relational package: function meta::relational::mapping::findPropertyMapping
    let propertyMappings = findPropertyMapping($property, $propertyOwnerClass, $currentPropertyMapping, $propertyMappingFromRouter, $state.mapping->toOne(),$context);
    let res = processPropertyMapping($propertyMappings, $propertyOwnerClass, $srcOperation, $state, $context, $extensions);
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processProperty - $res');
-   println($res);
    ^OperationWithParentPropertyMapping(element=$res, currentPropertyMapping=$propertyMappings);
 }
 
@@ -512,7 +506,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::g
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processDocumentPropertyMapping(documentPropertyMappings:DocumentPropertyMapping[*], property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], oldSrcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
 {
    let propertyReturnType = $property->cast(@Property<Nil,Any|*>).genericType.rawType->toOne();
-   let firstStep = $propertyReturnType->match(
+   $propertyReturnType->match(
                                  [
                                     p:DataType[1] | //let currentTreeNode = $oldSrcOperation.currentDocumentTreeNode->toOne();
                                                     // ---------------------------------------------------
@@ -523,12 +517,10 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                     let result  = pair($propName, $oldSrcOperation);
 
                                                     let srcOperation = $result.second;
-                                                    //let propName = $result.first;
                                                     // ---------------------------------------------------
 
                                                     let mappingImpl = $documentPropertyMappings->at(0).documentStoreElement;
 
-                                                    //let newCurrentTreeNode = $srcOperation.currentTreeNode->toOne();
                                                     let relElement = $oldSrcOperation.data.alias.documentElement->toOne();
 
                                                     let res = if (
@@ -540,7 +532,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                                     
                                                                     ,
                                                                     |
-                                                                      println('IF TRUE');
                                                                       let newField = ^Field(name=$propName, type=^meta::external::store::document::metamodel::StringTypeReference(list=true));                                                                      
                                                                       if ($state.inFilter,
                                                                        |^$srcOperation(filteringOperation+=$newField),
@@ -556,19 +547,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                                         | ^$res(filteringOperation = [], fields = $res.fields->at(0)->usePropertyName($property, $documentPropertyMappings, $extensions))
                                                                       );
 
-                                                    //let secondStep = $mappingImpl;
-
-                                                    println('secondStep');
-                                                    println($selectDocumentQuery);
-
-                                                    
-                                                    if ($srcOperation.filteringOperation->isEmpty() || $srcOperation.leftSideOfFilter->isEmpty(),
-                                                       |if (!$srcOperation.leftSideOfFilter->isEmpty(),
-                                                          |^$selectDocumentQuery(leftSideOfFilter=[]),
-                                                          |$selectDocumentQuery
-                                                        ),
-                                                       |$selectDocumentQuery
-                                                    );
+                                                    $selectDocumentQuery;
                                                     
                                                     
 
@@ -633,28 +612,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                     $srcOperation;
                                   ]
                              );
-                             //     ->manageMilestoningContextPropogationForProperties();
-
-//     let newSel = $firstStep;
-//
-//     let finalResult = if ($oldSrcOperation.filteringOperation->isEmpty() || $newSel.leftSideOfFilter->isEmpty(),
-//        |if (!$oldSrcOperation.leftSideOfFilter->isEmpty(),
-//                |^$firstStep(leftSideOfFilter=[]),
-//                |$firstStep
-//         ),
-//        |  //firstStep can result in (saved) milestoning filtering operations which need to be processed along with the existing src saved filtering operations
-//            let savedFilteringOpWithOldAndNewOps=$newSel.savedFilteringOperation->map(p| let existingOrNewNode=if($oldSrcOperation.select.savedFilteringOperation->contains($p),|$p.first->findOneNode($oldSrcOperation.select.data->toOne(), $newSel.data->toOne()),|$p.first);pair($existingOrNewNode, $p.second);)
-//                                                                               ->concatenate(pair($newSel.leftSideOfFilter->toOne(), $oldSrcOperation.select.filteringOperation->toOne()))
-//                                                                               ->map(f|pair($f.second->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second;
-//
-//           ^$firstStep(select = ^$newSel(savedFilteringOperation = $savedFilteringOpWithOldAndNewOps));
-//     );
-     let finalResult = if (!$oldSrcOperation.leftSideOfFilter->isEmpty(),
-                     |^$firstStep(leftSideOfFilter=[]),
-                     |$firstStep);
-     //$finalResult->validate([], $extensions);
-     $finalResult;
-
 }
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::usePropertyName(element:DocumentStoreElement[1], property:AbstractProperty<Any>[1], documentPropertyMappings:DocumentPropertyMapping[*], extensions:Extension[*]):DocumentStoreElement[1]
@@ -838,11 +795,9 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::d
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processColumnsInDocumentStoreElements(z:DocumentStoreElement[1], state:State[1], srcOperation:SelectDocumentQuery[1], nodeId:String[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]  // removed aggFromMap:List<ColumnGroup>[1], cancelJoinOnUnion:Boolean[1], 
 {
    $srcOperation->validate([], $extensions);
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processColumnsInDocumentStoreElements');
    let result = $z->match(
                [
                   f:Field[1] |
-                              println('Field -');
                               let currentTreeNode = $srcOperation.data->toOne();
 
                               let alias = $currentTreeNode.alias;
@@ -880,21 +835,13 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                 //                                 currentTreeNode = $newTreeNode
                                 //                           );
                                 //                       );
-                                 s:SelectDocumentQuery[1] | println('SelectDocumentQuery'); let a = $srcOperation; $a;,
-                                 a:Any[1]| println('Any'); let b = $srcOperation; $b;
+                                 s:SelectDocumentQuery[1] | $srcOperation;,
+                                 a:Any[1]| $srcOperation;
                               ]);
 
                               let newOpSelect = $newSrcOperation; //.select;
-                              //let column = ^TableAliasColumn(alias=$newSrcOperation.alias->toOne(), column=$t.column);
                               let field = ^Field(name=$f.name, type=$f.type, owner=$f.owner);
-                              // ^$newSrcOperation(
-                              //       select = $state.inFilter->if(|^$newOpSelect(filteringOperation = $column),|^$newOpSelect(columns = $column))
-                              // )
-                              println('$state.inFilter');
-                              println($state.inFilter);
-                              //println($newOpSelect);
                               if ($state.inFilter,| ^$newOpSelect(filteringOperation = $field),|^$newOpSelect(fields = $field, filteringOperation = $field));
-                              //^$newOpSelect(fields = $field, );
                               ,
                   d:DynaFunction[1]| let newSelect = if ($d.parameters->isEmpty(),
                                                       | let select = $srcOperation;
@@ -905,10 +852,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                          let pFunc = ^$d(parameters = $state.inFilter->if(|$merged.filteringOperation,|$merged.fields));
                                                          $state.inFilter->if(|^$merged(filteringOperation=$pFunc),|^$merged(fields=$pFunc));
                                                     );
-                                    //  ^$srcOperation(select = $newSelect,
-                                    //                 currentTreeNode = $srcOperation.currentTreeNode->toOne()->findOneNode($srcOperation.select.data->toOne(), $newSelect.data->toOne()),
-                                    //                 positionBeforeLastApplyJoinTreeNode = if ($srcOperation.positionBeforeLastApplyJoinTreeNode->isEmpty(),|[],|$srcOperation.positionBeforeLastApplyJoinTreeNode->toOne()->findOneNode($srcOperation.select.data->toOne(), $newSelect.data->toOne()))
-                                    //          );
                                      $newSelect;
                                      ,
                   l:Literal[1]| let select = $srcOperation;
@@ -955,7 +898,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                ]
             );
    $result->validate([], $extensions);
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processColumnsInDocumentStoreElements returns');
    $result;
 }
 
@@ -1020,8 +962,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::a
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::mergeDocumentQueryData(preQuerySet:SelectDocumentQuery[*], nodeId:String[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
 {
-    println('preQuerySet');
-    println($preQuerySet);
     let hasIsolations = false; // $preQuerySet->map(p|$p.data->getAllNodeNames()->filter(n|$n->startsWith('__iso'))->makeString('|'))->removeDuplicates()->size() > 1;
 
     let res = $preQuerySet->tail()->fold(
@@ -1029,7 +969,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
          q,a |
                if ($q != [] && !$q.data->isEmpty()
                    ,|
-                      // let shouldIsolate = shouldIsolateSubJoins($a, $q, $context->shift());
                       let new_a = $a;//if ($shouldIsolate,|$a->possiblyIsolateSubJoins($nodeId),|$a);
                       //let new_q = $q_moved;//if ($a->isIsolated() || $shouldIsolate,|$q->possiblyIsolateSubJoins($nodeId),|$q);
                       let new_q = $q;
@@ -1041,7 +980,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
                                               node = $new_a.data->toOne(),
                                               fields = $new_q.fields,
                                               filteringOperation = $new_q.filteringOperation//,
-                                              //savedFilteringOperation = $new_q.savedFilteringOperation
                                             ),
                                             $new_q.data->toOne(),
                                             $id,
@@ -1049,127 +987,27 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
                                             $context,
                                             $extensions
                                         );
-                    
-                    //let newGroupBy = $new_a.groupBy->concatenate($merged.groupBy)->removeDuplicates();
-
-                      //let newNodeAliases = $merged.node->toOne()->getAllNodes()->cast(@RelationalTreeNode).alias;
-                      //let remap = $newNodeAliases->map(n |^OldAliasToNewAlias(first=$n.name,second=$n));
 
                       ^$new_a
                          (
-                            //fields = $new_a.fields->concatenate($merged.fields)->removeDuplicates({a,b|$a->match([a:Alias[1]|$a.name,a:Any[1]|'']) == $b->match([b:Alias[1]|$b.name,b:Any[1]|'x'])}),
                             fields = $new_a.fields,
                             data = $merged.node->cast(@RootJoinDocumentTreeNode),
-                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation)//,
-                            //savedFilteringOperation = $new_a.savedFilteringOperation->map(p|pair($p.first, $p.second))->concatenate($merged.savedFilteringOperation)
+                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation)
                          );
-                   ,| //let flds = $a.fields->filter(c|$c->instanceOf(WindowColumn));
+                   ,|
                         ^$a
                          (
                             fields = $a.fields->concatenate($q.fields),
-                            //fields = $a.fields->concatenate($q.columns)->filter(c|!$c->instanceOf(WindowColumn))->removeDuplicates({a,b|$a->match([a:Alias[1]|$a.name,a:Any[1]|'']) == $b->match([b:Alias[1]|$b.name,b:Any[1]|'x'])})->concatenate($cols),
                             filteringOperation += $q.filteringOperation
-                            //savedFilteringOperation += $q.savedFilteringOperation
                          );
                );
         }, $preQuerySet->first()->toOne()
     );
 
-    let filtered = ^$res
-    (
-      leftSideOfFilter = if($preQuerySet->at(0).leftSideOfFilter->isEmpty(),|[],|$preQuerySet->at(0).leftSideOfFilter->toOne())
-      /*
-      savedFilteringOperation = $res.savedFilteringOperation->map(f|pair($f.second->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second
-                                                            ->map(p| let originalQuery = $preQuerySet->filter(q|!$q.data->isEmpty() && $q.data->toOne()->getAllNodes()->contains($p.first));
-                                                                     pair(if ($originalQuery->isEmpty(),|$p.first,|$p.first), $p.second);
-                                                             )
-                                                             */
-   );
-
-
-   //$filtered->validate($extensions);
-
-   print(if(!$context.debug, |'', |$context.space+'   Merge Result: '+$filtered->printDebugQuery($context.space, $extensions))
+   print(if(!$context.debug, |'', |$context.space+'   Merge Result: '+$res->printDebugQuery($context.space, $extensions))
         );
 
-   $filtered;
-
-//   print(if(!$context.debug, |'',
-//            | $context.space+'   Merge(hasIsolations:'+$hasIsolations->toString()+')\n'+$querySet->map(q|$q.leftSideOfFilter->size()->toString()+' '+$q->meta::external::store::document::extension::documentQueryToString::documentQueryToString(meta::relational::runtime::DatabaseType.H2, $extensions))->makeString($context.space+'     [\n'+$context.space+'       ','\n'+$context.space+'       ','\n'+$context.space+'     ]')+'\n'));
-//
-//   $preQuerySet->map(q|$q->validate($extensions));
-//
-  /*
-    let res = $preQuerySet->tail()->fold(
-      {
-         q,a |
-               
-               if ($q != [] && !$q.data->isEmpty()
-                   ,|
-                      // let shouldIsolate = shouldIsolateSubJoins($a, $q, $context->shift());
-                      let new_a = $a;//if ($shouldIsolate,|$a->possiblyIsolateSubJoins($nodeId),|$a);
-                      let new_q = $q;//if ($a->isIsolated() || $shouldIsolate,|$q->possiblyIsolateSubJoins($nodeId),|$q);
-
-                      //let id = buildNodeId($nodeId, '_m'+$querySet->indexOf($q)->toString());
-
-                      let merged = merge(
-                                           ^MergeResultContainer(
-                                              node = $new_a.data->toOne(),
-                                              fields = $new_q.fields,
-                                              filteringOperation = $new_q.filteringOperation,
-                                              savedFilteringOperation = $new_q.savedFilteringOperation
-                                            ),
-                                            $new_q.data->toOne(),
-                                            $state,
-                                            $context,
-                                            $extensions
-                                        );
-
-                    //let newNodeAliases = $merged.node->toOne()->getAllNodes()->cast(@DocumentTreeNode).alias;
-                    let newNodeAliases = $merged.node->toOne()->cast(@DocumentTreeNode).alias;
-                    let remap = $newNodeAliases->map(n |^OldAliasToNewAlias(first=$n.name,second=$n));
-
-                    ^$new_a
-                         (
-                            fields = $new_a.fields->concatenate($merged.columns)->removeDuplicates({a,b|$a->match([a:Alias[1]|$a.name,a:Any[1]|'']) == $b->match([b:Alias[1]|$b.name,b:Any[1]|'x'])}),
-                            data = $merged.node->cast(@RootJoinDocumentTreeNode),
-                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation),
-                            //filteringOperation = $new_a.filteringOperation->reprocessAliases($remap)->concatenate($merged.filteringOperation),
-                            savedFilteringOperation = $new_a.savedFilteringOperation->map(p|pair($p.first, $p.second->reprocessAliases($remap)))->concatenate($merged.savedFilteringOperation)
-                         );
-                   ,| let fields = $a.fields->filter(c|$c->instanceOf(WindowColumn));
-                        ^$a
-                         (
-                            columns = $a.columns->concatenate($q.columns)->filter(c|!$c->instanceOf(WindowColumn))->removeDuplicates({a,b|$a->match([a:Alias[1]|$a.name,a:Any[1]|'']) == $b->match([b:Alias[1]|$b.name,b:Any[1]|'x'])})->concatenate($cols),
-                            filteringOperation += $q.filteringOperation,
-                            savedFilteringOperation += $q.savedFilteringOperation,
-                            extraFilteringOperation += $q.extraFilteringOperation,
-                            groupBy = if ($q.groupBy->isEmpty(), | $a.groupBy, | $q.groupBy)
-                         );
-               );
-          }, $preQuerySet->first()->toOne()
-      );
-
-      let filtered = ^$res
-      (
-          leftSideOfFilter = if($querySet->at(0).leftSideOfFilter->isEmpty(),|[],|$querySet->at(0).leftSideOfFilter->toOne()->findOneNode($querySet->at(0).data->toOne(), $res.data->toOne())),
-          savedFilteringOperation = $res.savedFilteringOperation->map(f|pair($f.second->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second
-                                                            ->map(p| let originalQuery = $querySet->filter(q|!$q.data->isEmpty() && $q.data->toOne()->getAllNodes()->contains($p.first));
-                                                                     pair(if ($originalQuery->isEmpty(),|$p.first,|$p.first->findOneNode($originalQuery->at(0).data->toOne(), $res.data->toOne())), $p.second);
-                                                             ),
-          extraFilteringOperation = $res.extraFilteringOperation->map(f|pair($f->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second
-      );
-
-
-      $filtered->validate($extensions);
-
-      print(if(!$context.debug, |'', |$context.space+'   Merge Result: '+$filtered->printDebugQuery($context.space, $extensions))
-        );
-
-      $filtered;
-      */
-      
-      //$preQuerySet->at(0);
+   $res;
 }
 
 
@@ -1181,14 +1019,7 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::m
         (
            node = $newNode,
            fields = $parentTargetTreeNode.fields,
-           filteringOperation = $parentTargetTreeNode.filteringOperation//,
-           /*
-           savedFilteringOperation = $parentTargetTreeNode.savedFilteringOperation->map(p|
-																															 pair(
-                                                                                           if($p.first == $sourceTreeNode, |$newNode, |$p.first),
-																																  $p.second
-																																 );
-                                                                                    )*/
+           filteringOperation = $parentTargetTreeNode.filteringOperation
         );
 }
 
@@ -1224,7 +1055,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::b
 
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processMap(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[1]
 {
-   println('meta::external::store::document::functions::pureToDocumentStoreQuery::processMap');
    let res = processValueSpecificationReturnPropertyMapping($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions);
 
    // do we need manangeIsolation?
@@ -1445,17 +1275,11 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::a
                   o:FunctionDefinition<Any>[1] | $state;
    ]);
 }
-//function meta::external::store::document::functions::pureToDocumentStoreQuery::processFilter(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectWithCursor[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[1]
 function meta::external::store::document::functions::pureToDocumentStoreQuery::processFilter(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):DocumentStoreElement[1]
-{
-  println('meta::external::store::document::functions::pureToDocumentStoreQuery::processFilter');
-  
+{  
   let leftSidePure = $expression.parametersValues->at(0);
   let leftSideOp = processValueSpecificationReturnPropertyMapping($leftSidePure, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
   let leftSide = $leftSideOp.element->cast(@SelectDocumentQuery);
-
-  println('leftSide');
-  //println($leftSide);
 
   let rootData = $leftSide.data->toOne();
   let tree = $rootData;
@@ -1470,9 +1294,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                                                                   if ($isDataTypeInput || $isSemiStructuredPropertyMapping, | $leftSide.fields, | []);)),
     data=$tree
   );
-  
-  println('rootSelect');
-  //println($rootSelect);
 
   let filterFunction = $expression->instanceValuesAtParameter(1, $vars, $state.inScopeVars)->at(0)->cast(@FunctionDefinition<Any>);
   let filterFunctionExpression = $filterFunction.expressionSequence->at(0);
@@ -1484,18 +1305,10 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
 
   let rightSide = processValueSpecification($filterFunctionExpression, $currentPropertyMapping, $rootSelect, $vars, ^$inScopeVarsWithPlaceholdersState(inFilter=true), $context, $extensions)->toOne()->cast(@SelectDocumentQuery);
 
-  println('rightSide');
-  //println($rightSide);
-
-  $rightSide;
-
-// function meta::external::store::document::functions::pureToDocumentStoreQuery::mergeDocumentQueryData(preQuerySet:SelectDocumentQuery[*], nodeId:String[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
   let merged = [$leftSide, $rightSide]->cast(@SelectDocumentQuery)->mergeDocumentQueryData('', $state, $context, $extensions);
 
   let mergedWithCollapsedFilteringOperation = ^$merged(filteringOperation = $merged.filteringOperation->tail()->fold({f,a|[$a->toOne(),$f]->andFilters($extensions)}, $merged.filteringOperation->head()));
 
-  println('mergedWithCollapsedFilteringOperation');
-  println($mergedWithCollapsedFilteringOperation);
   $mergedWithCollapsedFilteringOperation;
 }
 
@@ -1509,16 +1322,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                  extensions:Extension[*]
          ) : DocumentStoreElement[1]
 {
-    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processEquals');
-    println($state);
    let leftParam = $expression.parametersValues->at(0);
    let rightParam = $expression.parametersValues->at(1);
-   
-   println('leftParam');
-   println($leftParam);
-
-   println('rightParam');
-   println($rightParam);
 
    assert($leftParam.multiplicity->hasUpperBound() && ($leftParam.multiplicity->getUpperBound() <= 1)
           ,|'Left multiplicity error. Please use \'exists\' instead of \'==\' in the expression: '+$leftParam->asString()+' == '+$rightParam->asString());
@@ -1529,21 +1334,11 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
    validateParamHasDataTypeReturnType($leftParam);
    validateParamHasDataTypeReturnType($rightParam);
 
-   println('before left and right');
    let left = processValueSpecificationReturnPropertyMapping($leftParam, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
    let right = processValueSpecificationReturnPropertyMapping($rightParam, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
-   println('left.element');
-   println($left.element);
-
-   println('right.element');
-   println($right.element);
 
    let mergedNoSQL = mergeDocumentQueryData([$left.element, $right.element]->map(x | $x->extractDocumentQuery()), '', $state, $context, $extensions);
    
-   println('mergedNoSQL');
-   println($mergedNoSQL);
-   println('inFilter');
-   println($state.inFilter);
    let leftVal = $state.inFilter->if(|$mergedNoSQL.filteringOperation->at(0),|$mergedNoSQL.fields->at(0));
    let rightVal = $state.inFilter->if(|$mergedNoSQL.filteringOperation->at(1),|$mergedNoSQL.fields->at(1));
 
@@ -1563,41 +1358,8 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
                                               );
                                           );
                                      );
-
-    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processEquals - filtering operation');
-    println($filteringOperation);
-
-   let selectDocumentQuery = $left.element->extractDocumentQuery();
-    println('meta::external::store::document::functions::pureToDocumentStoreQuery::processEquals - result');
-    //println($selectDocumentQuery);
-    //$selectDocumentQuery->toOne();
     
-    let res = if ($state.inFilter, | ^$mergedNoSQL(fields=$operation.fields, filteringOperation = $filteringOperation), |  ^$mergedNoSQL(fields=$filteringOperation));
-    println($res);
-
-    $res;
-
-/*
-   ^$selectDocumentQuery(data = $state.inFilter->if(
-                                    |^$mergedNoSQL(
-                                            fields = $operation.fields->map(
-                                               c|$c->match(
-                                                  [
-                                                     a: Alias[1]|let col = $mergedNoSQL.fields->filter(c|$c->instanceOf(Alias) && $c->cast(@Alias).name==$a.name);
-                                                                 if($col->isEmpty(),|$a,|$col);,
-                                                     r:DocumentStoreElement[1]|$r
-                                                  ])),
-                                            filteringOperation = $filteringOperation//,
-                                            //savedFilteringOperation = []
-                                     ),
-                                    |^$mergedNoSQL(
-                                            fields = $filteringOperation//,
-                                            //savedFilteringOperation = []
-                                     )
-                               )
-
-                     );
-                     */
+    if ($state.inFilter, | ^$mergedNoSQL(fields=$operation.fields, filteringOperation = $filteringOperation), |  ^$mergedNoSQL(fields=$filteringOperation));
                      
 }
 
@@ -1907,7 +1669,7 @@ Class meta::external::store::document::functions::pureToDocumentStoreQuery::Merg
    fields : DocumentStoreElement[*];
    filteringOperation : DocumentStoreElement[*];
    //savedFilteringOperation : Pair<DocumentTreeNode, DocumentStoreElement>[*];
-   leftSideOfFilter : DocumentStoreElement[0..1];
+   //leftSideOfFilter : DocumentStoreElement[0..1];
    //extraFilteringOperation : DocumentStoreElement[*];
    //oldToNewAliases : OldAliasToNewAlias[*];
 }

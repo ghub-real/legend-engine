@@ -145,7 +145,7 @@ meta::external::store::document::metamodel::SelectDocumentQuery extends meta::ex
     distinct : Boolean[0..1];
     data : RootJoinDocumentTreeNode[0..1];
     filteringOperation : DocumentStoreElement[*];
-    leftSideOfFilter : DocumentTreeNode[0..1];
+    //leftSideOfFilter : DocumentTreeNode[0..1];
     //savedFilteringOperation : Pair<DocumentTreeNode, DocumentStoreElement>[*];
     // orderBy
     // groupBy

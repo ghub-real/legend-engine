@@ -76,7 +76,7 @@ function meta::external::store::document::extension::documentQueryToString::docu
 
 function meta::external::store::document::extension::documentQueryToString::processOperation(documentStoreElement:DocumentStoreElement[1], dbType:DatabaseType[1], extensions:Extension[*]):String[1]
 {
-   processOperation($documentStoreElement, createDbConfig($dbType, [], []), ^Format(newLine='', indent=''), ^Config(), $extensions);
+   processOperation($documentStoreElement, createDbConfig($dbType, [], []), ^Format(newLine='', indent=''), ^Config(), $extensions)
 }
 
 
@@ -378,7 +378,7 @@ function meta::external::store::document::extension::documentQueryToString::docu
 
 function meta::external::store::document::extension::documentQueryToString::documentQueryToString(documentQuery:SelectDocumentQuery[1], dbType:DatabaseType[1], dbTimeZone:String[0..1], quoteIdentifiers:Boolean[0..1], format:Format[1], extensions:Extension[*]):String[1]
 {
-   processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions)
+  processOperation($documentQuery, createDbConfig($dbType, $dbTimeZone, $quoteIdentifiers), $format, ^Config(), $extensions)
 }
 
 
@@ -430,8 +430,6 @@ function meta::external::store::document::functions::typeInference::inferDocumen
       l : Any[1] | if($failOnMatchFailure, | fail('Not supported yet!'); ^meta::external::store::document::metamodel::CoreDataType(list=false);, |[]);
    ]);
 }
-
-
 
 function meta::external::store::document::functions::typeInference::inferDynaFunctionReturnType(d: DynaFunction[1], failOnMatchFailure:Boolean[1]):meta::external::store::document::metamodel::TypeReference[0..1]
 {
