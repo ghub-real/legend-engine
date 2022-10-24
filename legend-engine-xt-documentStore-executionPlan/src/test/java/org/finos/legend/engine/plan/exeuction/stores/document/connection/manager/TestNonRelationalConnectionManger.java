@@ -33,7 +33,7 @@ public class TestNonRelationalConnectionManger
     {
         NonRelationalConnectionManager manager = new NonRelationalConnectionManager(22, Lists.mutable.empty());
         String connectionStr = "{\n" +
-                "  \"_type\": \"DataStoreConnection\",\n" +
+                "  \"_type\": \"DocumentStoreConnection\",\n" +
                 "  \"type\": \"Mongo\",\n" +
                 "  \"authenticationStrategy\" : {\n" +
                 "    \"_type\" : \"userNamePassword\",\n" +
