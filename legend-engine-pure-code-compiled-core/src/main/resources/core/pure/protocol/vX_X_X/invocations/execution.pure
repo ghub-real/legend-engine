@@ -172,14 +172,7 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::legendEx
 {
    let transformedContext = if($context->isNotEmpty(), | $context->toOne()->transformContext($extensions),| []);
    let execMode = meta::protocols::pure::vX_X_X::invocation::execution::execute::ExecutionMode->extractEnumValue($executionMode);
-   println('---Exec Mode Start');
-   println($execMode);
-   println('---Exec Mode End');
    let mappings = $m->concatenate(getMappingsFromRuntime($pureRuntime));
-   println('---Mappings start');
-   println($mappings);
-   println('---Mappings End');
-
 
    // This choice is made as ExecutionContext information can affect the results computed by the executionPlan endpoint
    // If we have either of the two ExecutionContexts in the conditional - throwing the generated execution plan to the executePlan endpoint does *not* return the same results as hittign execute with function,mapping, and runtime
@@ -257,7 +250,6 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::generate
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::alloyExecuteLambda<T|m>(f:FunctionDefinition<{->T[m]}>[1], m:Mapping[1], pureRuntime:Runtime[1], context:ExecutionContext[0..1], host:String[1], port:Integer[1], version:String[1], serializationKind:String[1], executionMode:String[1], extensions:meta::pure::extension::Extension[*]) : String[1]
 {
    let payload = buildExecutionInput($f,$m,$pureRuntime,$context,$version, $serializationKind, $executionMode, $extensions);
-   println($payload);
    let resp = executeHTTPRaw(^URL(host = $host , port=$port, path = '/api/pure/'+$version+'/execution/execute'),
                                  HTTPMethod.POST,
                                  'application/json',
