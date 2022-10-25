@@ -14,6 +14,8 @@
 
 package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype;
 
-public class ObjectTypeReference
+public class ObjectTypeReference extends TypeReference
 {
+    public String type;
+    public String binding;
 }

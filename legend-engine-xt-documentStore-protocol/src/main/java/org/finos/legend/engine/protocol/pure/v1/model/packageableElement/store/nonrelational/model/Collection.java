@@ -21,8 +21,9 @@ import java.util.List;
 
 public class Collection
 {
-    String name;
+    public String name;
     public List<Field> fields = Collections.emptyList();
+    public List<String> primaryKey = Collections.emptyList();
     public SourceInformation sourceInformation;
 
 }

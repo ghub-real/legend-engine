@@ -65,6 +65,21 @@
         </plugins>
     </build>
     <dependencies>
+        <!--Legend engine -->
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-language-pure-grammar</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-xt-documentStore-protocol</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-external-shared-format-model</artifactId>
+        </dependency>
+
+        <!-- Legend engine -->
         <!-- Antlr -->
         <dependency>
             <groupId>org.antlr</groupId>
@@ -78,6 +93,7 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+
         <!-- Test -->
     </dependencies>
 

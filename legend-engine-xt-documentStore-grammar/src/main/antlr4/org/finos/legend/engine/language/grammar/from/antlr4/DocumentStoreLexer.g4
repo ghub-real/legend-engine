@@ -1,4 +1,4 @@
-lexer grammar DocumentDBLexer;
+lexer grammar DocumentStoreLexer;
 
 import CoreLexerGrammar;
 
@@ -6,7 +6,7 @@ AND : 'and' ;
 OR : 'or' ;
 CONSTRAINT : 'constraint' ;
 PROCESSING_MILESTONING : 'processing';
-DATABASE : 'Database';
+DOCUMENTSTORE : 'DocumentStore';
 
 INCLUDE : 'include' ;
 DOC_EQUAL: 'eq';
@@ -23,17 +23,20 @@ MAINCOLLECTIONCMD : '~mainCollection';
 COLLECTION : 'Collection' ;
 DOCUMENTFRAGMENT : 'DocumentFragment';
 
-PRIMARYKEY : 'PRIMARY KEY';
-PRIMARYKEYCMD : '~primaryKey';
-PARTIALKEY : 'PARTIAL KEY';
-PARTIALKEYCMD : '~partialKey';
-
+PRIMARY_KEY : 'PRIMARY KEY';
+NOT_NULL: 'NOT NULL';
+PRIMARY_KEY_CMD : '~primaryKey';
+PARTIAL_KEY : 'PARTIAL KEY';
+PARTIAL_KEY_CMD : '~partialKey';
+BINDING: 'Binding';
+SCOPE: 'scope';
+ENUMERATION_MAPPING: 'EnumerationMapping';
 
 INTEGER: ('+' | '-')? (Digit)+;
 FLOAT: ('+' | '-')? (Float)+;
 QUOTED_STRING:   ('"' ( EscSeq | ~["\r\n] )*  '"' ) ;
 
-VIEW : 'View' ;
+
 
 //mode ISLAND_BLOCK;
 //INNER_CURLY_BRACKET_OPEN : '{' -> pushMode (ISLAND_BLOCK);
