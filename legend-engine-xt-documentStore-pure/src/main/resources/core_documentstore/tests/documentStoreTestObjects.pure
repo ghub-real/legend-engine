@@ -163,7 +163,7 @@ Class meta::external::store::document::tests::object::TestSetup
 function meta::external::store::document::tests::object::getTestSetup(): meta::external::store::document::tests::object::TestSetup[1]
 {
   let mongoStoreAndMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
-  let mapping = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second);
+  let mapping = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second, name='nameOfMapping');
   let runtime = meta::external::store::document::tests::object::getLocalMongoRuntime($mongoStoreAndMapping.first);
   ^meta::external::store::document::tests::object::TestSetup(mapping = $mapping, runtime = $runtime);
 }

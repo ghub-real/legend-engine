@@ -28,6 +28,7 @@ import meta::pure::executionPlan::engine::java::naming::*;
 //import meta::relational::mapping::*;
 import meta::external::store::document::graphFetch::executionPlan::*;
 import meta::pure::executionPlan::engine::java::graphFetch::document::store::*;
+import meta::pure::executionPlan::engine::java::graphFetch::document::*;
 
 function meta::document::executionPlan::platformBinding::legendJava::documentLegendJavaPlatformBindingExtension(): LegendJavaPlatformBindingExtension[1]
 {
@@ -54,14 +55,14 @@ function meta::document::executionPlan::platformBinding::legendJava::documentLeg
             n: ExecutionNode[1]                     | []
          ])
       },
-
+*/
       updateGenerationContextForNode = {node: ExecutionNode[1], context: GenerationContext[1], path: String[1], extensions: Extension[*], debug: DebugContext[1] |
          $node->match([
             r: DocumentStoreGraphFetchExecutionNode[1]         | $r->prepareForDocumentGraphFetch($path, $context, $debug),
             n: ExecutionNode[1]                             | $context
          ])
       },
-*/
+
       generateLegendJavaCodeForNode = {node: ExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1] |
          $node->match([
             {r: DocumentStoreGraphFetchExecutionNode[1] |

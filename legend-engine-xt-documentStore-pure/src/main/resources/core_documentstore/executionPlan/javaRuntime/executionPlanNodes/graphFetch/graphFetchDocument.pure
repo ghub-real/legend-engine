@@ -30,15 +30,18 @@ import meta::pure::executionPlan::document::engine::java::*;
 import meta::pure::executionPlan::document::engine::java::addObjectMapperField::*;
 
 
-/*
-function meta::pure::executionPlan::engine::java::graphFetch::document::prepareForDocumentGraphFetch(node: DocumentGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]):GenerationContext[1]
+
+function meta::pure::executionPlan::engine::java::graphFetch::document::prepareForDocumentGraphFetch(node: DocumentStoreGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]):GenerationContext[1]
 {
    $node->match([
       //r : RelationalClassQueryTempTableGraphFetchExecutionNode[1] | $r->prepareForRelationalClassQueryTempTableGraphFetch($path, $context, $debug),
-      p : RelationalGraphFetchExecutionNode[1]                    | $context
+      p : DocumentStoreGraphFetchExecutionNode[1] | 
+                let pureType = $node->typeFromStoreLocalNode();
+                let simpleType = ^SimpleJavaType(pureType = $pureType, javaType = $context.conventions->className($pureType));
+                ^$context(nodeInfos = $context.nodeInfos->concatenate(^NodeInfo(path = $path, returnType = $simpleType)));,
+      m : ExecutionNode[1]                        | $context
    ])
 }
-*/
 
 function meta::pure::executionPlan::engine::java::graphFetch::document::store::generateDocumentStoreGraphFetchProject(node: DocumentStoreGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1]):Project[1]
 {
