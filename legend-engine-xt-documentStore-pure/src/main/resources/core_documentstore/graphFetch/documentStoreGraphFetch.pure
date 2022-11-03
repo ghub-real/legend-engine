@@ -67,6 +67,7 @@ Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreR
   batchSize : Integer[0..1];
   enableConstraints : Boolean[1];
   checked : Boolean[1];
+  //tempCollectionName: String[1];
 }
 
 // Class meta::relational::graphFetch::executionPlan::DocumentStoreCrossRootQueryTempTableGraphFetchExecutionNode extends RelationalClassQueryTempTableGraphFetchExecutionNode
@@ -129,7 +130,7 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
       nodeIndex      = 0,
       graphFetchTree = $rootTree,
       batchSize      = $batchSize,
-      //tempTableName  = tempTableName(0),
+      //tempCollectionName  = 'root',
       //columns        = $sqlNode.resultColumns->filter(x | $x.label->startsWith('"pk_'))->map(x | ^SQLResultColumn(label = $x.label->substring(1, $x.label->length() - 1), dataType = $x.dataType->toOne())),
       //children       = $rootTree->generateRelationalChildGraphNodes($rootTree->nodePathName(), $setImpls, $simplePrimitiveProperties, $orderedPaths, $store, $mapping, $oneRuntime, $sq.inScopeVars, $exeCtx, $extensions, $debug),
       executionNodes = $documentNode,

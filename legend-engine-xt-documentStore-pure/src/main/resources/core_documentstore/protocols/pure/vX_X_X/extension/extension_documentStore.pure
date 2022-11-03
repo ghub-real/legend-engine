@@ -73,18 +73,20 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
                      rb:meta::pure::executionPlan::RelationalBlockExecutionNode[1]|
                                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalBlockExecutionNode( _type = 'relationalBlock',
                                                                                                                        resultType = $rb.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)),
-                     rel:meta::relational::mapping::SQLExecutionNode[1]|
-                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLExecutionNode(
+            */
+                     rel:meta::external::store::document::metamodel::mapping::DocumentQueryExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode(
+                          // TODO: should be noSQL, needs to be whitelisted somewhere, related error: Could not resolve type id 'noSQL' as a subtype of `org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode`: known type ids = [aggregationAware, allocation, constant, createAndPopulateTempTable, dataQuality, documentQuery, error, externalFormatExternalize, externalFormatInternalize, flatDataDeserialize, flatDataSerialize, freeMarkerConditionalExecutionNode, function-parameters-validation, globalGraphFetchExecutionNode, graphFetchExecutionNode, graphFetchM2M, inMemoryCrossStoreGraphFetch, inMemoryPropertyGraphFetch, inMemoryRootGraphFetch, jsonDeserialize, jsonSerialize, limit, multiResultSequence, platform, platformMerge, platformUnion, pureExp, relational, relationalBlock, relationalClassInstantiation, relationalClassQueryTempTableGraphFetch, relationalCrossRootGraphFetchExecutionNode, relationalCrossRootQueryTempTableGraphFetch, relationalDataTypeInstantiation, relationalGraphFetchExecutionNode, relationalPrimitiveQueryGraphFetch, relationalRelationDataInstantiation, relationalRootGraphFetchExecutionNode, relationalRootQueryTempTableGraphFetch, relationalTdsInstantiation, relationalTempTableGraphFetchExecutionNode, restService, sequence, serviceParametersResolution, sql, storeStreamReading, urlStream, varResolution, xmlDeserialize, xmlSerialize] (for POJO property 'executionNodes')
                            _type = 'sql',
                            resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
                            resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
-                           resultColumns = $rel.resultColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
-                           sqlQuery = $rel.sqlQuery,
+                           //resultColumns = $rel.resultColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           //sqlQuery = $rel.sqlQuery,
                            onConnectionCloseCommitQuery = $rel.onConnectionCloseCommitQuery,
-                           onConnectionCloseRollbackQuery = $rel.onConnectionCloseRollbackQuery,
-                           connection = $rel.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+                           onConnectionCloseRollbackQuery = $rel.onConnectionCloseRollbackQuery
+                           //connection = $rel.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
                         ),
-                        
+            /*  
                      rel:meta::relational::mapping::RelationalTdsInstantiationExecutionNode[1]|
                         ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalTdsInstantiationExecutionNode(
                            _type = 'relationalTdsInstantiation',
@@ -121,22 +123,24 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
                            tempTableColumnMetaData = $cpt.tempTableColumnMetaData->map(col | $col->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformTempTableColumnMetaData()),
                            connection = $cpt.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
                         ),
-                        */
+              */
                      rel:meta::external::store::document::graphFetch::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode[1]|
                         ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode(
-                           _type = 'documentRootQueryTempTableGraphFetch',
+                           //_type = 'documentStoreRootQueryTempTableGraphFetch',
+                           // TODO: is this the right type?
+                           _type = 'LocalGraphFetchExecutionNode',
                            resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
                            resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
-                           batchSize = $rel.batchSize,
+                           //batchSize = $rel.batchSize,
                            // TODO: the name isn't root, check if I need to use the tempTableName or something else there.
-                           tempCollectionName='root',
+                           //tempCollectionName='root',
                            //tempTableName = $rel.tempTableName,
                            //columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
                            //children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
                            nodeIndex = $rel.nodeIndex,
                            parentIndex = $rel.parentIndex,
-                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions),
-                           checked = $rel.checked
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                           //checked = $rel.checked
                         )
                         /*
                      rel:meta::relational::graphFetch::executionPlan::RelationalCrossRootQueryTempTableGraphFetchExecutionNode[1]|

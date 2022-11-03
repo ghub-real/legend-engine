@@ -14,6 +14,15 @@
 
 import meta::document::store::mapping::*;
 
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+   //sqlQuery : String[1];
+   onConnectionCloseCommitQuery : String[0..1];
+   onConnectionCloseRollbackQuery : String[0..1];
+   //resultColumns : meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLResultColumn[*];
+   //connection : meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::DatabaseConnection[1];
+}
+
 Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::graphFetch::LocalGraphFetchExecutionNode
 {
    children : meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentGraphFetchExecutionNode[*];
@@ -21,7 +30,7 @@ Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::execu
 
 Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentTempTableGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentGraphFetchExecutionNode
 {
-   tempCollectionName : String[1];
+   //tempCollectionName : String[1];
    fields       : DocumentResultColumn[*];
 }
 
