@@ -18,6 +18,8 @@ import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::runtime::*;
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::*;
+import meta::external::store::document::graphFetch::executionPlan::*;
+import meta::protocols::pure::vX_X_X::metamodel::executionPlan::*;
 
 function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentStoreExtension(type:String[1]):meta::pure::extension::SerializerExtension[1]
 {
@@ -57,49 +59,128 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
     ]},
    transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
    [
-   d:meta::external::store::document::metamodel::DocumentStore[1] | $d->transformDataStore($extensions)
-   ]}
+        d:meta::external::store::document::metamodel::DocumentStore[1] | $d->transformDataStore($extensions)
+   ]},
 
 
 //      transfers_store_transformConnection =
 //          [
 //             serviceStoreConnection:ServiceStoreConnection[1] | $serviceStoreConnection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::service::transformServiceStoreConnection()
 //          ],
-//      transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
-//          [
-//             ser:meta::external::store::service::executionPlan::nodes::RestServiceExecutionNode[1]|
-//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::RestServiceExecutionNode(
-//                   _type            = 'restService',
-//                   resultType       = $ser.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-//                   url              = $ser.url,
-//                   method           = $ser.method,
-//                   mimeType         = $ser.mimeType,
-//                   securitySchemes  = $ser.securitySchemes->map(s | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformSecurityScheme($extensions)),
-//                   requestBodyDescription = if($ser.requestBodyDescription->isEmpty(),
-//                                               |[],
-//                                               |^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::RequestBodyDescription(
-//                                                    mimeType = $ser.requestBodyDescription.mimeType->toOne(),
-//                                                    resultKey = $ser.requestBodyDescription.resultKey->toOne()
-//                                                 )),
-//                   params           = $ser.params->map(p | $p->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStoreParameter())
-//                ),
-//             spr:meta::external::store::service::executionPlan::nodes::ServiceParametersResolutionExecutionNode[1]|
-//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::ServiceParametersResolutionExecutionNode(
-//                   _type                      = 'serviceParametersResolution',
-//                   resultType                 = $spr.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-//                   requestParametersBuildInfo = $spr.requestParametersBuildInfo->map(p | $p->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformServiceRequestParametersBuildInfo($extensions))
-//                ),
-//             limit:meta::external::store::service::executionPlan::nodes::LimitExecutionNode[1]|
-//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::LimitExecutionNode(
-//                   _type='limit',
-//                   resultType=$limit.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-//                   limit = $limit.limit
-//                )
-//          ]},
+      transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+          [
+            /*
+                     rb:meta::pure::executionPlan::RelationalBlockExecutionNode[1]|
+                               ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalBlockExecutionNode( _type = 'relationalBlock',
+                                                                                                                       resultType = $rb.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)),
+                     rel:meta::relational::mapping::SQLExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLExecutionNode(
+                           _type = 'sql',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           resultColumns = $rel.resultColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           sqlQuery = $rel.sqlQuery,
+                           onConnectionCloseCommitQuery = $rel.onConnectionCloseCommitQuery,
+                           onConnectionCloseRollbackQuery = $rel.onConnectionCloseRollbackQuery,
+                           connection = $rel.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+                        ),
+                        
+                     rel:meta::relational::mapping::RelationalTdsInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalTdsInstantiationExecutionNode(
+                           _type = 'relationalTdsInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                        
+                     rel:meta::relational::mapping::RelationalClassInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalClassInstantiationExecutionNode(
+                           _type = 'relationalClassInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                     rel:meta::relational::mapping::RelationalRelationDataInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalRelationDataInstantiationExecutionNode(
+                           _type = 'relationalRelationDataInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                     rel:meta::relational::mapping::RelationalDataTypeInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalDataTypeInstantiationExecutionNode(
+                           _type = 'relationalDataTypeInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                     cpt:meta::relational::mapping::CreateAndPopulateTempTableExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::CreateAndPopulateTempTableExecutionNode
+                        (
+                           _type = 'createAndPopulateTempTable',
+                           inputVarNames = $cpt.inputVarNames,
+                           tempTableName = $cpt.tempTableName,
+                           resultType = $cpt.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $cpt.resultSizeRange->isEmpty()->if(|[],|$cpt.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           tempTableColumnMetaData = $cpt.tempTableColumnMetaData->map(col | $col->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformTempTableColumnMetaData()),
+                           connection = $cpt.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+                        ),
+                        */
+                     rel:meta::external::store::document::graphFetch::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode(
+                           _type = 'documentRootQueryTempTableGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           batchSize = $rel.batchSize,
+                           // TODO: the name isn't root, check if I need to use the tempTableName or something else there.
+                           tempCollectionName='root',
+                           //tempTableName = $rel.tempTableName,
+                           //columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           //children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions),
+                           checked = $rel.checked
+                        )
+                        /*
+                     rel:meta::relational::graphFetch::executionPlan::RelationalCrossRootQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalCrossRootQueryTempTableGraphFetchExecutionNode(
+                           _type = 'relationalCrossRootQueryTempTableGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           tempTableName = $rel.tempTableName,
+                           columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           parentTempTableName = $rel.parentTempTableName,
+                           parentTempTableColumns = $rel.parentTempTableColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                        ),
+                     rel:meta::relational::graphFetch::executionPlan::RelationalClassQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalClassQueryTempTableGraphFetchExecutionNode(
+                           _type = 'relationalClassQueryTempTableGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           tempTableName = $rel.tempTableName,
+                           columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                        ),
+                     rel:meta::relational::graphFetch::executionPlan::RelationalPrimitiveQueryGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalPrimitiveQueryGraphFetchExecutionNode(
+                           _type = 'relationalPrimitiveQueryGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                        )
+                        */
+          ]
+       }
 //      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
 //            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformRootServiceInstanceSetImplementation($mapping, $extensions),
 //            esi:EmbeddedServiceStoreSetImplementation[1] | []
-//          ]},
+//          ]}
 //      transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
 //         [
 //            s:ServiceStore[1] | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStore($extensions)
