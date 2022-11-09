@@ -90,9 +90,49 @@ Class meta::protocols::pure::vX_X_X::metamodel::store::document::ObjectTypeRefer
 }
 
 
-Class meta::protocols::pure::vX_X_X::metamodel::store::document::element::RelationalElement
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::element::DocumentElement
 {
    _type : String[1];
 }
 
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::element::CollectionPtr extends meta::protocols::pure::vX_X_X::metamodel::store::document::element::DocumentElement
+{
+   store : String[1];
+   //schema : String[1];
+   //table : String[1];
+   collection : String[1];
+   mainCollectionDb : String[1];
 
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::DocumentEntityMapping
+{
+   mainCollection : meta::protocols::pure::vX_X_X::metamodel::store::document::element::CollectionPtr[1];
+   //distinct : Boolean[1];
+   //groupBy : meta::protocols::pure::vX_X_X::metamodel::store::relational::element::RelationalElement[*];
+   //filter : meta::protocols::pure::vX_X_X::metamodel::store::relational::mapping::FilterWithJoins[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::DocumentClassMapping extends meta::protocols::pure::vX_X_X::metamodel::mapping::ClassMapping
+{
+   primaryKey : meta::protocols::pure::vX_X_X::metamodel::store::document::element::DocumentElement[*];
+   propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::RootDocumentClassMapping extends meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::DocumentClassMapping, meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::DocumentEntityMapping
+{
+   primaryKey : meta::protocols::pure::vX_X_X::metamodel::store::document::element::DocumentElement[*];
+   propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+}
+
+/*
+Class meta::document::metamodel::relation::Relation extends meta::document::metamodel::RelationalOperationElement, meta::pure::store::set::SetRelation
+{
+   fields : DocumentStoreElement[*];
+}
+
+Class meta::document::metamodel::relation::NamedRelation extends meta::document::metamodel::relation::Relation
+{
+   name : String[1];
+}
+*/

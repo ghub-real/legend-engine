@@ -179,16 +179,21 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
                            graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
                         )
                         */
-          ]
-       }
-//      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
-//            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformRootServiceInstanceSetImplementation($mapping, $extensions),
-//            esi:EmbeddedServiceStoreSetImplementation[1] | []
-//          ]}
-//      transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
-//         [
-//            s:ServiceStore[1] | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStore($extensions)
-//         ]},
+          ];
+       },
+
+       // TODO: implement those
+       /*
+      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | println('I AM HERE'); let a = [
+            rsi:Any[1]  | println('mapping...'); println($mapping); println('extensions...'); println($extensions); let b = []; $b;,
+          ]; $a;}
+          */
+      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
+            rdi:RootDocumentInstanceSetImplementation[1]  | $rdi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformRootDocumentInstanceSetImplementation($mapping, $extensions),
+            any:Any[1] | println('I AM CALLED TOO - transfers_mapping_transformSetImplementation2'); let a = []; $a;
+          ]}
+          //$s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformDocumentStore($extensions);
+        //}
 //      scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
 //         [
 //            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::extension::store::service::extractServiceStore(),
