@@ -125,8 +125,8 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
                            connection = $cpt.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
                         ),
               */
-                     rel:meta::external::store::document::graphFetch::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode[1]|
-                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode(
+                     rel:meta::external::store::document::graphFetch::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode(
                            //_type = 'documentStoreRootQueryTempTableGraphFetch',
                            // TODO: is this the right type?
                            _type = 'documentRootQueryTempTableGraphFetch',

@@ -41,7 +41,7 @@ function meta::document::executionPlan::platformBinding::legendJava::documentLeg
       // Node based extensions ------------------------------------------------------
 
       supportedExecutionNodes = [
-         DocumentStoreGraphFetchExecutionNode
+         DocumentGraphFetchExecutionNode
          /*
          RelationalClassInstantiationExecutionNode,
          CreateAndPopulateTempTableExecutionNode
@@ -51,21 +51,21 @@ function meta::document::executionPlan::platformBinding::legendJava::documentLeg
 /*
       extraChildNodesWithIndex = {node: ExecutionNode[1] |
          $node->match([
-            r: DocumentStoreGraphFetchExecutionNode[1] | $r.children->size()->range()->map(x | pair($r.children->at($x), 'localChild' + $x->toString())),
+            r: DocumentGraphFetchExecutionNode[1] | $r.children->size()->range()->map(x | pair($r.children->at($x), 'localChild' + $x->toString())),
             n: ExecutionNode[1]                     | []
          ])
       },
 */
       updateGenerationContextForNode = {node: ExecutionNode[1], context: GenerationContext[1], path: String[1], extensions: Extension[*], debug: DebugContext[1] |
          $node->match([
-            r: DocumentStoreGraphFetchExecutionNode[1]         | $r->prepareForDocumentGraphFetch($path, $context, $debug),
+            r: DocumentGraphFetchExecutionNode[1]         | $r->prepareForDocumentGraphFetch($path, $context, $debug),
             n: ExecutionNode[1]                             | $context
          ])
       },
 
       generateLegendJavaCodeForNode = {node: ExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1] |
          $node->match([
-            {r: DocumentStoreGraphFetchExecutionNode[1] |
+            {r: DocumentGraphFetchExecutionNode[1] |
                let documentGraphImplUpdateFunction = {impl: meta::external::language::java::metamodel::Class[1] |
                   $impl->enrichForDocumentGraphExecution($r, $context, $extensions, $debug)
                };

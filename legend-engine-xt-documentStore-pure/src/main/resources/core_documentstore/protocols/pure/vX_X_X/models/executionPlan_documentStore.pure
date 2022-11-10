@@ -38,7 +38,7 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentClassQuer
 {
 }
 
-Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentClassQueryTempTableGraphFetchExecutionNode
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentClassQueryTempTableGraphFetchExecutionNode
 {
    batchSize : Integer[0..1];
    checked : Boolean[0..1];

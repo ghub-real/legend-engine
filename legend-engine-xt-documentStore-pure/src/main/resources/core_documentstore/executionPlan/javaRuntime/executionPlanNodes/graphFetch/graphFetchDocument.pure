@@ -31,11 +31,11 @@ import meta::pure::executionPlan::document::engine::java::addObjectMapperField::
 
 
 
-function meta::pure::executionPlan::engine::java::graphFetch::document::prepareForDocumentGraphFetch(node: DocumentStoreGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]):GenerationContext[1]
+function meta::pure::executionPlan::engine::java::graphFetch::document::prepareForDocumentGraphFetch(node: DocumentGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]):GenerationContext[1]
 {
    $node->match([
       //r : RelationalClassQueryTempTableGraphFetchExecutionNode[1] | $r->prepareForRelationalClassQueryTempTableGraphFetch($path, $context, $debug),
-      p : DocumentStoreGraphFetchExecutionNode[1] | 
+      p : DocumentGraphFetchExecutionNode[1] |
                 let pureType = $node->typeFromStoreLocalNode();
                 let simpleType = ^SimpleJavaType(pureType = $pureType, javaType = $context.conventions->className($pureType));
                 ^$context(nodeInfos = $context.nodeInfos->concatenate(^NodeInfo(path = $path, returnType = $simpleType)));,
@@ -43,7 +43,7 @@ function meta::pure::executionPlan::engine::java::graphFetch::document::prepareF
    ])
 }
 
-function meta::pure::executionPlan::engine::java::graphFetch::document::store::generateDocumentStoreGraphFetchProject(node: DocumentStoreGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1]):Project[1]
+function meta::pure::executionPlan::engine::java::graphFetch::document::store::generateDocumentStoreGraphFetchProject(node: DocumentGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1]):Project[1]
 {
    let specificsClass = initializeSpecificsClass($node, $path, $context, $debug)
                            ->map(s | $s->addSpecificsPrepareMethod($node, $path, $context, $debug))
@@ -57,7 +57,7 @@ function meta::pure::executionPlan::engine::java::graphFetch::document::store::g
    newProject()->addClasses([$specificsClass, $executeClass]);
 }
 
-function meta::pure::executionPlan::engine::java::graphFetch::document::store::enrichForDocumentStoreGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
+function meta::pure::executionPlan::engine::java::graphFetch::document::store::enrichForDocumentStoreGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
 {
    let constraintsToExclude = $node.graphFetchTree.constraintsExclusions;
    //let qualifiersProject  = $cl->updateImplementationClassWithQualifiedProperties($node->typeFromStoreLocalNode(), $context);
@@ -67,7 +67,7 @@ function meta::pure::executionPlan::engine::java::graphFetch::document::store::e
    mergeProjects([/*$qualifiersProject, */$constraintsProject, $primaryKeyProject, $additionalProject]);
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::updateImplementationClassWithSetConnectionAndReference(implClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], context: GenerationContext[1]): Project[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::updateImplementationClassWithSetConnectionAndReference(implClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], context: GenerationContext[1]): Project[1]
 {
    let conventions     = $context.conventions;
    let setIdProp       = meta::pure::executionPlan::document::engine::java::setIdPropertyName();
@@ -95,7 +95,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    newProject()->addClasses($updatedClass);
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::updateImplementationClassWithPrimaryKeys(implClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], context: GenerationContext[1]): Project[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::updateImplementationClassWithPrimaryKeys(implClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], context: GenerationContext[1]): Project[1]
 {
    let conventions = $context.conventions;
    let sets        = $node.resultType->cast(@ClassResultType).setImplementations->cast(@DocumentInstanceSetImplementation);
@@ -118,7 +118,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    newProject()->addClasses($withKeys);
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeSpecificsClass(node: DocumentStoreGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeSpecificsClass(node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions = $context.conventions;
 
@@ -159,7 +159,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ]);
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteGeneralMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteGeneralMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions    = $context.conventions;
    let jThis          = j_this($executeClass);
@@ -239,7 +239,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       });
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteCachingMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteCachingMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let jThis          = j_this($executeClass);
    let specificsField = $jThis->j_field('specifics');
@@ -264,7 +264,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    });
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeExecuteClass(node:DocumentStoreGraphFetchExecutionNode[1], specificsClass: meta::external::language::java::metamodel::Class[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeExecuteClass(node:DocumentGraphFetchExecutionNode[1], specificsClass: meta::external::language::java::metamodel::Class[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions   = $context.conventions;
    /*
@@ -299,7 +299,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       );
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsPrepareMethod(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsPrepareMethod(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions   = $context.conventions;
    let isComplexNode = $node.resultType->instanceOf(PartialClassResultType);
@@ -584,7 +584,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       );
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsGeneralMethods(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsGeneralMethods(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions    = $context.conventions;
    let isComplexNode  = $node.resultType->instanceOf(PartialClassResultType);
@@ -705,7 +705,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       });
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsCachingMethods(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsCachingMethods(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions   = $context.conventions;
    /*
@@ -799,7 +799,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    }));
 }
 
-function meta::pure::executionPlan::engine::java::graphFetch::document::store::enrichForDocumentGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: DocumentStoreGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
+function meta::pure::executionPlan::engine::java::graphFetch::document::store::enrichForDocumentGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
 {
    let constraintsToExclude = $node.graphFetchTree.constraintsExclusions;
    //let qualifiersProject  = $cl->updateImplementationClassWithQualifiedProperties($node->typeFromStoreLocalNode(), $context);

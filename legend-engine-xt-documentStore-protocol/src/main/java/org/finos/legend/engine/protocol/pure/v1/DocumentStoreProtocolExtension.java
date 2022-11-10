@@ -31,12 +31,14 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphF
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentTempTableGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.mapping.ClassMapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.UserNamePasswordAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.DatasourceSpecification;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.mapping.NonRelationalClassMapping;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.DocumentStore;
 
 import java.util.List;
@@ -59,11 +61,10 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
 //                ProtocolSubTypeInfo.newBuilder(ValueSpecification.class)
 //                        .withSubtype(DatabaseInstance.class, "databaseInstance")
 //                        .build(),
-//                // Class mapping
-//                ProtocolSubTypeInfo.newBuilder(ClassMapping.class)
-//                        .withSubtype(RootRelationalClassMapping.class, "relational")
-//                        .withSubtype(RelationalClassMapping.class, "embedded")
-//                        .build(),
+                // Class mapping
+                ProtocolSubTypeInfo.newBuilder(ClassMapping.class)
+                        .withSubtype(NonRelationalClassMapping.class, "nonRelational")
+                        .build(),
 //                // Mapping Test InputData
 //                ProtocolSubTypeInfo.newBuilder(InputData.class)
 //                        .withSubtype(RelationalInputData.class, "relational")
@@ -142,6 +143,6 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
     @Override
     public Map<Class<? extends PackageableElement>, String> getExtraProtocolToClassifierPathMap()
     {
-        return Maps.mutable.with(DocumentStore.class, "meta::external::store::document::metamodel::DocumentStore ");
+        return Maps.mutable.with(DocumentStore.class, "meta::external::store::document::metamodel::DocumentStore");
     }
 }
