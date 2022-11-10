@@ -16,7 +16,7 @@ import meta::document::store::mapping::*;
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
 {
-   //sqlQuery : String[1];
+   mongoQLQuery : String[1];
    onConnectionCloseCommitQuery : String[0..1];
    onConnectionCloseRollbackQuery : String[0..1];
    //resultColumns : meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLResultColumn[*];

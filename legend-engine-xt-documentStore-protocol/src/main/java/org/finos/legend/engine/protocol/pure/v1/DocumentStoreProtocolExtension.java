@@ -21,6 +21,14 @@ import org.finos.legend.engine.protocol.pure.v1.extension.ProtocolSubTypeInfo;
 import org.finos.legend.engine.protocol.pure.v1.extension.PureProtocolExtension;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentClassQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentCrossRootGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentCrossRootQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentPrimitiveQueryGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentRootGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentRootQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentTempTableGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
@@ -90,8 +98,20 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
                 // Execution plan node
                 ProtocolSubTypeInfo.newBuilder(ExecutionNode.class)
                         .withSubtype(DocumentQueryExecutionNode.class, "documentQuery")
-                       // .withSubtype(RelationalRootGraphFetchExecutionNode.class, "relationalRootGraphFetchExecutionNode")
-                       // .withSubtype(RelationalGraphFetchExecutionNode.class, "relationalGraphFetchExecutionNode")
+                        //.withSubtype(RelationalTdsInstantiationExecutionNode.class, "relationalTdsInstantiation")
+                        //.withSubtype(RelationalClassInstantiationExecutionNode.class, "relationalClassInstantiation")
+                        //.withSubtype(RelationalRelationDataInstantiationExecutionNode.class, "relationalRelationDataInstantiation")
+                        //.withSubtype(RelationalDataTypeInstantiationExecutionNode.class, "relationalDataTypeInstantiation")
+                        .withSubtype(DocumentRootGraphFetchExecutionNode.class, "documentRootGraphFetchExecutionNode")
+                        .withSubtype(DocumentCrossRootGraphFetchExecutionNode.class, "documentCrossRootGraphFetchExecutionNode")
+                        .withSubtype(DocumentTempTableGraphFetchExecutionNode.class, "documentTempTableGraphFetchExecutionNode")
+                        .withSubtype(DocumentGraphFetchExecutionNode.class, "documentGraphFetchExecutionNode")
+                        //.withSubtype(RelationalBlockExecutionNode.class, "relationalBlock")
+                        //.withSubtype(CreateAndPopulateTempTableExecutionNode.class, "createAndPopulateTempTable")
+                        .withSubtype(DocumentPrimitiveQueryGraphFetchExecutionNode.class, "documentPrimitiveQueryGraphFetch")
+                        .withSubtype(DocumentClassQueryTempTableGraphFetchExecutionNode.class, "documentClassQueryTempTableGraphFetch")
+                        .withSubtype(DocumentRootQueryTempTableGraphFetchExecutionNode.class, "documentRootQueryTempTableGraphFetch")
+                        .withSubtype(DocumentCrossRootQueryTempTableGraphFetchExecutionNode.class, "documentCrossRootQueryTempTableGraphFetch")
                         .build(),
 
                 //DatasourceSpecification
