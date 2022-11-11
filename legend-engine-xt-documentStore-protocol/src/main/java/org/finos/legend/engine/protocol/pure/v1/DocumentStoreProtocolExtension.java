@@ -82,7 +82,7 @@ public class DocumentStoreProtocolExtension  implements PureProtocolExtension
 //                        .build(),
                 // Connection
                 ProtocolSubTypeInfo.newBuilder(Connection.class)
-                        .withSubtype(DataStoreConnection.class, "DocumentStoreConnection")
+                        .withSubtype(DataStoreConnection.class, "DatabaseConnection")
                         .build(),
 //                // Execution context
 //                ProtocolSubTypeInfo.newBuilder(ExecutionContext.class)
