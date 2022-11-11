@@ -211,38 +211,27 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
 }
 
 
-Class meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension extends meta::protocols::pure::vX_X_X::extension::ModuleSerializerExtension
+
+
+function meta::protocols::pure::vX_X_X::extension::documentModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension[1]
 {
-   // Removed. , meta::protocols::pure::vX_X_X::metamodel::store::relational::PostProcessorWithParameter[*]
-   transfers_connection_transformDatabaseConnection : meta::pure::metamodel::function::Function<{String[1], String[1], String[1] -> meta::pure::metamodel::function::Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1]}>[*]}>[0..1];
-   //transfers_connection_transformPostProcessors : Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::relational::postProcessor::PostProcessor[1]}>[*];
-   transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy[1]}>[*];
-   transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1]}>[*];
-   //transfers_connection_transformPostProcessorParameters : Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::relational::PostProcessorParameter[1]}>[*];
-   //transfers_milestoning_transformMilestoning : Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::relational::Milestoning[1]}>[*];
-   reverse_transfers_typeLookups: Pair<String, String>[*];
-   reverse_transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::document::runtime::authentication::AuthenticationStrategy[1]}>[*];
-   reverse_transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1]}>[*];
+  let dbSpecificExtensions = meta::protocols::pure::vX_X_X::extension::NonRelationalModule->stereotype('SerializerExtension').modelElements->cast(@meta::pure::metamodel::function::Function<{->meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension[1]}>)
+    ->map(f| $f->eval())->sortBy(e| $e.module);
+  let transformDatabaseConnection = $dbSpecificExtensions.transfers_connection_transformDatabaseConnection;
+  ^meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension(
+    module = 'nonRelational',
+    transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
+    // transfers_connection_transformPostProcessors = $dbSpecificExtensions.transfers_connection_transformPostProcessors,
+    transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,
+    transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.transfers_connection_transformDatasourceSpecification,
+    // transfers_connection_transformPostProcessorParameters = $dbSpecificExtensions.transfers_connection_transformPostProcessorParameters,
+    // transfers_milestoning_transformMilestoning = $dbSpecificExtensions.transfers_milestoning_transformMilestoning,
+    // reverse_transfers_typeLookups = $dbSpecificExtensions.reverse_transfers_typeLookups,
+    reverse_transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.reverse_transfers_connection_transformAuthenticationStrategy,
+    reverse_transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.reverse_transfers_connection_transformDatasourceSpecification
+  );
+
 }
 
 
 
-// function meta::protocols::pure::vX_X_X::extension::documentModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension[1]
-// {
-//   let dbSpecificExtensions = meta::protocols::pure::vX_X_X::extension::RelationalModule->stereotype('SerializerExtension').modelElements->cast(@meta::pure::metamodel::function::Function<{->meta::protocols::pure::vX_X_X::extension::RelationalModuleSerializerExtension[1]}>)
-//     ->map(f| $f->eval())->sortBy(e| $e.module);
-//   let transformDatabaseConnection = $dbSpecificExtensions.transfers_connection_transformDatabaseConnection;
-//   ^meta::protocols::pure::vX_X_X::extension::RelationalModuleSerializerExtension(
-//     module = 'relational',
-//     transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
-//     transfers_connection_transformPostProcessors = $dbSpecificExtensions.transfers_connection_transformPostProcessors,
-//     transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,
-//     transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.transfers_connection_transformDatasourceSpecification,
-//     transfers_connection_transformPostProcessorParameters = $dbSpecificExtensions.transfers_connection_transformPostProcessorParameters,
-//     transfers_milestoning_transformMilestoning = $dbSpecificExtensions.transfers_milestoning_transformMilestoning,
-//     reverse_transfers_typeLookups = $dbSpecificExtensions.reverse_transfers_typeLookups,
-//     reverse_transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.reverse_transfers_connection_transformAuthenticationStrategy,
-//     reverse_transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.reverse_transfers_connection_transformDatasourceSpecification
-//   );
-
-// }

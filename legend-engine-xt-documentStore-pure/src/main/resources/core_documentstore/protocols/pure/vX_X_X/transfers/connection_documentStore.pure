@@ -41,7 +41,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 
  println('otherConnection:');
  println($otherConnection);
-   let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f | 
+   let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f |
    println('f:');
    println($f);
    $f->eval($_type, $element, $type);
@@ -54,8 +54,8 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
            timeZone = $test.timeZone,
            quoteIdentifiers = $test.quoteIdentifiers,
            element = $element,
-           //datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='local',port=27017,databaseName='myCollection'),
-          datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(_type='mongoDB', host='local',port=27017,databaseName='myCollection'),
+           //datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='localhost',port=27017,databaseName='myCollection'),
+          datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(_type='mongoDB', host='localhost',port=27017,databaseName='myCollection'),
            
            authenticationStrategy = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::TestDatabaseAuthenticationStrategy(
              _type = 'test'
@@ -146,7 +146,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformAuthenticationStrategy(a:meta::external::store::document::runtime::authentication::AuthenticationStrategy[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy[1]
 {
-   $a->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformAuthenticationStrategy->concatenate([
+   $a->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformAuthenticationStrategy->concatenate([
       u:meta::external::store::document::runtime::authentication::UserNamePasswordAuthenticationStrategy[1] |
       ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::UserNamePasswordAuthenticationStrategy(
          _type = 'userNamePassword',
@@ -163,7 +163,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatasourceSpecification(ds: meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1]
 {
-   $ds->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformDatasourceSpecification->concatenate([
+   $ds->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformDatasourceSpecification->concatenate([
       m:meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification[1] |
          ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(
             _type = 'mongoDB',

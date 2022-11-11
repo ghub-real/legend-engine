@@ -112,12 +112,8 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let pureToDocumentQueryState      = createPureToDocumentQueryState($simplePrimitiveProperties, $sq.inScopeVars, $mapping, $exeCtx);
    let selectDocumentQuery    = $lhsFe->toSelectDocumentQuery($mapping, $sq.inScopeVars, $debug, $pureToDocumentQueryState, $extensions);
 
-   let mongoDBConnection = ^meta::external::store::document::metamodel::runtime::DatabaseConnection(
-     type=meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,
-     element='element'
-    );
    
-   let documentNode       = $selectDocumentQuery->meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode($mongoDBConnection, $extensions);
+   let documentNode       = $selectDocumentQuery->meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode($dbConnection, $extensions);
    
    // TODO
    //let postProcessorResult = $selectDocumentQuery->toOne()->cast(@SelectSQLQuery)->postProcessSQLQuery($store, $ext, $mapping, $oneRuntime, $exeCtx, $extensions);

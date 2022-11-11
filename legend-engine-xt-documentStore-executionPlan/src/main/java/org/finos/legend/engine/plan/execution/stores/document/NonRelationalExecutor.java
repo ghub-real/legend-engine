@@ -112,6 +112,9 @@ public class NonRelationalExecutor
                 mongoDBClient = new LocalMongoDBClient(datasourceSpecification);
                 results = mongoDBClient.executeCustomAggregationQueryToDefaultDB(query);
             }
+            catch ( Exception e) {
+                 LOGGER.error(e.toString());
+            }
             finally
             {
                 if (mongoDBClient != null)
