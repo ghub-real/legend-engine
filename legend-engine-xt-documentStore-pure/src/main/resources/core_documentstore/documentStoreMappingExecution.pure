@@ -114,7 +114,7 @@ function meta::external::store::document::mapping::executeQuery(sql:String[1], q
   
 
   let personArray = $res.documents->map(x |
-    let value = $x.keyValuePairs.value->cast(@JSONString).value;
+    let value = $x.value->cast(@meta::json::JSONObject).keyValuePairs.value->cast(@JSONString).value;
       ^meta::external::store::document::tests::simple::Person(
         firstName=$value->at(0),
         lastName=$value->at(1)
@@ -161,16 +161,16 @@ function meta::external::store::document::mapping::executeQuery(sql:String[1], q
    ^Result<Any|*>(values=$personArray, activities=[]);
 }
 
-Class meta::external::store::document::metamodel::execute::ResultSet
-{
-    //executionTimeInNanoSecond: Integer[1];
-    //connectionAcquisitionTimeInNanoSecond: Integer[1];
-    //executionPlanInformation : String[0..1];
-    //columnNames : String[*];
-    documents : JSONObject[*];
-
-    //dataSource : meta::relational::runtime::DataSource[0..1];
-}
+//Class meta::external::store::document::metamodel::execute::ResultSet
+//{
+//    //executionTimeInNanoSecond: Integer[1];
+//    //connectionAcquisitionTimeInNanoSecond: Integer[1];
+//    //executionPlanInformation : String[0..1];
+//    //columnNames : String[*];
+//    documents : JSONObject[*];
+//
+//    //dataSource : meta::relational::runtime::DataSource[0..1];
+//}
 
 /*
 Class meta::external::store::document::metamodel::execute::Documents
