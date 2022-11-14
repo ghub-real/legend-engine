@@ -18,16 +18,21 @@ import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRel
 
 public class ClientWithDataSourceInfo
 {
-    private final NonRelationalClient connection;
+    private final NonRelationalClient nonRelationalClient;
     private final DataSource dataSource;
     private final String additionalInfo;
 
     private final long creationTime = System.currentTimeMillis();
 
-    public ClientWithDataSourceInfo(NonRelationalClient connection, DataSource dataSource, String additionalInfo)
+    public ClientWithDataSourceInfo(NonRelationalClient nonRelationalClient, DataSource dataSource, String additionalInfo)
     {
-        this.connection = connection;
+        this.nonRelationalClient = nonRelationalClient;
         this.dataSource = dataSource;
         this.additionalInfo = additionalInfo;
+    }
+
+    public NonRelationalClient getNonRelationalClient()
+    {
+        return nonRelationalClient;
     }
 }

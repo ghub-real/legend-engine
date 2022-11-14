@@ -14,11 +14,11 @@
 
 package org.finos.legend.pure.runtime.java.extension.store.nonrelational.shared.clientManager;
 
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.pure.m3.navigation.ProcessorSupport;
 import org.finos.legend.pure.m4.coreinstance.CoreInstance;
 import org.finos.legend.pure.runtime.java.extension.store.nonrelational.shared.ClientWithDataSourceInfo;
 import org.finos.legend.pure.runtime.java.extension.store.nonrelational.shared.IClientManagerHandler;
-import org.finos.legend.pure.runtime.java.extension.store.relational.shared.connectionManager.ConnectionManager;
 
 public class ClientManagerHandler implements IClientManagerHandler
 {
@@ -26,5 +26,11 @@ public class ClientManagerHandler implements IClientManagerHandler
     public ClientWithDataSourceInfo getClientWithDataSourceInfo(CoreInstance connectionInformation, ProcessorSupport processorSupport)
     {
         return ClientManager.getClientWithDataSourceInfo(connectionInformation, processorSupport);
+    }
+
+    @Override
+    public String getPotentialDebug(CoreInstance connectionInformation, NonRelationalClient nonRelationalClient)
+    {
+        return null;
     }
 }

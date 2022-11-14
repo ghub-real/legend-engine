@@ -16,6 +16,7 @@ package org.finos.legend.pure.runtime.java.extension.store.nonrelational.shared;
 
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.pure.m3.navigation.ProcessorSupport;
 import org.finos.legend.pure.m4.coreinstance.CoreInstance;
 import org.finos.legend.pure.runtime.java.extension.store.nonrelational.shared.clientManager.ClientManagerHandler;
@@ -43,4 +44,7 @@ public interface IClientManagerHandler
 
     ClientWithDataSourceInfo getClientWithDataSourceInfo(CoreInstance connectionInformation, ProcessorSupport processorSupport);
 
+    //void addPotentialDebug(CoreInstance connectionInformation, Statement statement);
+
+    String getPotentialDebug(CoreInstance connectionInformation, NonRelationalClient nonRelationalClient);
 }

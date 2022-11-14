@@ -14,7 +14,7 @@
 
 package org.finos.legend.pure.runtime.java.extension.store.nonrelational.compiled.natives;
 
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_connections_DocumentStoreConnection;
 import org.finos.legend.pure.m3.execution.ExecutionSupport;
 import org.finos.legend.pure.m4.coreinstance.SourceInformation;
 import org.finos.legend.pure.runtime.java.compiled.generation.processors.natives.AbstractNativeFunctionGeneric;
@@ -23,7 +23,7 @@ public class ExecuteInDb extends AbstractNativeFunctionGeneric
 {
     public ExecuteInDb()
     {
-        super("org.finos.legend.pure.runtime.java.extension.store.nonrelationa.compiled.NonRelationalGen.executeInDb", new Class[]{String.class, DataStoreConnection.class, long.class, long.class, SourceInformation.class, ExecutionSupport.class},
-                true, true, false, "executeInDb_String_1__DatabaseConnection_1__Integer_1__Integer_1__ResultSet_1_");
+        super("org.finos.legend.pure.runtime.java.extension.store.nonrelational.compiled.NonRelationalGen.executeInDb", new Class[]{String.class, Root_meta_external_store_document_runtime_connections_DocumentStoreConnection.class, long.class, long.class, SourceInformation.class, ExecutionSupport.class},
+                true, true, false, "executeInDb_String_1__DocumentStoreConnection_1__Integer_1__Integer_1__ResultSet_1_");
     }
 }

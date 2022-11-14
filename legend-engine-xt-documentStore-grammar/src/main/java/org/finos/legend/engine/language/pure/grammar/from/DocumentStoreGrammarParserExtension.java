@@ -20,7 +20,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.finos.legend.engine.language.grammar.from.antlr4.DocumentStoreLexer;
 import org.finos.legend.engine.language.grammar.from.antlr4.DocumentStoreParser;
 import org.finos.legend.engine.language.pure.grammar.from.extension.SectionParser;
-import org.finos.legend.engine.language.pure.grammar.from.extensions.IDocumentStoreGrammarParserExtension;
+import org.finos.legend.engine.language.pure.grammar.from.extension.IDocumentStoreGrammarParserExtension;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.section.DefaultCodeSection;
 
 import java.util.Collections;

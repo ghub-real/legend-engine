@@ -14,11 +14,28 @@
 
 package org.finos.legend.pure.runtime.java.extension.store.nonrelational.compiled;
 
+import org.finos.legend.pure.generated.Root_meta_external_store_document_metamodel_DocumentNull_Impl;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_metamodel_execute_Document_Impl;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_metamodel_execute_ResultSet;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_metamodel_execute_ResultSet_Impl;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_metamodel_runtime_DataSource_Impl;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_connections_DocumentStoreConnection;
+import org.finos.legend.pure.m3.execution.ExecutionSupport;
+import org.finos.legend.pure.m4.coreinstance.SourceInformation;
+import org.finos.legend.pure.runtime.java.extension.store.nonrelational.NonRelationalNativeImplementation;
 
 public class NonRelationalGen
 {
-//    public static ResultSet executeInDb(String sql, DatabaseConnection pureConnection, long queryTimeoutInSeconds, long fetchSize, SourceInformation si, ExecutionSupport es)
-//    {
-//        return RelationalNativeImplementation.executeInDb(sql, pureConnection, queryTimeoutInSeconds, fetchSize, si, () -> new Root_meta_relational_metamodel_execute_ResultSet_Impl("OK"), () -> new Root_meta_relational_metamodel_SQLNull_Impl("SQLNull"), () -> new Root_meta_relational_metamodel_execute_Row_Impl("ID"), () -> new Root_meta_relational_runtime_DataSource_Impl("ID"), es);
-//    }
+    public static Root_meta_external_store_document_metamodel_execute_ResultSet executeInDb(String sql,
+                                                                                            Root_meta_external_store_document_runtime_connections_DocumentStoreConnection docStoreConnection,
+                                                                                            long queryTimeoutInSeconds, long fetchSize, SourceInformation si, ExecutionSupport es)
+    {
+        return NonRelationalNativeImplementation.executeInDb(sql,
+                docStoreConnection, queryTimeoutInSeconds, fetchSize, si,
+                () -> new Root_meta_external_store_document_metamodel_execute_ResultSet_Impl("OK"),
+                () -> new Root_meta_external_store_document_metamodel_DocumentNull_Impl("DocumentNull"),
+                () -> new Root_meta_external_store_document_metamodel_execute_Document_Impl("ID"),
+                () -> new Root_meta_external_store_document_metamodel_runtime_DataSource_Impl("ID"),
+                es);
+    }
 }
