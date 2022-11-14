@@ -50,7 +50,8 @@ public class LocalMongoDBClient
     {
         List<String> res = new ArrayList<>();
 
-        try {
+        try
+        {
             Document bsonCmd = Document.parse(query);
 
             // Execute the native query
@@ -60,9 +61,10 @@ public class LocalMongoDBClient
             docs.forEach(System.out::println);
 
 
-
             docs.forEach(doc -> res.add(doc.toString()));
-        } catch ( Exception e) {
+        }
+        catch (Exception e)
+        {
             System.out.println(e.toString());
         }
 
