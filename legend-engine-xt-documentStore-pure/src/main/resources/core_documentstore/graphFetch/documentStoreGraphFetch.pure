@@ -32,10 +32,10 @@ import meta::external::store::document::functions::typeInference::*;
 import meta::external::store::document::mapping::functions::*;
 
 
-Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreGraphFetchExecutionNode extends LocalGraphFetchExecutionNode
+Class meta::external::store::document::graphFetch::executionPlan::DocumentGraphFetchExecutionNode extends LocalGraphFetchExecutionNode
 {
    //<<doc.deprecated>> relationalNode : ExecutionNode[0..1];
-   children : DocumentStoreGraphFetchExecutionNode[*];
+   children : DocumentGraphFetchExecutionNode[*];
 }
 
 //Class <<doc.deprecated>> meta::relational::graphFetch::executionPlan::RelationalTempTableGraphFetchExecutionNode extends RelationalGraphFetchExecutionNode
@@ -54,19 +54,20 @@ Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreG
 //   parentTempTableColumns : SQLResultColumn[*];
 //}
 
-Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreClassQueryTempTableGraphFetchExecutionNode extends DocumentStoreGraphFetchExecutionNode  // By pass the temp table class RelationalTempTableGraphFetchExecutionNode
+Class meta::external::store::document::graphFetch::executionPlan::DocumentClassQueryTempTableGraphFetchExecutionNode extends DocumentGraphFetchExecutionNode  // By pass the temp table class RelationalTempTableGraphFetchExecutionNode
 {
 }
 
-Class meta::external::store::document::graphFetch::executionPlan::DocumentStorePrimitiveQueryGraphFetchExecutionNode extends DocumentStoreGraphFetchExecutionNode
+Class meta::external::store::document::graphFetch::executionPlan::DocumentPrimitiveQueryGraphFetchExecutionNode extends DocumentGraphFetchExecutionNode
 {
 }
 
-Class meta::external::store::document::graphFetch::executionPlan::DocumentStoreRootQueryTempTableGraphFetchExecutionNode extends DocumentStoreClassQueryTempTableGraphFetchExecutionNode
+Class meta::external::store::document::graphFetch::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode extends DocumentClassQueryTempTableGraphFetchExecutionNode
 {
   batchSize : Integer[0..1];
   enableConstraints : Boolean[1];
   checked : Boolean[1];
+  //tempCollectionName: String[1];
 }
 
 // Class meta::relational::graphFetch::executionPlan::DocumentStoreCrossRootQueryTempTableGraphFetchExecutionNode extends RelationalClassQueryTempTableGraphFetchExecutionNode
@@ -92,8 +93,13 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let rootTree     = $clusteredTree->byPassClusteringInfo()->cast(@RoutedRootGraphFetchTree<Any>);
    let setImpls     = $rootTree.sets->cast(@RootDocumentInstanceSetImplementation);
    let store        = $sq.store->cast(@DocumentStore);
-   let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@meta::external::store::document::runtime::connections::TestDocumentStoreConnection)->map(x | ^$x(element = $store));
-   //let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@DatabaseConnection)->map(x | ^$x(element = $store));
+   
+   
+  //  let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@meta::external::store::document::runtime::connections::TestDocumentStoreConnection)->map(x | ^$x(element = $store));
+  println('$runtime->connectionByElement($store)->toOne()');
+  println($runtime->connectionByElement($store)->toOne());
+  
+   let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@DatabaseConnection)->map(x | ^$x(element = $store));
    let oneRuntime   = ^Runtime(connections = [$dbConnection]);
    let batchSize    = if($fe.func == graphFetch_T_MANY__RootGraphFetchTree_1__Integer_1__T_MANY_, | $fe->instanceValueAtParameter(2)->cast(@Integer), | 1000);
 
@@ -106,12 +112,8 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let pureToDocumentQueryState      = createPureToDocumentQueryState($simplePrimitiveProperties, $sq.inScopeVars, $mapping, $exeCtx);
    let selectDocumentQuery    = $lhsFe->toSelectDocumentQuery($mapping, $sq.inScopeVars, $debug, $pureToDocumentQueryState, $extensions);
 
-   let mongoDBConnection = ^meta::external::store::document::metamodel::runtime::DatabaseConnection(
-     type=meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,
-     element='element'
-    );
    
-   let documentNode       = $selectDocumentQuery->meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode($mongoDBConnection, $extensions);
+   let documentNode       = $selectDocumentQuery->meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode($dbConnection, $extensions);
    
    // TODO
    //let postProcessorResult = $selectDocumentQuery->toOne()->cast(@SelectSQLQuery)->postProcessSQLQuery($store, $ext, $mapping, $oneRuntime, $exeCtx, $extensions);
@@ -123,22 +125,26 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    //let wrappedNode   = generateExecutionNodeForPostProcessedResult($sqlNode, $allExecNodes, $postProcessorResult, $extensions);
 
 
-   ^DocumentStoreRootQueryTempTableGraphFetchExecutionNode
+   let documentRootQueryTempTableGraphFetchExecutionNode = ^DocumentRootQueryTempTableGraphFetchExecutionNode
    (
       resultType     = $rootTree->resultTypeFromGraphFetchTree(),
       nodeIndex      = 0,
       graphFetchTree = $rootTree,
       batchSize      = $batchSize,
-      //tempTableName  = tempTableName(0),
+      //tempCollectionName  = 'root',
       //columns        = $sqlNode.resultColumns->filter(x | $x.label->startsWith('"pk_'))->map(x | ^SQLResultColumn(label = $x.label->substring(1, $x.label->length() - 1), dataType = $x.dataType->toOne())),
       //children       = $rootTree->generateRelationalChildGraphNodes($rootTree->nodePathName(), $setImpls, $simplePrimitiveProperties, $orderedPaths, $store, $mapping, $oneRuntime, $sq.inScopeVars, $exeCtx, $extensions, $debug),
       executionNodes = $documentNode,
       enableConstraints = $enableConstraints,
       checked = $checked
    );
+
+println('documentRootQueryTempTableGraphFetchExecutionNode:');
+println($documentRootQueryTempTableGraphFetchExecutionNode);
+   $documentRootQueryTempTableGraphFetchExecutionNode;
 }
 
-function <<access.private>> meta::external::store::document::graphFetch::executionPlan::generateRelationalChildGraphNodes(tree: RoutedGraphFetchTree[1], treePath: String[1], setImpls: DocumentInstanceSetImplementation[*], simplePrimitiveProperties: Property<Nil,Any|*>[*], orderedPaths: String[*], store: DocumentStore[1], mapping: Mapping[1], runtime: Runtime[1], inScopeVars: Map<String, List<Any>>[1], exeCtx: ExecutionContext[1], extensions:Extension[*], debug: DebugContext[1]): DocumentStoreGraphFetchExecutionNode[*]
+function <<access.private>> meta::external::store::document::graphFetch::executionPlan::generateRelationalChildGraphNodes(tree: RoutedGraphFetchTree[1], treePath: String[1], setImpls: DocumentInstanceSetImplementation[*], simplePrimitiveProperties: Property<Nil,Any|*>[*], orderedPaths: String[*], store: DocumentStore[1], mapping: Mapping[1], runtime: Runtime[1], inScopeVars: Map<String, List<Any>>[1], exeCtx: ExecutionContext[1], extensions:Extension[*], debug: DebugContext[1]): DocumentGraphFetchExecutionNode[*]
 {
    $tree.subTrees->cast(@RoutedPropertyGraphFetchTree)->map({st |
       let property = $st.property;
@@ -171,7 +177,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
    });
 }
 
-function <<access.private>> meta::external::store::document::graphFetch::executionPlan::planGraphFetchExecutionPrimitiveChild(currentTree: RoutedPropertyGraphFetchTree[1], parentTree: GraphFetchTree[1], parentPath: String[1], orderedPaths: String[*], parentSets: DocumentInstanceSetImplementation[*], store: DocumentStore[1], mapping: Mapping[1], runtime: Runtime[1], inScopeVars: Map<String, List<Any>>[1], exeCtx : ExecutionContext[1], extensions:Extension[*], debug : DebugContext[1]): DocumentStorePrimitiveQueryGraphFetchExecutionNode[1]
+function <<access.private>> meta::external::store::document::graphFetch::executionPlan::planGraphFetchExecutionPrimitiveChild(currentTree: RoutedPropertyGraphFetchTree[1], parentTree: GraphFetchTree[1], parentPath: String[1], orderedPaths: String[*], parentSets: DocumentInstanceSetImplementation[*], store: DocumentStore[1], mapping: Mapping[1], runtime: Runtime[1], inScopeVars: Map<String, List<Any>>[1], exeCtx : ExecutionContext[1], extensions:Extension[*], debug : DebugContext[1]): DocumentPrimitiveQueryGraphFetchExecutionNode[1]
 {
    let currentPath = $parentPath + '.' + $currentTree->nodePathName();
 
@@ -216,7 +222,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
    //let allExecNodes  = $postProcessorResult.executionNodes->concatenate($sqlNode)->concatenate($postProcessorResult.postExecutionNodes);
    //let wrappedNode   = generateExecutionNodeForPostProcessedResult($sqlNode, $allExecNodes, $postProcessorResult, $extensions);
 
-   ^DocumentStorePrimitiveQueryGraphFetchExecutionNode
+   ^DocumentPrimitiveQueryGraphFetchExecutionNode
    (
       resultType     = ^ResultType(type = $currentTree.property->functionReturnType().rawType->toOne()),
       nodeIndex      = $currentIdx,

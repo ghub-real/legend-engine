@@ -36,6 +36,7 @@ import org.finos.legend.engine.plan.execution.service.test.TestRun;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
 import org.finos.legend.engine.plan.execution.stores.relational.plugin.Relational;
 import org.finos.legend.engine.plan.execution.stores.service.plugin.ServiceStore;
+import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelational;
 import org.finos.legend.engine.plan.generation.extension.PlanGeneratorExtension;
 import org.finos.legend.engine.plan.generation.transformers.PlanTransformer;
 import org.finos.legend.engine.protocol.pure.PureClientVersions;
@@ -64,7 +65,7 @@ import java.util.stream.Collectors;
 public class ServiceModeling
 {
     public static ObjectMapper objectMapper = ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports();
-    private static final PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(Relational.build(), ServiceStore.build(), InMemory.build()); //dont add the serviceStore
+    private static final PlanExecutor planExecutor = PlanExecutor.newPlanExecutor(Relational.build(), ServiceStore.build(), InMemory.build(), NonRelational.build()); //dont add the serviceStore
 
     private final ModelManager modelManager;
     private final DeploymentMode deploymentMode;

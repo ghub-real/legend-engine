@@ -1,0 +1,21 @@
+import meta::json::*;
+import meta::external::store::document::metamodel::execute::*;
+import meta::external::store::document::metamodel::runtime::*;
+
+function meta::external::store::document::metamodel::execute::executeInDb(sql:String[1], databaseConnection:DatabaseConnection[1]):ResultSet[1]
+{
+  ^ResultSet(
+    documents=[
+      newJSONObject
+        ([
+          newJSONKeyValue('firstName', ^JSONString(value='Theodosis 1')),
+          newJSONKeyValue('lastName', ^JSONString(value='Malatestas 1'))
+        ]),
+        newJSONObject
+        ([
+          newJSONKeyValue('firstName', ^JSONString(value='Theodosis 2')),
+          newJSONKeyValue('lastName', ^JSONString(value='Malatestas 2'))
+        ])
+      ]
+    )
+}

@@ -84,7 +84,12 @@ function {service.contentType='application/json'} meta::json::toJSON(obj:Any[*],
 
 function {service.contentType='application/json'} meta::json::toJSON(obj:Any[*], max:Integer[0..1], config:Config[1]):String[1]
 {
-   toJSON($obj, [], $max, $config);
+  println('meta::json::toJSON 1');
+  println($max);
+   let a = toJSON($obj, [], $max, $config);
+   println('THE OUTCOME IS');
+   println($a);
+   $a;
 }
 
 function {service.contentType='application/json'} meta::json::toJSON(obj:Any[*], includeType:Boolean[1], typeString:String[1]):String[1]

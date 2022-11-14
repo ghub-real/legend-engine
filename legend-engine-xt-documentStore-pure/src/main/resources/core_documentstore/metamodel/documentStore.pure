@@ -234,3 +234,11 @@ Class meta::external::store::document::metamodel::JoinStrings extends meta::exte
     separator:DocumentStoreElement[0..1];
     suffix:DocumentStoreElement[0..1];
 }
+
+Class meta::external::store::document::metamodel::PathInformation
+{
+   propertyMapping : meta::pure::mapping::PropertyMapping[0..1];
+   type : Type[1];
+   documentation : String[0..1];
+   relationalType : CoreDataType[0..1];
+}

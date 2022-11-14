@@ -21,6 +21,8 @@ import meta::external::store::document::metamodel::runtime::*;
 import meta::external::store::document::extension::documentQueryToString::*;
 import meta::external::store::document::functions::pureToDocumentStoreQuery::*; // for all the rest process operation stuff
 import meta::external::store::document::functions::typeInference::*;
+import meta::document::executionPlan::platformBinding::legendJava::*;
+import meta::pure::executionPlan::platformBinding::legendJava::*;
 
 Profile meta::external::store::document::extension::db
 {
@@ -57,21 +59,21 @@ function <<access.private>> meta::external::store::document::extension::document
          {rsi: RootDocumentInstanceSetImplementation[1] |
             $tree;
          }
-      }
-  )
+      },
       //TODO: Move this out along with Java Binding
-//      availablePlatformBindings = meta::pure::extension::defaultExtensions().availablePlatformBindings->concatenate(
-//         meta::pure::executionPlan::platformBinding::legendJava::legendJavaPlatformBinding([
-//           meta::external::store::service::executionPlan::platformBinding::legendJava::serviceStoreLegendJavaPlatformBindingExtension()
-//         ])
-//      )
-//   )
+      availablePlatformBindings = meta::pure::extension::defaultExtensions().availablePlatformBindings->concatenate(
+         meta::pure::executionPlan::platformBinding::legendJava::legendJavaPlatformBinding([
+           meta::document::executionPlan::platformBinding::legendJava::documentLegendJavaPlatformBindingExtension()
+         ])
+      )
+  )
 }
 
 function meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension(version:String[1]):String[1]
 {
-   'meta::protocols::pure::'+$version+'::extension::store::document::getDocumentStoreExtension_String_1__SerializerExtension_1_';
-   //'::extension::getRelationalExtension_String_1__SerializerExtension_1_';
+  println('meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension');
+   let a = 'meta::protocols::pure::'+$version+'::extension::store::document::getDocumentStoreExtension_String_1__SerializerExtension_1_';
+   $a;
 }
 
 

@@ -11,3 +11,35 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+import meta::document::store::mapping::*;
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+   mongoQLQuery : String[1];
+   onConnectionCloseCommitQuery : String[0..1];
+   onConnectionCloseRollbackQuery : String[0..1];
+   //resultColumns : meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLResultColumn[*];
+   connection : meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1];
+}
+
+Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::graphFetch::LocalGraphFetchExecutionNode
+{
+   children : meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentGraphFetchExecutionNode[*];
+}
+
+Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentTempTableGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentGraphFetchExecutionNode
+{
+   //tempCollectionName : String[1];
+   fields       : DocumentResultColumn[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentClassQueryTempTableGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentTempTableGraphFetchExecutionNode
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentClassQueryTempTableGraphFetchExecutionNode
+{
+   batchSize : Integer[0..1];
+   checked : Boolean[0..1];
+}

@@ -1,0 +1,537 @@
+import meta::external::language::java::transform::*;
+import meta::external::language::java::factory::*;
+import meta::pure::executionPlan::engine::*;
+
+function meta::pure::executionPlan::document::engine::java::databaseConnectionPropertyName():String[1]
+{
+   'databaseConnection$'
+}
+
+function meta::pure::executionPlan::document::engine::java::addObjectMapperField(cl: meta::external::language::java::metamodel::Class[1], conventions: Conventions[1]):meta::external::language::java::metamodel::Class[1]
+{
+   $cl
+   ->imports(javaClass('com.fasterxml.jackson.databind.module.SimpleModule'))
+   ->imports(javaClass('com.fasterxml.jackson.databind.ObjectMapper'))
+   ->imports(javaClass('com.fasterxml.jackson.annotation.JsonInclude'))
+   ->imports(javaClass('com.fasterxml.jackson.core.JsonGenerator'))
+   ->imports(javaClass('com.fasterxml.jackson.databind.JsonSerializer'))
+   ->imports(javaClass('com.fasterxml.jackson.databind.SerializerProvider'))
+   ->imports($conventions->className(PureDate))
+   ->imports(javaClass('java.io.IOException'))
+   ->addField(javaField(['private', 'static', 'final'], javaClass('com.fasterxml.jackson.databind.ObjectMapper'), 'objectMapper$', 'new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).registerModule(new SimpleModule().addSerializer(PureDate.class, new JsonSerializer<PureDate>() { @Override public void serialize(PureDate value, JsonGenerator gen, SerializerProvider serializers) throws IOException { gen.writeRawValue("\\"" + value.toString() + "\\""); } }))'))
+}
+
+function meta::pure::executionPlan::document::engine::java::getAlloyNativeValueFromResultSetMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaObject(), 'getAlloyNativeValueFromResultSet', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType')],
+      'try\n'+
+      '{\n'+
+      '    Object result = null;\n'+
+      '    switch (columnType)\n'+
+      '    {\n'+
+      '        case Types.DATE:\n'+
+      '        {\n'+
+      '            java.sql.Date date = resultSet.getDate(columnIndex);\n'+
+      '            if (date != null)\n'+
+      '            {\n'+
+      '                result = PureDate.fromSQLDate(date);\n'+
+      '            }\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.TIMESTAMP:\n'+
+      '        {\n'+
+      '            java.sql.Timestamp timestamp = resultSet.getTimestamp(columnIndex, this.calendar);\n'+
+      '            if (timestamp != null)\n'+
+      '            {\n'+
+      '                result = PureDate.fromSQLTimestamp(timestamp);\n'+
+      '            }\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.TINYINT:\n'+
+      '        case Types.SMALLINT:\n'+
+      '        case Types.INTEGER:\n'+
+      '        case Types.BIGINT:\n'+
+      '        {\n'+
+      '            long num = resultSet.getLong(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                result = Long.valueOf(num);\n'+
+      '            }\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.REAL:\n'+
+      '        case Types.FLOAT:\n'+
+      '        case Types.DOUBLE:\n'+
+      '        {\n'+
+      '            double num = resultSet.getDouble(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                result = Double.valueOf(num);\n'+
+      '            }\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.DECIMAL:\n'+
+      '        case Types.NUMERIC:\n'+
+      '        {\n'+
+      '            result = resultSet.getBigDecimal(columnIndex);\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.CHAR:\n'+
+      '        case Types.VARCHAR:\n'+
+      '        case Types.LONGVARCHAR:\n'+
+      '        case Types.NCHAR:\n'+
+      '        case Types.NVARCHAR:\n'+
+      '        case Types.LONGNVARCHAR:\n'+
+      '        case Types.OTHER:\n'+
+      '        {\n'+
+      '            result = resultSet.getString(columnIndex);\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.BIT:\n'+
+      '        case Types.BOOLEAN:\n'+
+      '        {\n'+
+      '            boolean bool = resultSet.getBoolean(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                result = Boolean.valueOf(bool);\n'+
+      '            }\n'+
+      '        }\n'+
+      '        case Types.BINARY:\n'+
+      '        case Types.VARBINARY:\n'+
+      '        case Types.LONGVARBINARY:\n'+
+      '        {\n'+
+      '            byte[] bytes = resultSet.getBytes(columnIndex);\n'+
+      '            if (bytes != null)\n'+
+      '            {\n'+
+      '                result = this.encodeHex(bytes);\n'+
+      '            }\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        case Types.NULL:\n'+
+      '        {\n'+
+      '            // do nothing: value is already assigned to null\n'+
+      '            break;\n'+
+      '        }\n'+
+      '        default:\n'+
+      '        {\n'+
+      '            result = resultSet.getObject(columnIndex);\n'+
+      '        }\n'+
+      '    }\n'+
+      '    return result;'+
+      '}\n'+
+      'catch (Exception e)\n'+
+      '{\n'+
+      '    throw new RuntimeException(e);\n'+
+      '}\n'            
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::encodeHexMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaString(), 'encodeHex', [javaParam(javaArray(javaByte()), 'data')],
+      'final char[] DIGITS_LOWER = {\'0\', \'1\', \'2\', \'3\', \'4\', \'5\', \'6\', \'7\', \'8\', \'9\', \'a\', \'b\', \'c\', \'d\', \'e\', \'f\'};\n'+
+      'final int l = data.length;\n'+
+      'final char[] out = new char[l << 1];\n'+
+      'for (int i = 0, j = 0; i < l; i++)\n'+
+      '{\n'+
+      '    out[j++] = DIGITS_LOWER[(0xF0 & data[i]) >>> 4];\n'+
+      '    out[j++] = DIGITS_LOWER[0x0F & data[i]];\n'+
+      '}\n'+
+      'return new String(out);\n'      
+   )
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForStringPropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForStringProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (STRING_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '   return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            return resultSet.getString(columnIndex);\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'else\n'+
+      '{\n'+
+      '    throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type String from SQL column of type \'" + columnType + "\'.");\n'+
+      '}\n'   
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForIntegerPropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForIntegerProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (INT_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            Long res = null;\n'+
+      '            long r = resultSet.getLong(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = Long.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type Integer from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForFloatPropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForFloatProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (FLOAT_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            Double res = null;\n'+
+      '            double r = resultSet.getDouble(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = Double.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (INT_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            Double res = null;\n'+
+      '            long r = resultSet.getLong(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = Double.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type Float from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForDecimalPropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForDecimalProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (FLOAT_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            java.math.BigDecimal res = null;\n'+
+      '            double r = resultSet.getDouble(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = java.math.BigDecimal.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (INT_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            java.math.BigDecimal res = null;\n'+
+      '            long r = resultSet.getLong(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = java.math.BigDecimal.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type Decimal from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForBooleanPropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForBooleanProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (BOOL_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            Boolean res = null;\n'+
+      '            boolean r = resultSet.getBoolean(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = Boolean.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (STRING_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            Boolean res = null;\n'+
+      '            String r = resultSet.getString(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = Boolean.valueOf(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (INT_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            Boolean res = null;\n'+
+      '            long r = resultSet.getLong(columnIndex);\n'+
+      '            if (!resultSet.wasNull())\n'+
+      '            {\n'+
+      '                res = Boolean.valueOf(r == 1);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type Boolean from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForStrictDatePropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForStrictDateProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'), javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (STRICT_DATE_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            java.sql.Date r = resultSet.getDate(columnIndex);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                res = PureDate.fromSQLDate(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (STRING_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            String r = resultSet.getString(columnIndex);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                try\n'+
+      '                {\n'+
+      '                    res = PureDate.parsePureDate(r);\n'+
+      '                }\n'+
+      '                catch (java.lang.IllegalArgumentException dateTimeParseException)\n'+
+      '                {\n'+
+      '                    res = PureDate.fromSQLDate(java.sql.Date.valueOf(r));\n'+
+      '                }\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type StrictDate from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForDateTimePropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForDateTimeProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'),  javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (DATE_TIME_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            java.sql.Timestamp r = resultSet.getTimestamp(columnIndex, this.calendar);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                res = PureDate.fromSQLTimestamp(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (STRING_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            String r = resultSet.getString(columnIndex);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                try\n'+
+      '                {\n'+
+      '                    res = PureDate.parsePureDate(r);\n'+
+      '                }\n'+
+      '                catch (java.lang.IllegalArgumentException dateTimeParseException)\n'+
+      '                {\n'+
+      '                    res = PureDate.fromSQLTimestamp(java.sql.Timestamp.valueOf(r));\n'+
+      '                }\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type DateTime from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}
+
+function meta::pure::executionPlan::document::engine::java::getResultSetPropertyGetterForDatePropertyMethod():meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod(
+      ['private'], javaParameterizedType(javaClass('java.util.function.Supplier'), [javaObject()]), 'getResultSetPropertyGetterForDateProperty', [javaParam(javaType('java.sql.ResultSet'), 'resultSet'),  javaParam(javaInt(), 'columnIndex'), javaParam(javaInt(), 'columnType'), javaParam(javaString(), 'propertyName')],
+      'if (STRICT_DATE_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            java.sql.Date r = resultSet.getDate(columnIndex);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                res = PureDate.fromSQLDate(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (DATE_TIME_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            java.sql.Timestamp r = resultSet.getTimestamp(columnIndex, this.calendar);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                res = PureDate.fromSQLTimestamp(r);\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'if (STRING_TYPES.contains(columnType))\n' +
+      '{\n'+
+      '    return () -> {\n'+
+      '        try\n'+
+      '        {\n'+
+      '            PureDate res = null;\n'+
+      '            String r = resultSet.getString(columnIndex);\n'+
+      '            if (r != null)\n'+
+      '            {\n'+
+      '                try\n'+
+      '                {\n'+
+      '                    res = PureDate.parsePureDate(r);\n'+
+      '                }\n'+
+      '                catch (java.lang.IllegalArgumentException dateTimeParseException1)\n'+
+      '                {\n'+
+      '                    try\n'+
+      '                    {\n'+
+      '                        res = PureDate.fromSQLTimestamp(java.sql.Timestamp.valueOf(r));\n'+
+      '                    }\n'+
+      '                    catch (java.time.format.DateTimeParseException dateTimeParseException2)\n'+
+      '                    {\n'+
+      '                        res = PureDate.fromSQLDate(java.sql.Date.valueOf(r));\n'+
+      '                    }\n'+
+      '                }\n'+
+      '            }\n'+
+      '            return res;\n'+
+      '        }\n'+
+      '        catch (Exception e)\n'+
+      '        {\n'+
+      '            throw new RuntimeException(e);\n'+
+      '        }\n'+
+      '    };\n'+
+      '}\n'+
+      'throw new RuntimeException("Error reading in property \'" + propertyName + "\' of type Date from SQL column of type \'" + columnType + "\'.");\n'
+   );
+}

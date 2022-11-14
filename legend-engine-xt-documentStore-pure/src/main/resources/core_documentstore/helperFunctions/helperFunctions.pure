@@ -1,0 +1,11 @@
+import meta::external::store::document::metamodel::mapping::*;
+import meta::external::store::document::metamodel::*;
+import meta::external::store::document::metamodel::mapping::*;
+
+function meta::document::store::mapping::resolvePrimaryKey(rdi: DocumentInstanceSetImplementation[1]):DocumentStoreElement[*]
+{
+   $rdi->match([
+      //edsi: EmbeddedRelationalInstanceSetImplementation[1] | $edsi.setMappingOwner.resolvePrimaryKey(),
+      rdsi: RootDocumentInstanceSetImplementation[1]     | $rdsi.resolvePrimaryKey()
+   ])
+}

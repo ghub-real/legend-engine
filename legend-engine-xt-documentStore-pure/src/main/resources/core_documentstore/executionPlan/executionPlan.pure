@@ -16,6 +16,7 @@ import meta::pure::executionPlan::*;
 import meta::external::store::document::graphFetch::executionPlan::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::runtime::*;
+import meta::document::store::mapping::*;
 
 
 Class meta::external::store::document::graphFetch::executionPlan::DocumentRelationResultType extends ResultType
@@ -47,4 +48,11 @@ Class meta::external::store::document::metamodel::mapping::DocumentQueryExecutio
    onConnectionCloseRollbackQuery : String[0..1];
    resultFields : DocumentQueryResultField[*];
    connection: DatabaseConnection[1];
+}
+
+// TODO: do we need dataType?
+Class meta::document::store::mapping::DocumentResultColumn
+{
+   label : String[1];
+   //dataType : meta::relational::metamodel::datatype::DataType[0..1];
 }

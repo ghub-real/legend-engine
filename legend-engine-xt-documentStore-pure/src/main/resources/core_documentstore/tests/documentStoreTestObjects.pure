@@ -34,7 +34,7 @@ function meta::external::store::document::tests::object::TestMongoStore(): meta:
    let docCollection = [
            ^meta::external::store::document::metamodel::Collection(
              id='101',
-             name='personDocument',
+             name='persons',
              fields = $allFields
            )
    ];
@@ -87,7 +87,7 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
     let docCollection = [
         ^meta::external::store::document::metamodel::Collection(
           id='101',
-          name='personDocument',
+          name='persons',
           fields = $allFields
         )
       ];
@@ -111,7 +111,7 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
 
 
    let collectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
-                name = 'personDocument',
+                name = 'persons',
                 documentElement = $docCollection,
                 documentStore=$mongoStore
                 );
@@ -148,7 +148,7 @@ function meta::external::store::document::tests::object::localMongoDatabaseConne
     ^meta::external::store::document::runtime::connections::DocumentStoreConnection(
         element = $dataStore,
         type = meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,
-        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='local',port=27017,databaseName='myCollection'),
+        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='localhost',port=27017,databaseName='myCollection'),
         authenticationStrategy = ^meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy(),
         timeZone = 'GMT'
     );
@@ -163,7 +163,7 @@ Class meta::external::store::document::tests::object::TestSetup
 function meta::external::store::document::tests::object::getTestSetup(): meta::external::store::document::tests::object::TestSetup[1]
 {
   let mongoStoreAndMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
-  let mapping = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second);
+  let mapping = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second, name='nameOfMapping');
   let runtime = meta::external::store::document::tests::object::getLocalMongoRuntime($mongoStoreAndMapping.first);
   ^meta::external::store::document::tests::object::TestSetup(mapping = $mapping, runtime = $runtime);
 }
@@ -177,7 +177,7 @@ function meta::external::store::document::tests::object::getCollection(): meta::
     let docCollection = 
         ^meta::external::store::document::metamodel::Collection(
           id='101',
-          name='personDocument',
+          name='persons',
           fields = $allFields
         );
 
@@ -193,7 +193,7 @@ function meta::external::store::document::tests::object::getCollectionWithLessFi
     let docCollection = 
         ^meta::external::store::document::metamodel::Collection(
           id='101',
-          name='personDocument',
+          name='persons',
           fields = [$allFields->at(0), $allFields->at(1)]
         );
 

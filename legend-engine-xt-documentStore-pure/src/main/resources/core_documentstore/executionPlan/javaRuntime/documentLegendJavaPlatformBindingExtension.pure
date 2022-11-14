@@ -1,0 +1,133 @@
+// Copyright 2022 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::external::language::java::factory::project::*;
+import meta::external::language::java::metamodel::project::*;
+import meta::pure::executionPlan::*;
+import meta::pure::executionPlan::platformBinding::*;
+import meta::pure::executionPlan::platformBinding::legendJava::*;
+import meta::pure::executionPlan::platformBinding::legendJava::platform::objectReference::*;
+import meta::pure::extension::*;
+import meta::pure::mapping::*;
+import meta::pure::executionPlan::engine::java::*;
+import meta::pure::executionPlan::engine::java::graphFetch::common::*;
+import meta::pure::executionPlan::engine::java::graphFetch::relational::*;
+import meta::pure::executionPlan::engine::java::naming::*;
+//import meta::relational::graphFetch::executionPlan::*;
+//import meta::relational::mapping::*;
+import meta::external::store::document::graphFetch::executionPlan::*;
+import meta::pure::executionPlan::engine::java::graphFetch::document::store::*;
+import meta::pure::executionPlan::engine::java::graphFetch::document::*;
+
+function meta::document::executionPlan::platformBinding::legendJava::documentLegendJavaPlatformBindingExtension(): LegendJavaPlatformBindingExtension[1]
+{
+   ^LegendJavaPlatformBindingExtension
+   (
+      platformId = legendJavaPlatformBindingId(),
+
+      id = 'DocumentLegendJavaPlatformBindingExtension',
+
+      // Node based extensions ------------------------------------------------------
+
+      supportedExecutionNodes = [
+         DocumentGraphFetchExecutionNode
+         /*
+         RelationalClassInstantiationExecutionNode,
+         CreateAndPopulateTempTableExecutionNode
+         */
+      ],
+
+/*
+      extraChildNodesWithIndex = {node: ExecutionNode[1] |
+         $node->match([
+            r: DocumentGraphFetchExecutionNode[1] | $r.children->size()->range()->map(x | pair($r.children->at($x), 'localChild' + $x->toString())),
+            n: ExecutionNode[1]                     | []
+         ])
+      },
+*/
+      updateGenerationContextForNode = {node: ExecutionNode[1], context: GenerationContext[1], path: String[1], extensions: Extension[*], debug: DebugContext[1] |
+         $node->match([
+            r: DocumentGraphFetchExecutionNode[1]         | $r->prepareForDocumentGraphFetch($path, $context, $debug),
+            n: ExecutionNode[1]                             | $context
+         ])
+      },
+
+      generateLegendJavaCodeForNode = {node: ExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1] |
+         $node->match([
+            {r: DocumentGraphFetchExecutionNode[1] |
+               let documentGraphImplUpdateFunction = {impl: meta::external::language::java::metamodel::Class[1] |
+                  $impl->enrichForDocumentGraphExecution($r, $context, $extensions, $debug)
+               };
+               let baseProject  = $r->generateBaseProjectForLocalGraphFetchNode($path, $context, $documentGraphImplUpdateFunction, $debug);
+               let storeProject = $r->generateDocumentStoreGraphFetchProject($path, $context, $extensions, $debug);
+
+               generatedCode(
+                  $baseProject->concatenate($storeProject)->toOneMany()->mergeProjects(),
+                  $storeProject->resolve($context.conventions->planNodeClass('public', $path, 'Execute'))
+               );
+            },
+            /*
+            {r: RelationalClassInstantiationExecutionNode[1] |
+               $r.resultType->match([
+                  pc : PartialClassResultType[1] | $r->generateImplementionForRelationalPartialClassResult($path, $pc.propertiesWithParameters.property, $context, $debug),
+                  c  : ClassResultType[1]        | $r->generateImplementionForRelationalClassResult($path, $context, $debug)
+               ])
+            },
+            r: CreateAndPopulateTempTableExecutionNode[1] | $r->generateImplementationForCreateAndPopulateTempTableNode($path, $context, $debug),
+            */
+            n: ExecutionNode[1]                           | ^GeneratedCode()
+         ])
+      },
+/*
+      generateLegendJavaCodeForExtraChildNodes = {node: ExecutionNode[1], project: Project[0..1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1] |
+         $node->match([
+            {r: RelationalGraphFetchExecutionNode[1] |
+               let transformedChildren = $r.children->size()->range()->map(x | $r.children->at($x)->generateLegendJavaPlatformBindingCode($path + '.localChild' + $x->toString(), $context, $extensions, $debug));
+               ^GeneratedNode
+               (
+                  node    = ^$r(children = $transformedChildren.node->cast(@RelationalGraphFetchExecutionNode)),
+                  project = $project->concatenate($transformedChildren.project)->mergeProjectsNullable()
+               );
+            },
+            n: ExecutionNode[1] | ^GeneratedNode(node = $node, project = $project)
+         ])
+      },
+      */
+
+      // ------------------------------------------------------ Node based extensions
+
+
+      // Adhoc extensions -----------------------------------------------------------      
+
+      adhocExtensions = [
+         
+         ^LegendJavaProhibitedFunctionsExtension
+         (
+            prohibitedFunctions = []
+         )
+/*
+         ^LegendJavaObjectReferenceParsingExtension
+         (
+            storeType = meta::relational::postProcessor::getObjectReferenceStoreType(),
+            generateObjectReferenceParserImpl = {args: Any[*], path: String[1], context: GenerationContext[1], debug: DebugContext[1] |
+               meta::pure::executionPlan::engine::java::getRelationalObjectReferenceParserHelperClass($args->cast(@String), $path, $context, $debug);
+            }
+         )
+*/
+      ]
+
+      // ----------------------------------------------------------- Adhoc extensions
+
+   )
+}

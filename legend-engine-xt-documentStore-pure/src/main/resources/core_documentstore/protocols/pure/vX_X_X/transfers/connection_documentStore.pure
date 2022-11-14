@@ -36,37 +36,58 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
   //                                     | $otherConnection.queryPostProcessorsWithParameter->transformPostProcessors($extensions));
 
 
-   let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f | $f->eval($_type, $element, $type))->concatenate([
-//      test:meta::relational::runtime::TestDatabaseConnection[1]|
-//          ^DocumentStoreConnection(
-//            _type = 'DocumentStoreConnection',
-//            type = $type,
-//            timeZone = $test.timeZone,
-//            quoteIdentifiers = $test.quoteIdentifiers,
-//            element = $element,
-//            datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::alloy::specification::LocalH2DatasourceSpecification(
-//              _type = 'h2Local',
-//               testDataSetupCsv = $test.testDataSetupCsv,
-//               testDataSetupSqls = $test.testDataSetupSqls
-//            ),
-//            authenticationStrategy = ^meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::alloy::authentication::TestDatabaseAuthenticationStrategy(
-//              _type = 'test'
-//            ),
-//            postProcessorWithParameter = $postProcessorsWithParams
-//         ),
+
+ println('meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection');
+
+ println('otherConnection:');
+ println($otherConnection);
+   let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f |
+   println('f:');
+   println($f);
+   $f->eval($_type, $element, $type);
+   )->concatenate([
+     test:meta::protocols::pure::vX_X_X::metamodel::store::document::connection::TestDatabaseConnection[1]|
+     println('test called:');
+         ^DocumentStoreConnection(
+           _type = 'DocumentStoreConnection',
+           type = $type,
+           timeZone = $test.timeZone,
+           quoteIdentifiers = $test.quoteIdentifiers,
+           element = $element,
+           //datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='localhost',port=27017,databaseName='myCollection'),
+          datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(_type='mongoDB', host='localhost',port=27017,databaseName='myCollection'),
+           
+           authenticationStrategy = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::TestDatabaseAuthenticationStrategy(
+             _type = 'test'
+           )
+          //  ,
+          //  postProcessorWithParameter = $postProcessorsWithParams
+        );
+        ,
       documentStore:meta::external::store::document::runtime::connections::DocumentStoreConnection[1] |
+
+      println('documentStore called:');
          //let processors = transformPostProcessors($documentStore.postProcessors, $extensions);
          let processors = [];
          documentStore($type, $element, $documentStore.timeZone, $documentStore.quoteIdentifiers, $processors, $documentStore.datasourceSpecification, $documentStore.authenticationStrategy, $extensions);,
       dbCon:meta::external::store::document::metamodel::runtime::DatabaseConnection[1]|
+
+      println('dbCon called:');
+      println($dbCon);
+
          ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection(
                   _type = $_type,
                   timeZone = $dbCon.timeZone,
                   quoteIdentifiers = $dbCon.quoteIdentifiers,
                   element = $element,
                   //postProcessorWithParameter = $postProcessorsWithParams,
-                  type = $type)
+                  type = $type);
     ])->toOneMany());
+
+    println('alloy connection:');
+    println(meta::json::toJSON($alloyConnection));
+
+    $alloyConnection;
 }
 
 //function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformPostProcessors(processors:meta::pure::alloy::connections::PostProcessor[*], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::relational::postProcessor::PostProcessor[*]
@@ -125,7 +146,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformAuthenticationStrategy(a:meta::external::store::document::runtime::authentication::AuthenticationStrategy[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy[1]
 {
-   $a->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformAuthenticationStrategy->concatenate([
+   $a->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformAuthenticationStrategy->concatenate([
       u:meta::external::store::document::runtime::authentication::UserNamePasswordAuthenticationStrategy[1] |
       ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::UserNamePasswordAuthenticationStrategy(
          _type = 'userNamePassword',
@@ -142,7 +163,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatasourceSpecification(ds: meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1]
 {
-   $ds->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension).transfers_connection_transformDatasourceSpecification->concatenate([
+   $ds->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformDatasourceSpecification->concatenate([
       m:meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification[1] |
          ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(
             _type = 'mongoDB',

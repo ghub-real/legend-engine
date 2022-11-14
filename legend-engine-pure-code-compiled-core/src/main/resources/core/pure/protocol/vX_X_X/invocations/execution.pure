@@ -250,7 +250,9 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::generate
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::alloyExecuteLambda<T|m>(f:FunctionDefinition<{->T[m]}>[1], m:Mapping[1], pureRuntime:Runtime[1], context:ExecutionContext[0..1], host:String[1], port:Integer[1], version:String[1], serializationKind:String[1], executionMode:String[1], extensions:meta::pure::extension::Extension[*]) : String[1]
 {
-   let payload = buildExecutionInput($f,$m,$pureRuntime,$context,$version, $serializationKind, $executionMode, $extensions);
+
+  // to run full interactive change $executionMode -> 'FULL_INTERACTIVE'
+   let payload = buildExecutionInput($f,$m,$pureRuntime,$context,$version, $serializationKind, 'FULL_INTERACTIVE', $extensions);
    let resp = executeHTTPRaw(^URL(host = $host , port=$port, path = '/api/pure/'+$version+'/execution/execute'),
                                  HTTPMethod.POST,
                                  'application/json',

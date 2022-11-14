@@ -18,6 +18,8 @@ import meta::external::store::document::metamodel::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::runtime::*;
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::*;
+import meta::external::store::document::graphFetch::executionPlan::*;
+import meta::protocols::pure::vX_X_X::metamodel::executionPlan::*;
 
 function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentStoreExtension(type:String[1]):meta::pure::extension::SerializerExtension[1]
 {
@@ -32,6 +34,8 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
 {
    ^meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X
    (
+
+    moduleSerializerExtensions = [],
     scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
                                                      [
                                                         rsi: RootDocumentInstanceSetImplementation[1] |
@@ -57,53 +61,147 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
     ]},
    transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
    [
-   d:meta::external::store::document::metamodel::DocumentStore[1] | $d->transformDataStore($extensions)
-   ]}
+        d:meta::external::store::document::metamodel::DocumentStore[1] | $d->transformDataStore($extensions)
+   ]},
 
 
 //      transfers_store_transformConnection =
 //          [
 //             serviceStoreConnection:ServiceStoreConnection[1] | $serviceStoreConnection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::service::transformServiceStoreConnection()
 //          ],
-//      transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
-//          [
-//             ser:meta::external::store::service::executionPlan::nodes::RestServiceExecutionNode[1]|
-//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::RestServiceExecutionNode(
-//                   _type            = 'restService',
-//                   resultType       = $ser.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-//                   url              = $ser.url,
-//                   method           = $ser.method,
-//                   mimeType         = $ser.mimeType,
-//                   securitySchemes  = $ser.securitySchemes->map(s | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformSecurityScheme($extensions)),
-//                   requestBodyDescription = if($ser.requestBodyDescription->isEmpty(),
-//                                               |[],
-//                                               |^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::RequestBodyDescription(
-//                                                    mimeType = $ser.requestBodyDescription.mimeType->toOne(),
-//                                                    resultKey = $ser.requestBodyDescription.resultKey->toOne()
-//                                                 )),
-//                   params           = $ser.params->map(p | $p->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStoreParameter())
-//                ),
-//             spr:meta::external::store::service::executionPlan::nodes::ServiceParametersResolutionExecutionNode[1]|
-//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::ServiceParametersResolutionExecutionNode(
-//                   _type                      = 'serviceParametersResolution',
-//                   resultType                 = $spr.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-//                   requestParametersBuildInfo = $spr.requestParametersBuildInfo->map(p | $p->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformServiceRequestParametersBuildInfo($extensions))
-//                ),
-//             limit:meta::external::store::service::executionPlan::nodes::LimitExecutionNode[1]|
-//                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::service::LimitExecutionNode(
-//                   _type='limit',
-//                   resultType=$limit.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-//                   limit = $limit.limit
-//                )
-//          ]},
-//      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
-//            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::mapping::transformRootServiceInstanceSetImplementation($mapping, $extensions),
-//            esi:EmbeddedServiceStoreSetImplementation[1] | []
-//          ]},
-//      transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
-//         [
-//            s:ServiceStore[1] | $s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::service::transformServiceStore($extensions)
-//         ]},
+      transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+          [
+            /*
+                     rb:meta::pure::executionPlan::RelationalBlockExecutionNode[1]|
+                               ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalBlockExecutionNode( _type = 'relationalBlock',
+                                                                                                                       resultType = $rb.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)),
+            */
+                     rel:meta::external::store::document::metamodel::mapping::DocumentQueryExecutionNode[1]|
+
+                     println('documentquery execution node:');
+                     println(meta::json::toJSON($rel));
+
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode(
+                          // TODO: should be noSQL, needs to be whitelisted somewhere, related error: Could not resolve type id 'noSQL' as a subtype of `org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode`: known type ids = [aggregationAware, allocation, constant, createAndPopulateTempTable, dataQuality, documentQuery, error, externalFormatExternalize, externalFormatInternalize, flatDataDeserialize, flatDataSerialize, freeMarkerConditionalExecutionNode, function-parameters-validation, globalGraphFetchExecutionNode, graphFetchExecutionNode, graphFetchM2M, inMemoryCrossStoreGraphFetch, inMemoryPropertyGraphFetch, inMemoryRootGraphFetch, jsonDeserialize, jsonSerialize, limit, multiResultSequence, platform, platformMerge, platformUnion, pureExp, relational, relationalBlock, relationalClassInstantiation, relationalClassQueryTempTableGraphFetch, relationalCrossRootGraphFetchExecutionNode, relationalCrossRootQueryTempTableGraphFetch, relationalDataTypeInstantiation, relationalGraphFetchExecutionNode, relationalPrimitiveQueryGraphFetch, relationalRelationDataInstantiation, relationalRootGraphFetchExecutionNode, relationalRootQueryTempTableGraphFetch, relationalTdsInstantiation, relationalTempTableGraphFetchExecutionNode, restService, sequence, serviceParametersResolution, sql, storeStreamReading, urlStream, varResolution, xmlDeserialize, xmlSerialize] (for POJO property 'executionNodes')
+                           _type = 'documentQuery',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           mongoQLQuery=$rel.documentQuery,
+                           //resultColumns = $rel.resultColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           //sqlQuery = $rel.sqlQuery,
+                           onConnectionCloseCommitQuery = $rel.onConnectionCloseCommitQuery,
+                           onConnectionCloseRollbackQuery = $rel.onConnectionCloseRollbackQuery,
+                           connection = $rel.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection($extensions)
+                        );
+                        ,
+            /*  
+                     rel:meta::relational::mapping::RelationalTdsInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalTdsInstantiationExecutionNode(
+                           _type = 'relationalTdsInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                        
+                     rel:meta::relational::mapping::RelationalClassInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalClassInstantiationExecutionNode(
+                           _type = 'relationalClassInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                     rel:meta::relational::mapping::RelationalRelationDataInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalRelationDataInstantiationExecutionNode(
+                           _type = 'relationalRelationDataInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                     rel:meta::relational::mapping::RelationalDataTypeInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalDataTypeInstantiationExecutionNode(
+                           _type = 'relationalDataTypeInstantiation',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
+                     cpt:meta::relational::mapping::CreateAndPopulateTempTableExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::CreateAndPopulateTempTableExecutionNode
+                        (
+                           _type = 'createAndPopulateTempTable',
+                           inputVarNames = $cpt.inputVarNames,
+                           tempTableName = $cpt.tempTableName,
+                           resultType = $cpt.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $cpt.resultSizeRange->isEmpty()->if(|[],|$cpt.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           tempTableColumnMetaData = $cpt.tempTableColumnMetaData->map(col | $col->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformTempTableColumnMetaData()),
+                           connection = $cpt.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+                        ),
+              */
+                     rel:meta::external::store::document::graphFetch::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode(
+                           //_type = 'documentStoreRootQueryTempTableGraphFetch',
+                           // TODO: is this the right type?
+                           _type = 'documentRootQueryTempTableGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           //batchSize = $rel.batchSize,
+                           // TODO: the name isn't root, check if I need to use the tempTableName or something else there.
+                           //tempCollectionName='root',
+                           //tempTableName = $rel.tempTableName,
+                           //columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           //children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                           //checked = $rel.checked
+                        )
+                        /*
+                     rel:meta::relational::graphFetch::executionPlan::RelationalCrossRootQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalCrossRootQueryTempTableGraphFetchExecutionNode(
+                           _type = 'relationalCrossRootQueryTempTableGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           tempTableName = $rel.tempTableName,
+                           columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           parentTempTableName = $rel.parentTempTableName,
+                           parentTempTableColumns = $rel.parentTempTableColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                        ),
+                     rel:meta::relational::graphFetch::executionPlan::RelationalClassQueryTempTableGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalClassQueryTempTableGraphFetchExecutionNode(
+                           _type = 'relationalClassQueryTempTableGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           tempTableName = $rel.tempTableName,
+                           columns = $rel.columns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           children = $rel.children->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode($mapping, $extensions))->cast(@meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalGraphFetchExecutionNode),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                        ),
+                     rel:meta::relational::graphFetch::executionPlan::RelationalPrimitiveQueryGraphFetchExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalPrimitiveQueryGraphFetchExecutionNode(
+                           _type = 'relationalPrimitiveQueryGraphFetch',
+                           resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           nodeIndex = $rel.nodeIndex,
+                           parentIndex = $rel.parentIndex,
+                           graphFetchTree = $rel.graphFetchTree->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::valueSpecification::transformGraphFetchTree([], newMap([]->cast(@Pair<String,List<Any>>)), $extensions)
+                        )
+                        */
+          ];
+       },
+
+       // TODO: implement those
+       /*
+      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | println('I AM HERE'); let a = [
+            rsi:Any[1]  | println('mapping...'); println($mapping); println('extensions...'); println($extensions); let b = []; $b;,
+          ]; $a;}
+          */
+      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
+            rdi:RootDocumentInstanceSetImplementation[1]  | $rdi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformRootDocumentInstanceSetImplementation($mapping, $extensions),
+            any:Any[1] | println('I AM CALLED TOO - transfers_mapping_transformSetImplementation2'); let a = []; $a;
+          ]}
+          //$s->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformDocumentStore($extensions);
+        //}
 //      scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
 //         [
 //            rsi:RootServiceInstanceSetImplementation[1]  | $rsi->meta::protocols::pure::vX_X_X::extension::store::service::extractServiceStore(),
@@ -113,17 +211,27 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
 }
 
 
-Class meta::protocols::pure::vX_X_X::extension::store::document::DocumentStoreModuleSerializerExtension extends meta::protocols::pure::vX_X_X::extension::ModuleSerializerExtension
+
+
+function meta::protocols::pure::vX_X_X::extension::documentModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension[1]
 {
-   // Removed. , meta::protocols::pure::vX_X_X::metamodel::store::relational::PostProcessorWithParameter[*]
-   transfers_connection_transformDatabaseConnection : meta::pure::metamodel::function::Function<{String[1], String[1], String[1] -> meta::pure::metamodel::function::Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1]}>[*]}>[0..1];
-   //transfers_connection_transformPostProcessors : Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::relational::postProcessor::PostProcessor[1]}>[*];
-   transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::AuthenticationStrategy[1]}>[*];
-   transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::specification::DatasourceSpecification[1]}>[*];
-   //transfers_connection_transformPostProcessorParameters : Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::relational::PostProcessorParameter[1]}>[*];
-   //transfers_milestoning_transformMilestoning : Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::relational::Milestoning[1]}>[*];
-   reverse_transfers_typeLookups: Pair<String, String>[*];
-   reverse_transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::document::runtime::authentication::AuthenticationStrategy[1]}>[*];
-   reverse_transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1]}>[*];
+  let dbSpecificExtensions = meta::protocols::pure::vX_X_X::extension::NonRelationalModule->stereotype('SerializerExtension').modelElements->cast(@meta::pure::metamodel::function::Function<{->meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension[1]}>)
+    ->map(f| $f->eval())->sortBy(e| $e.module);
+  let transformDatabaseConnection = $dbSpecificExtensions.transfers_connection_transformDatabaseConnection;
+  ^meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension(
+    module = 'nonRelational',
+    transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
+    // transfers_connection_transformPostProcessors = $dbSpecificExtensions.transfers_connection_transformPostProcessors,
+    transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,
+    transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.transfers_connection_transformDatasourceSpecification,
+    // transfers_connection_transformPostProcessorParameters = $dbSpecificExtensions.transfers_connection_transformPostProcessorParameters,
+    // transfers_milestoning_transformMilestoning = $dbSpecificExtensions.transfers_milestoning_transformMilestoning,
+    // reverse_transfers_typeLookups = $dbSpecificExtensions.reverse_transfers_typeLookups,
+    reverse_transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.reverse_transfers_connection_transformAuthenticationStrategy,
+    reverse_transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.reverse_transfers_connection_transformDatasourceSpecification
+  );
+
 }
+
+
 

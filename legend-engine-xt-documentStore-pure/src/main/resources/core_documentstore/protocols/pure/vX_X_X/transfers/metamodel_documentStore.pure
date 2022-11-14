@@ -14,13 +14,18 @@
 
 ###Pure
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::*;
+import meta::external::store::document::metamodel::mapping::*;
+import meta::pure::mapping::*;
+import meta::external::store::document::metamodel::*;
+import meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::*;
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformDataStore(db:meta::external::store::document::metamodel::DocumentStore[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore[1]
 {
 
     ^meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore
    (
-      _type = 'document',
+      _type = 'nonRelational',
       name = $db.name->toOne(),
       package = if($db.package->isEmpty(), |[], |$db.package->toOne()->elementToPath()),
       collections = $db.collections->map(s| $s->match([
@@ -71,6 +76,64 @@ function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromP
                   s:meta::external::store::document::metamodel::StringTypeReference[1]|^meta::protocols::pure::vX_X_X::metamodel::store::document::StringTypeReference(_type='String',list=$s.list)
                 ]
    )
+}
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformRootDocumentInstanceSetImplementation(r:RootDocumentInstanceSetImplementation[1], mapping:Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::RootDocumentClassMapping[1]
+{
+  println('meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformRootDocumentInstanceSetImplementation');
+  println($r);
+  let collection = $r.mainCollectionAlias.documentElement->cast(@Collection);
+   //let schema = $collection->match([t:Collection[1]|$t.schema]);
+   let store = $r.mainCollectionAlias.documentStore->cast(@DocumentStore);
+   //let db = $schema.database;
+   //let storeFromTableAlias = $r.mainTableAlias.database;
+  ^meta::protocols::pure::vX_X_X::metamodel::store::document::mapping::RootDocumentClassMapping
+   (
+      id = $r.id,
+      _type = 'nonRelational',
+      class = $r.class->elementToPath(),
+      root = $r.root,
+      extendsClassMappingId = $r.superSetImplementationId,
+      mappingClass = $r.mappingClass->map(mc|$mc->transformMappingClass($mapping, $extensions)),
+      mainCollection = ^meta::protocols::pure::vX_X_X::metamodel::store::document::element::CollectionPtr(
+         _type = 'collection',
+         collection = $collection.name,
+         mainCollectionDb = 'myCollection', //if($storeFromTableAlias->isNotEmpty(),|if($db->elementToPath() == $storeFromTableAlias->toOne()->elementToPath(),| $db ,| $storeFromTableAlias->toOne()), | $db)->elementToPath()
+         store = $store.package->toOne()->elementToPath()
+         //schema = $schema.name),
+      //distinct = $r.distinct->isTrue(),
+      //groupBy = $r.groupBy.columns->map(c|$c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformRelationalOperationElement($db)),
+      //filter = if($r.filter->isEmpty(), |[], | ^FilterWithJoins(filter = ^FilterPtr(db=$r.filter.filter.database->toOne()->elementToPath(), name=$r.filter->toOne().filterName), joins = if($r.filter->toOne().joinTreeNode->isEmpty(),|[],|$r.filter->toOne().joinTreeNode->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformJoinTreeNode()))),
+      //primaryKey = $r.primaryKey->map(c|$c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformRelationalOperationElement($db)),
+      //propertyMappings = $r.propertyMappings->meta::pure::milestoning::excludeRangeMilestoningPropertyMapping()->map(pm|$pm->transformRelationalPropertyMapping($db, $mapping, $extensions))
+    )
+  );
+  /*
+   let table = $r.mainTableAlias.relationalElement->cast(@NamedRelation);
+   let schema = $table->match([t:Table[1]|$t.schema,v:View[1]|$v.schema]);
+   let db = $schema.database;
+   let storeFromTableAlias = $r.mainTableAlias.database;
+  ^meta::protocols::pure::vX_X_X::metamodel::store::relational::mapping::RootRelationalClassMapping
+   (
+      id = $r.id,
+      _type = 'nonRelational',
+      class = $r.class->elementToPath(),
+      root = $r.root,
+      extendsClassMappingId = $r.superSetImplementationId,
+      mappingClass = $r.mappingClass->map(mc|$mc->transformMappingClass($mapping, $extensions)),
+      mainTable = ^meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr(
+         _type = 'table',
+         table = $table.name,
+         mainTableDb = if($storeFromTableAlias->isNotEmpty(),|if($db->elementToPath() == $storeFromTableAlias->toOne()->elementToPath(),| $db ,| $storeFromTableAlias->toOne()), | $db)->elementToPath(),
+         database = $db->elementToPath(),
+         schema = $schema.name),
+      distinct = $r.distinct->isTrue(),
+      groupBy = $r.groupBy.columns->map(c|$c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformRelationalOperationElement($db)),
+      filter = if($r.filter->isEmpty(), |[], | ^FilterWithJoins(filter = ^FilterPtr(db=$r.filter.filter.database->toOne()->elementToPath(), name=$r.filter->toOne().filterName), joins = if($r.filter->toOne().joinTreeNode->isEmpty(),|[],|$r.filter->toOne().joinTreeNode->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformJoinTreeNode()))),
+      primaryKey = $r.primaryKey->map(c|$c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformRelationalOperationElement($db)),
+      propertyMappings = $r.propertyMappings->meta::pure::milestoning::excludeRangeMilestoningPropertyMapping()->map(pm|$pm->transformRelationalPropertyMapping($db, $mapping, $extensions))
+   );
+   */
 }
 
 // function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::alloyTypeToString(c:meta::relational::metamodel::datatype::DataType[1]):String[1]
@@ -133,3 +196,15 @@ function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromP
 //            ^meta::protocols::pure::vX_X_X::metamodel::store::relational::element::TablePtr(_type = 'Table',table = 'table',database = 'db',mainTableDb = 'db',schema = 'schema');
 //    ])
 // }
+
+/*
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::document::transformDocumentStore(s:DocumentStore[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore[0..3]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::document::DocumentStore(
+      _type       = 'documentStore',
+      //description = 'My Description',//$s.description,
+      name        = $s.name->toOne(),
+      package     = if($s.package->isEmpty(), |[], |$s.package->toOne()->elementToPath())
+   )
+}
+*/

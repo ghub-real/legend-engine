@@ -48,18 +48,24 @@ public class LocalMongoDBClient
 
     private List<String> executeCustomAggregationQueryWithCursor(MongoDatabase database, String query)
     {
-
-        Document bsonCmd = Document.parse(query);
-
-        // Execute the native query
-        Document result = database.runCommand(bsonCmd);
-        Document cursor = (Document) result.get("cursor");
-        List<Document> docs = (List<Document>) cursor.get("firstBatch");
-        docs.forEach(System.out::println);
-
         List<String> res = new ArrayList<>();
 
-        docs.forEach(doc -> res.add(doc.toString()));
+        try {
+            Document bsonCmd = Document.parse(query);
+
+            // Execute the native query
+            Document result = database.runCommand(bsonCmd);
+            Document cursor = (Document) result.get("cursor");
+            List<Document> docs = (List<Document>) cursor.get("firstBatch");
+            docs.forEach(System.out::println);
+
+
+
+            docs.forEach(doc -> res.add(doc.toString()));
+        } catch ( Exception e) {
+            System.out.println(e.toString());
+        }
+
         return res;
     }
 

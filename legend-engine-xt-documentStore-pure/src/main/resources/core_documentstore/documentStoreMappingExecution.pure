@@ -1,5 +1,12 @@
 import meta::pure::mapping::*;
 import meta::external::store::document::mapping::*;
+import meta::external::store::document::metamodel::*;
+import meta::pure::runtime::*;
+import meta::external::store::document::metamodel::runtime::*;
+import meta::external::store::document::functions::pureToDocumentStoreQuery::*;
+import meta::pure::extension::*;
+import meta::json::*;
+import meta::external::store::document::metamodel::execute::*;
 
 function meta::external::store::document::mapping::fetchEnumFullPath(enum:EnumerationMapping<Any>[*]):String[1]
 {
@@ -25,3 +32,151 @@ function meta::external::store::document::mapping::findPropertySequence(v:ValueS
                a:Any[1]|[];
             ])
 }
+
+function meta::external::store::document::mapping::execution(store: DocumentStore[1], f:FunctionExpression[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], inScopeVars:Map<String, List<Any>>[1], exeCtx:ExecutionContext[1], extensions:meta::pure::extension::Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
+{
+  println('meta::external::store::document::mapping::execution');
+   let toSqlQueryStart = now();
+
+   let documentStoreExecutionContext = $exeCtx->match([r:DocumentStoreExecutionContext[1]|$r, a:Any[0..1]|[]]);
+
+   let originalQuery = $f->toSelectDocumentQuery($m, $inScopeVars, $documentStoreExecutionContext, $debug, $extensions);
+   let toDocumentStoreQueryDurationMilliseconds = ($toSqlQueryStart->dateDiff(now(),DurationUnit.MILLISECONDS));
+
+   let connections = $runtime.connections->filter(c | $c->instanceOf(DatabaseConnection));
+   let storeRuntime = if($connections->size() <= 1,
+                         | $runtime->toOne(),
+                         | let oldRuntime = $runtime->toOne();
+                           let dbConn = $oldRuntime->connectionByElement($store)->cast(@DatabaseConnection);
+                           ^$oldRuntime(connections = $dbConn);
+                      );
+
+   //let postProcessorResult = postProcessQuery($exeCtx, $originalQuery, $storeRuntime, $store, $extensions);
+
+   let connection = $runtime->connectionByElement($store)->cast(@DatabaseConnection);
+
+   let documentStoreQueryToStringStart = now();
+   let noSql = meta::external::store::document::functions::toDDL::buildInsertDocumentStoreQueryResultIntoTable
+                                                    (
+                                                      'collectionName',
+                                                       $originalQuery,
+                                                       $connection,
+                                                       $extensions,
+                                                       $debug
+                                                    );
+
+   //print(if($debug->instanceOf(DocumentStoreDebugContext) && $debug->cast(@DocumentStoreDebugContext).logOnlyLastSQL == true,|$sql+'\n',|''));
+
+   let documentStoreQueryToStringDurationMilliseconds = ($documentStoreQueryToStringStart->dateDiff(now(),DurationUnit.MILLISECONDS));
+
+   let nosqlGenerationTimeInNanoSecond = ($toDocumentStoreQueryDurationMilliseconds + $documentStoreQueryToStringDurationMilliseconds) * 1000000;
+
+   let possibleClass = $f.genericType.rawType;
+   //Required if the class is a dynamically created variable expression
+   //let class = if ($possibleClass == Any, | let getAllClass = findMainClassInGetAllExpression($f); if($getAllClass->isEmpty(), | $possibleClass, | $getAllClass);, | $possibleClass );
+   let result = executeQuery($noSql, $originalQuery, [], $connection, $runtime, $possibleClass, $ext, $m, $nosqlGenerationTimeInNanoSecond, $exeCtx.queryTimeOutInSeconds, $exeCtx, $extensions, $debug);
+    $result;
+   //$postProcessorResult.resultPostProcessor->fold({pp,res| $pp->eval($res)},$result);
+}
+
+// this goes to a toDDL.pure in helperFunctions
+function meta::external::store::document::functions::toDDL::buildInsertDocumentStoreQueryResultIntoTable(tableName: String[1], s:SelectDocumentQuery[1], connection: DatabaseConnection[1], extensions:meta::pure::extension::Extension[*], context:DebugContext[1]) : String[1]
+{
+  'asdasd'
+   //'insert into '+ $tableName+' ( '+sqlQueryToString($s, $connection.type, $connection.timeZone, $connection.quoteIdentifiers, $extensions)+' )';
+}
+
+function meta::external::store::document::mapping::executeQuery(sql:String[1], query:SelectDocumentQuery[0..1], paths: Pair<String, PathInformation>[*], connection : DatabaseConnection[1], runtime: Runtime[1], class:Type[0..1], ext:RoutedValueSpecification[0..1], m: Mapping[1], sqlGenerationTimeInNanoSecond:Integer[0..1], g_queryTimeOutInSeconds: Integer[0..1], exeCtx:ExecutionContext[1], extensions: Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
+{
+  println('meta::external::store::document::mapping::executeQuery');
+   print(if(!$debug.debug, |'', | $debug.space+'>Execute SQL: '+$sql+'\n'));
+
+   let queryTimeOutInSeconds = if($g_queryTimeOutInSeconds->isNotEmpty(),
+                                       | $g_queryTimeOutInSeconds->toOne(),
+                                       | 3600 //1 hour
+                                       );
+   //let res = executeInDb($sql, $connection->cast(@DatabaseConnection), $queryTimeOutInSeconds, 1000);
+   let res = executeInDb($sql, $connection->cast(@DatabaseConnection));
+    //let res = ^ResultSet(connectionAcquisitionTimeInNanoSecond=1,executionTimeInNanoSecond=2);
+
+  println('res - personArray');
+  /*
+  println($res.documents.keyValuePairs.key.value);
+  println($res.documents.keyValuePairs.value->cast(@JSONString).value);
+
+  println('aadasdas');
+  println($res.documents->at(0));
+
+  println($res.documents->at(1).keyValuePairs.key.value);
+  println($res.documents->at(1).keyValuePairs.value->cast(@JSONString).value);
+  */
+  
+  
+
+  let personArray = $res.documents->map(x |
+    let value = $x.keyValuePairs.value->cast(@JSONString).value;
+      ^meta::external::store::document::tests::simple::Person(
+        firstName=$value->at(0),
+        lastName=$value->at(1)
+      );
+    );
+
+  println($personArray);
+
+    /*
+   print(if(!$debug.debug, |'', |let ds = $res.dataSource->toOne();
+                                 $debug.space+'>Query executed in '+$res.executionTimeInNanoSecond->toString()+'ns, host: \''+$ds.host+':'+$ds.port->toOne()->toString()+'\', name: \''+$ds.name+'\', type: \''+$ds.type->toOne()->toString()+'\'\n';));
+
+  
+   if ($class->toOne()->_subTypeOf(TabularDataSet),
+       | buildExecutionResultInTDS($sql, $res, $paths, $sqlGenerationTimeInNanoSecond),
+       | if($class->toOne()->_subTypeOf(RelationData),
+            | buildExecutionResultInRelationData($sql, $query, $res, $paths, $sqlGenerationTimeInNanoSecond),
+            | let objs = $class->match([
+                 e : Enumeration<Any>[1] | fail('Direct query on Enumerations is not supported yet!'); [];,
+                 p : PrimitiveType[1] | if($res.rows->isEmpty(),
+                                           | [],
+                                           | let offset = $res.rows->at(0).values->size()-1;
+                                             $res.rows->map(
+                                                r| let val = $r.values->at($offset); if(is($val->type(), SQLNull), |[], |$val);
+                                             );
+                                        ),
+                 c : Class<Any>[1] | let setImplementation = if($ext->isEmpty(),
+                                                                 | $m.rootClassMappingByClass($c)->toOne();,
+                                                                 | $ext->cast(@ExtendedRoutedValueSpecification).sets->at(0)
+                                                             );
+                                     $setImplementation->match(
+                                       [
+                                          r:RelationalInstanceSetImplementation[1]|buildClasses($r, $res, $m, $connection, $runtime, [], $exeCtx, $extensions, $debug),
+                                          o:OperationSetImplementation[1]|buildClasses($o->resolveOperation($m)->cast(@RelationalInstanceSetImplementation), $res, $m, $connection, $runtime, [], $exeCtx, $extensions, $debug)
+                                       ]
+                                    );
+              ]);
+              let result = ^Result<Any|*>(values=$objs, activities=^RelationalActivity(sql=$sql, executionTimeInNanoSecond=$res.executionTimeInNanoSecond, executionPlanInformation = $res.executionPlanInformation, dataSource = $res.dataSource, sqlGenerationTimeInNanoSecond = $sqlGenerationTimeInNanoSecond, connectionAcquisitionTimeInNanoSecond = $res.connectionAcquisitionTimeInNanoSecond));
+              $result;
+         )
+   );
+
+   */
+   ^Result<Any|*>(values=$personArray, activities=[]);
+}
+
+Class meta::external::store::document::metamodel::execute::ResultSet
+{
+    //executionTimeInNanoSecond: Integer[1];
+    //connectionAcquisitionTimeInNanoSecond: Integer[1];
+    //executionPlanInformation : String[0..1];
+    //columnNames : String[*];
+    documents : JSONObject[*];
+
+    //dataSource : meta::relational::runtime::DataSource[0..1];
+}
+
+/*
+Class meta::external::store::document::metamodel::execute::Documents
+{
+    values : Any[*];
+    parent : ResultSet[1];
+    value(name:String[1]){$this.values->at($this.parent.columnNames->indexOf($name));}:Any[1];
+}
+*/

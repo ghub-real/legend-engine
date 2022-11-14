@@ -461,7 +461,9 @@ function meta::external::language::java::transform::getFunctionCoder(conventions
 
 function meta::external::language::java::transform::isProhibitedFunction(conventions: Conventions[1], pureFunction:Function<Any>[1]): Boolean[1]
 {
-   $conventions.prohibitedFunctionStrategy->eval($conventions, $pureFunction);
+  println('meta::external::language::java::transform::isProhibitedFunction');
+   let a = $conventions.prohibitedFunctionStrategy->eval($conventions, $pureFunction);
+   $a;
 }
 
 function meta::external::language::java::transform::standardImports(conventions: Conventions[1]): meta::external::language::java::metamodel::Importable[*]
@@ -1076,6 +1078,7 @@ function meta::external::language::java::transform::registerLibrary(conventions:
 
 function meta::external::language::java::transform::defaultProhibitedFunctions(extraProhibitedFunctions : Function<Any>[*]): Function<{Conventions[1],Function<Any>[1]->Boolean[1]}>[1]
 {
+  println('meta::external::language::java::transform::defaultProhibitedFunctions');
    let functionsBlacklist = [
       // Instances
       copy_T_1__String_1__KeyExpression_MANY__T_1_,

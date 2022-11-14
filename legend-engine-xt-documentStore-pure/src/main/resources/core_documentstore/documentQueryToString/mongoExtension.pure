@@ -50,7 +50,7 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongo(selectDocumentQuery:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
-  '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery) + ' }';
+  '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery) + ', "cursor": { } }';
 }
 
 // not used
@@ -114,7 +114,7 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processMatch(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
 {
-  if(!$selectDocumentQuery.filteringOperation->isEmpty(),| '{' + '"$match":' + processDynaFunctionMongo($selectDocumentQuery.filteringOperation->cast(@DynaFunction)->toOne(), false) + ' }' , | '"$match":{}');
+  if(!$selectDocumentQuery.filteringOperation->isEmpty(),| '{' + '"$match":' + processDynaFunctionMongo($selectDocumentQuery.filteringOperation->cast(@DynaFunction)->toOne(), false) + ' }' , | '{ "$match":{} }');
 }
 
 function <<access.private>> meta::external::store::document::functions::documentQueryToString::mongo::processProject(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
