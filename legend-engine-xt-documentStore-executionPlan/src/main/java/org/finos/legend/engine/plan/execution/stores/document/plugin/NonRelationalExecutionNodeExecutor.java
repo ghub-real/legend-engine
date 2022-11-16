@@ -20,58 +20,41 @@ import io.opentracing.util.GlobalTracer;
 import org.eclipse.collections.api.block.function.Function2;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
 import org.eclipse.collections.impl.utility.Iterate;
-import org.finos.legend.engine.plan.dependencies.domain.dataQuality.BasicChecked;
-import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
-import org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
-import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
-import org.finos.legend.engine.plan.execution.cache.ExecutionCache;
-import org.finos.legend.engine.plan.execution.cache.graphFetch.GraphFetchCacheKey;
 import org.finos.legend.engine.plan.execution.nodes.ExecutionNodeExecutor;
-import org.finos.legend.engine.plan.execution.nodes.helpers.platform.ExecutionNodeJavaPlatformHelper;
 import org.finos.legend.engine.plan.execution.nodes.state.ExecutionState;
 import org.finos.legend.engine.plan.execution.result.Result;
-import org.finos.legend.engine.plan.execution.result.graphFetch.GraphFetchResult;
-import org.finos.legend.engine.plan.execution.result.graphFetch.GraphObjectsBatch;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.ResultInterpreterExtension;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AggregationAwareExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AllocationExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ConstantExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ErrorExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNodeVisitor;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.FreeMarkerConditionalExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.FunctionParametersValidationNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.GraphFetchM2MExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.MultiResultSequenceExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.PureExpressionPlatformExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SequenceExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.*;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentRootQueryTempTableGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryCrossStoreGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryPropertyGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryRootGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.StoreStreamReadingExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
-import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.graph.RootGraphFetchTree;
-import org.finos.legend.engine.shared.core.ObjectMapperFactory;
-import org.finos.legend.engine.shared.core.collectionsExtensions.DoubleStrategyHashMap;
 import org.pac4j.core.profile.CommonProfile;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
 
 public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
 {
@@ -112,10 +95,13 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
                 return result;
             }
 
-        } else if ( executionNode instanceof DocumentRootQueryTempTableGraphFetchExecutionNode) {
+        }
+        else if (executionNode instanceof DocumentRootQueryTempTableGraphFetchExecutionNode)
+        {
             return executeDocumentRootQueryTempTableGraphFetchExecutionNode((DocumentRootQueryTempTableGraphFetchExecutionNode) executionNode);
         }
         throw new RuntimeException("Not implemented!");
+
     }
 
     @Override
@@ -236,7 +222,6 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
         throwNotSupportedException(pureExpressionPlatformExecutionNode);
         return null;
     }
-
 
 
     private Result executeDocumentRootQueryTempTableGraphFetchExecutionNode(DocumentRootQueryTempTableGraphFetchExecutionNode node)

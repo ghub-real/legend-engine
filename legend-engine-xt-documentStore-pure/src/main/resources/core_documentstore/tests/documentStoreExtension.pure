@@ -4,18 +4,29 @@ import meta::external::store::document::metamodel::runtime::*;
 
 function meta::external::store::document::metamodel::execute::executeInDb(sql:String[1], databaseConnection:DatabaseConnection[1]):ResultSet[1]
 {
-  ^ResultSet(
-    documents=[
-      newJSONObject
+   let resultSet = ^ResultSet(
+       executionTimeInNanoSecond =  1000,
+       connectionAcquisitionTimeInNanoSecond = 1000);
+   let fieldNames = ['firstName', 'lastName'];
+   let documents = [
+    ^meta::external::store::document::metamodel::execute::Document(
+        value = newJSONObject
         ([
-          newJSONKeyValue('firstName', ^JSONString(value='Theodosis 1')),
-          newJSONKeyValue('lastName', ^JSONString(value='Malatestas 1'))
+        newJSONKeyValue('firstName', ^JSONString(value='Theodosis 1')),
+        newJSONKeyValue('lastName', ^JSONString(value='Malatestas 1'))
         ]),
-        newJSONObject
+        parent = $resultSet
+        ),
+    ^meta::external::store::document::metamodel::execute::Document(
+        value = newJSONObject
         ([
-          newJSONKeyValue('firstName', ^JSONString(value='Theodosis 2')),
-          newJSONKeyValue('lastName', ^JSONString(value='Malatestas 2'))
-        ])
-      ]
-    )
+        newJSONKeyValue('firstName', ^JSONString(value='Theodosis 2')),
+        newJSONKeyValue('lastName', ^JSONString(value='Malatestas 2'))
+        ]),
+        parent = $resultSet
+        )
+   ];
+    $resultSet->mutateAdd('documents', $documents);
+    $resultSet->mutateAdd('fieldNames', $fieldNames);
+    $resultSet;
 }

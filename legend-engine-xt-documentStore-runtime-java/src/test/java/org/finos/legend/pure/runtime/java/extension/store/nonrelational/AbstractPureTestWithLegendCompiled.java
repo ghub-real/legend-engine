@@ -118,62 +118,6 @@ public class AbstractPureTestWithLegendCompiled // extends AbstractPureTestWithC
         }
     }
 
-    @Test
-    public void testExecuteInDbError() throws Exception
-    {
-        this.compileTestSource(
-                "import meta::external::store::document::runtime::connections::*;\n" +
-                        "function test():Any[0..1]\n" +
-                        "{\n" +
-                        "let dataStore = meta::external::store::document::tests::object::TestMongoStore();" +
-                        "let documentStoreConnection = ^meta::external::store::document::runtime::connections::DocumentStoreConnection(\n" +
-                        "        element = $dataStore,\n" +
-                        "        type = meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,\n" +
-                        "        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='local',port=27017,databaseName='myCollection'),\n" +
-                        "        authenticationStrategy = ^meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy(),\n" +
-                        "        timeZone = 'GMT'\n" +
-                        "    );" +
-                        "meta::external::store::document::metamodel::execute::executeInDb('select * from tt', $documentStoreConnection, 0, 1000);\n" +
-                        "}\n" +
-                        "###Relational\n" +
-                        "Database mydb()\n"
-        );
-        try
-        {
-            this.compileAndExecute("test():Any[0..1]");
-        }
-        catch (PureExecutionException ex)
-        {
-            this.assertPureException(PureExecutionException.class, "Error executing sql query; SQL reason: Table \"TT\" not found; SQL statement:\n" +
-                    "select * from tt [42102-197]; SQL error code: 42102; SQL state: 42S02", 8, 4, ex);
-        }
-    }
-    protected CoreInstance compileAndExecute(String functionIdOrDescriptor, CoreInstance... parameters)
-    {
-        runtime.compile();
-        return this.execute(functionIdOrDescriptor, parameters);
-    }
-
-    protected CoreInstance execute(String functionIdOrDescriptor, CoreInstance... parameters)
-    {
-        CoreInstance function = runtime.getFunction(functionIdOrDescriptor);
-        if (function == null)
-        {
-            throw new RuntimeException("The function '" + functionIdOrDescriptor + "' can't be found");
-        }
-        functionExecution.getConsole().clear();
-        return functionExecution.start(function, ArrayAdapter.adapt(parameters));
-    }
-
-    protected void assertPureException(Class<? extends PureException> expectedClass, String expectedInfo, Integer expectedLine, Integer expectedColumn, Exception exception)
-    {
-        assertPureException(expectedClass, expectedInfo, null, expectedLine, expectedColumn, null, null, exception);
-    }
-
-    protected void assertPureException(String expectedInfo, Exception exception)
-    {
-        assertPureException(null, expectedInfo, null, null, null, null, null, exception);
-    }
     protected static void assertPureException(Class<? extends PureException> expectedClass, String expectedInfo, String expectedSource, Integer expectedLine, Integer expectedColumn, Integer expectedEndLine, Integer expectedEndColumn, Exception exception)
     {
         PureException pe = PureException.findPureException(exception);
@@ -235,6 +179,64 @@ public class AbstractPureTestWithLegendCompiled // extends AbstractPureTestWithC
         {
             Assert.assertEquals("Wrong end column", expectedEndColumn.intValue(), sourceInfo.getEndColumn());
         }
+    }
+
+    @Test
+    public void testExecuteInDbError() throws Exception
+    {
+        this.compileTestSource(
+                "import meta::external::store::document::runtime::connections::*;\n" +
+                        "function test():Any[0..1]\n" +
+                        "{\n" +
+                        "let dataStore = meta::external::store::document::tests::object::TestMongoStore();" +
+                        "let documentStoreConnection = ^meta::external::store::document::runtime::connections::DocumentStoreConnection(\n" +
+                        "        element = $dataStore,\n" +
+                        "        type = meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,\n" +
+                        "        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='local',port=27017,databaseName='myCollection'),\n" +
+                        "        authenticationStrategy = ^meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy(),\n" +
+                        "        timeZone = 'GMT'\n" +
+                        "    );" +
+                        "meta::external::store::document::metamodel::execute::executeInDb('select * from tt', $documentStoreConnection, 0, 1000);\n" +
+                        "}\n" +
+                        "###Relational\n" +
+                        "Database mydb()\n"
+        );
+        try
+        {
+            this.compileAndExecute("test():Any[0..1]");
+        }
+        catch (PureExecutionException ex)
+        {
+            this.assertPureException(PureExecutionException.class, "Error executing sql query; SQL reason: Table \"TT\" not found; SQL statement:\n" +
+                    "select * from tt [42102-197]; SQL error code: 42102; SQL state: 42S02", 8, 4, ex);
+        }
+    }
+
+    protected CoreInstance compileAndExecute(String functionIdOrDescriptor, CoreInstance... parameters)
+    {
+        runtime.compile();
+        return this.execute(functionIdOrDescriptor, parameters);
+    }
+
+    protected CoreInstance execute(String functionIdOrDescriptor, CoreInstance... parameters)
+    {
+        CoreInstance function = runtime.getFunction(functionIdOrDescriptor);
+        if (function == null)
+        {
+            throw new RuntimeException("The function '" + functionIdOrDescriptor + "' can't be found");
+        }
+        functionExecution.getConsole().clear();
+        return functionExecution.start(function, ArrayAdapter.adapt(parameters));
+    }
+
+    protected void assertPureException(Class<? extends PureException> expectedClass, String expectedInfo, Integer expectedLine, Integer expectedColumn, Exception exception)
+    {
+        assertPureException(expectedClass, expectedInfo, null, expectedLine, expectedColumn, null, null, exception);
+    }
+
+    protected void assertPureException(String expectedInfo, Exception exception)
+    {
+        assertPureException(null, expectedInfo, null, null, null, null, null, exception);
     }
 
     protected void compileTestSourceFromResource(String resourceName, String pureSourceName)
