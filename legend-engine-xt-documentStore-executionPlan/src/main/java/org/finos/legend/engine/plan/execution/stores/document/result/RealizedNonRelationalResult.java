@@ -54,32 +54,32 @@ public class RealizedNonRelationalResult extends StreamingResult
 
         this.transformedRows = Lists.mutable.empty();
         this.resultSetRows = Lists.mutable.empty();
-        ResultSet resultSet = nonRelationalResult.resultSet;
+        //ResultSet resultSet = nonRelationalResult.resultSet;
         int SUPPORTED_RESULT_ROWS = getRowLimit();
         int rowCount = 0;
         try
         {
-            while (resultSet.next())
-            {
-                if (rowCount > SUPPORTED_RESULT_ROWS)
-                {
-                    throw new RuntimeException("Too many rows returned. Realization of relational results currently supports results with up to " + SUPPORTED_RESULT_ROWS + " rows.");
-                }
-
-                List<Object> transformedRow = Lists.mutable.empty();
-                List<Object> resultSetRow = Lists.mutable.empty();
-                MutableList<Function<Object, Object>> transformers = nonRelationalResult.getTransformers();
-                for (int i = 1; i <= fieldCount - 1; i++)
-                {
-                    transformedRow.add(transformers.get(i - 1).valueOf(nonRelationalResult.getValue(i)));
-                    resultSetRow.add(nonRelationalResult.getValue(i));
-                }
-                transformedRow.add(transformers.get(fieldCount - 1).valueOf(nonRelationalResult.getValue(fieldCount)));
-                resultSetRow.add(nonRelationalResult.getValue(fieldCount));
-                transformedRows.add(transformedRow);
-                resultSetRows.add(resultSetRow);
-                rowCount += 1;
-            }
+//            while (resultSet.next())
+//            {
+//                if (rowCount > SUPPORTED_RESULT_ROWS)
+//                {
+//                    throw new RuntimeException("Too many rows returned. Realization of relational results currently supports results with up to " + SUPPORTED_RESULT_ROWS + " rows.");
+//                }
+//
+//                List<Object> transformedRow = Lists.mutable.empty();
+//                List<Object> resultSetRow = Lists.mutable.empty();
+//                MutableList<Function<Object, Object>> transformers = nonRelationalResult.getTransformers();
+//                for (int i = 1; i <= fieldCount - 1; i++)
+//                {
+//                    transformedRow.add(transformers.get(i - 1).valueOf(nonRelationalResult.getValue(i)));
+//                    resultSetRow.add(nonRelationalResult.getValue(i));
+//                }
+//                transformedRow.add(transformers.get(fieldCount - 1).valueOf(nonRelationalResult.getValue(fieldCount)));
+//                resultSetRow.add(nonRelationalResult.getValue(fieldCount));
+//                transformedRows.add(transformedRow);
+//                resultSetRows.add(resultSetRow);
+//                rowCount += 1;
+//            }
         }
         finally
         {

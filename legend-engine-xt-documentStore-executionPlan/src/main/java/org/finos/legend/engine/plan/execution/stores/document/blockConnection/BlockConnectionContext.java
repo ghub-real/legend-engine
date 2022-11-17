@@ -17,21 +17,21 @@ package org.finos.legend.engine.plan.execution.stores.document.blockConnection;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.map.MutableMap;
 import org.eclipse.collections.impl.factory.Maps;
-import org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.ConnectionKey;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.manager.ConnectionManagerSelector;
-import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutionState;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseConnection;
+import org.finos.legend.engine.plan.execution.stores.document.connection.manager.ConnectionManagerSelector;
+import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutionState;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ConnectionKey;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection;
 import org.finos.legend.engine.shared.core.operational.Assert;
 import org.pac4j.core.profile.CommonProfile;
 
+import java.sql.Connection;
 import java.util.concurrent.CompletableFuture;
 
 public class BlockConnectionContext
 {
-    private final MutableMap<ConnectionKey, org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection> blockConnectionMap;
+    private final MutableMap<ConnectionKey, org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection> blockConnectionMap;
 
-    private BlockConnectionContext(MutableMap<ConnectionKey, org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection> blockConnectionMap)
+    private BlockConnectionContext(MutableMap<ConnectionKey, org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection> blockConnectionMap)
     {
         this.blockConnectionMap = blockConnectionMap;
     }
@@ -41,14 +41,14 @@ public class BlockConnectionContext
         this(Maps.mutable.empty());
     }
 
-    public org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection getBlockConnection(RelationalStoreExecutionState executionState, DatabaseConnection databaseConnection, MutableList<CommonProfile> profiles)
+    public BlockConnection getBlockConnection(NonRelationalStoreExecutionState executionState, DatabaseConnection databaseConnection, MutableList<CommonProfile> profiles)
     {
-        org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection requiredBlockConnection = this.blockConnectionMap.get(executionState.getRelationalExecutor().getConnectionManager().generateKeyFromDatabaseConnection(databaseConnection));
+        BlockConnection requiredBlockConnection = this.blockConnectionMap.get(executionState.getNonRelationalExecutor().getConnectionManager().generateKeyFromDatabaseConnection(databaseConnection));
         if (requiredBlockConnection == null)
         {
-            requiredBlockConnection = setBlockConnection(executionState.getRelationalExecutor().getConnectionManager(),
+            requiredBlockConnection = setBlockConnection(executionState.getNonRelationalExecutor().getConnectionManager(),
                     databaseConnection,
-                    new org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection(executionState.getRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext())));
+                    new BlockConnection((Connection) executionState.getNonRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext())));
         }
         if (!requiredBlockConnection.blockConnectionState.isConnectionAvailable())
         {
@@ -66,7 +66,7 @@ public class BlockConnectionContext
 
     public void closeAllBlockConnections()
     {
-        this.blockConnectionMap.values().forEach(org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection::close);
+        this.blockConnectionMap.values().forEach(BlockConnection::close);
     }
 
     public void closeAllBlockConnectionsAsync()
@@ -74,7 +74,7 @@ public class BlockConnectionContext
         this.blockConnectionMap.values().forEach(blockConnection -> CompletableFuture.runAsync(blockConnection::close));
     }
 
-    private org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnection setBlockConnection(ConnectionManagerSelector connectionManager, DatabaseConnection databaseConnection, BlockConnection blockConnection)
+    private BlockConnection setBlockConnection(ConnectionManagerSelector connectionManager, DatabaseConnection databaseConnection, BlockConnection blockConnection)
     {
         ConnectionKey key = connectionManager.generateKeyFromDatabaseConnection(databaseConnection);
         this.blockConnectionMap.put(key, blockConnection);

@@ -56,6 +56,12 @@ Class meta::pure::executionPlan::engine::IRelationalClassQueryTempTableGraphFetc
 Class meta::pure::executionPlan::engine::IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics {}
 Class meta::pure::executionPlan::engine::IServiceParametersResolutionExecutionNodeSpecifics {}
 
+Class meta::pure::executionPlan::engine::INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics {}
+/*
+Class meta::pure::executionPlan::engine::INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics {}
+Class meta::pure::executionPlan::engine::INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics {}
+*/
+
 function meta::pure::executionPlan::engine::applyJavaEngineDependencies(conventions:Conventions[1], extensions:meta::pure::extension::Extension[*]):Conventions[1]
 {
 
@@ -80,6 +86,9 @@ function meta::pure::executionPlan::engine::applyJavaEngineDependencies(conventi
    let jIGraphInstance = javaClass('public', 'org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance')
       ->addMethod(javaMethod('public', javaTypeVar('T'), 'getValue', []))
       ->addMethod(javaMethod('public', javaLong(), 'instanceSize', []));
+
+  println('jIGraphInstance');
+  println($jIGraphInstance);
 
    let jIRelationalRootGraphNodeExecutor = javaClass('public', 'org.finos.legend.engine.plan.dependencies.store.relational.graphFetch.IRelationalRootGraphNodeExecutor');
 
@@ -469,6 +478,39 @@ function meta::pure::executionPlan::engine::applyJavaEngineDependencies(conventi
    let jIServiceParametersResolutionExecutionNodeSpecifics = javaClass('public', 'org.finos.legend.engine.plan.dependencies.store.serviceStore.IServiceParametersResolutionExecutionNodeSpecifics')
       ->addMethod(javaMethod('public', javaParameterizedType(javaClass('java.util.Map'), [javaString(), javaObject()]), 'resolveServiceParameters', [javaParam(javaParameterizedType(javaClass('java.util.Map'), [javaString(), javaObject()]), 'p0')]));
 
+   let jINonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics = javaClass('public', 'org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics')
+      ->addMethod(javaMethod('public', javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()])), 'allInstanceSetImplementations', []))
+      ->addMethod(javaMethod('public', javaObject(), 'deepCopy', [javaParam(javaObject(), 'p0')]))
+      ->addMethod(javaMethod('public', javaParameterizedType($jIGraphInstance, [javaWildcard()]), 'nextGraphInstance', []))
+      ->addMethod(javaMethod('public', javaVoid(), 'prepare', [javaParam(javaResultSet(), 'p0'), javaParam(javaString(), 'p1'), javaParam(javaString(), 'p2')]))
+      ->addMethod(javaMethod('public', javaList(javaString()), 'primaryKeyColumns', [javaParam(javaInt(), 'p0')]))
+      ->addMethod(javaMethod('public', javaList(javaReflectMethod()), 'primaryKeyGetters', []))
+      ->addMethod(javaMethod('public', javaBoolean(), 'supportsCaching', []));
+/*
+    println('jIRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics');
+    println($jIRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics.methods->at(2).returnType);
+
+    println('jINonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics');
+    println($jINonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics.methods->at(2).returnType);
+*/
+/*
+   let jINonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics = javaClass('public', 'org.finos.legend.engine.plan.dependencies.store.document.graphFetch.jINonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics')
+      ->addMethod(javaMethod('public', javaVoid(), 'addChildToParent', [javaParam(javaObject(), 'p0'), javaParam(javaObject(), 'p1'), javaParam($jIExecutionNodeContext, 'p2')]))
+      ->addMethod(javaMethod('public', javaParameterizedType($jIGraphInstance, [javaWildcard()]), 'nextGraphInstance', []))
+      ->addMethod(javaMethod('public', javaList(javaString()), 'parentPrimaryKeyColumns', [javaParam(javaList(javaString()), 'p0')]))
+      ->addMethod(javaMethod('public', javaVoid(), 'prepare', [javaParam(javaResultSet(), 'p0'), javaParam(javaString(), 'p1'), javaParam(javaString(), 'p2')]));
+
+   let jINonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics = javaClass('public', 'org.finos.legend.engine.plan.dependencies.store.document.graphFetch.jINonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics')
+      ->addMethod(javaMethod('public', javaVoid(), 'addChildToParent', [javaParam(javaObject(), 'p0'), javaParam(javaObject(), 'p1'), javaParam($jIExecutionNodeContext, 'p2')]))
+      ->addMethod(javaMethod('public', javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()])), 'allInstanceSetImplementations', []))
+      ->addMethod(javaMethod('public', javaObject(), 'deepCopy', [javaParam(javaObject(), 'p0')]))
+      ->addMethod(javaMethod('public', javaParameterizedType($jIGraphInstance, [javaWildcard()]), 'nextGraphInstance', []))
+      ->addMethod(javaMethod('public', javaList(javaString()), 'parentPrimaryKeyColumns', [javaParam(javaList(javaString()), 'p0')]))
+      ->addMethod(javaMethod('public', javaVoid(), 'prepare', [javaParam(javaResultSet(), 'p0'), javaParam(javaString(), 'p1'), javaParam(javaString(), 'p2')]))
+      ->addMethod(javaMethod('public', javaList(javaString()), 'primaryKeyColumns', [javaParam(javaInt(), 'p0')]))
+      ->addMethod(javaMethod('public', javaList(javaReflectMethod()), 'primaryKeyGetters', []))
+      ->addMethod(javaMethod('public', javaBoolean(), 'supportsCaching', []));
+*/
    let res = $conventions
       ->addProvidedType(meta::pure::executionPlan::engine::IConstantResult, $jIConstantResult)
       ->addProvidedType(meta::pure::executionPlan::engine::EngineIResult, $jIResult)
@@ -513,7 +555,11 @@ function meta::pure::executionPlan::engine::applyJavaEngineDependencies(conventi
       ->addProvidedType(meta::pure::executionPlan::engine::IInMemoryCrossStoreGraphFetchExecutionNodeSpecifics, $jIInMemoryCrossStoreGraphFetchExecutionNodeSpecifics)
       ->addProvidedType(meta::pure::executionPlan::engine::IRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics, $jIRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics)
       ->addProvidedType(meta::pure::executionPlan::engine::IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics, $jIRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics)
-      ->addProvidedType(meta::pure::executionPlan::engine::IServiceParametersResolutionExecutionNodeSpecifics, $jIServiceParametersResolutionExecutionNodeSpecifics);
+      ->addProvidedType(meta::pure::executionPlan::engine::IServiceParametersResolutionExecutionNodeSpecifics, $jIServiceParametersResolutionExecutionNodeSpecifics)
+
+      ->addProvidedType(meta::pure::executionPlan::engine::INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics, $jINonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics);
+      //->addProvidedType(meta::pure::executionPlan::engine::INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics, $jINonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics)
+      //->addProvidedType(meta::pure::executionPlan::engine::INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics, $jINonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics);
 
    let platformDependencyUpdates = $extensions->meta::pure::executionPlan::platformBinding::legendJava::extractLegendJavaAdhocExtensionsOfType(meta::pure::executionPlan::platformBinding::legendJava::LegendJavaPlatformDependencyUpdateExtension).platformDependencyUpdate;
    $platformDependencyUpdates->fold({e,b|$e->eval($b, $extensions)}, $res);

@@ -20,7 +20,7 @@ import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.stores.StoreExecutionState;
 import org.finos.legend.engine.plan.execution.stores.StoreState;
 import org.finos.legend.engine.plan.execution.stores.document.NonRelationalExecutor;
-import org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnectionContext;
+import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNodeVisitor;
 import org.pac4j.core.profile.CommonProfile;
 
@@ -80,7 +80,7 @@ public class NonRelationalStoreExecutionState implements StoreExecutionState
         this.runtimeContext = runtimeContext;
     }
 
-    public NonRelationalExecutor getRelationalExecutor()
+    public NonRelationalExecutor getNonRelationalExecutor()
     {
         return this.state.getNonRelationalExecutor();
     }

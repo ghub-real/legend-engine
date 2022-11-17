@@ -175,7 +175,9 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
                       | graphInstanceOf(javaWildcard(), $conventions)
                   );
 */
-  let nextType = graphInstanceOf(javaWildcard(), $conventions);
+  //let nextType = graphInstanceOf(javaWildcard(), $conventions);
+
+  let nextType = graphInstanceOf(javaWildcardExtends($conventions->className(IReferencedObject)), $conventions);
 
    $executeClass
       ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaResultSet(), 'resultSet'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
@@ -267,14 +269,14 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeExecuteClass(node:DocumentGraphFetchExecutionNode[1], specificsClass: meta::external::language::java::metamodel::Class[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let conventions   = $context.conventions;
-   /*
+   
    let nodeSpecifics = $conventions->className($node->match([
-      rr : RelationalPrimitiveQueryGraphFetchExecutionNode[1]          | IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics,
-      rr : RelationalRootQueryTempTableGraphFetchExecutionNode[1]      | IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics,
-      cr : RelationalCrossRootQueryTempTableGraphFetchExecutionNode[1] | IRelationalCrossRootQueryTempTableGraphFetchExecutionNodeSpecifics,
-      rr : RelationalClassQueryTempTableGraphFetchExecutionNode[1]     | IRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics
+      //rr : DocumentPrimitiveQueryGraphFetchExecutionNode[1]          | INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics,
+      rr : DocumentRootQueryTempTableGraphFetchExecutionNode[1]      | INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
+      //cr : DocumentCrossRootQueryTempTableGraphFetchExecutionNode[1] | INonRelationalCrossRootQueryTempTableGraphFetchExecutionNodeSpecifics,
+      //rr : DocumentClassQueryTempTableGraphFetchExecutionNode[1]     | INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics
    ]));
-   */
+   
 
    let executeClass = $conventions->planNodeClass('public', $path, 'Execute');
    $executeClass
@@ -287,7 +289,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->imports($conventions->className(IExecutionNodeContext))
       ->imports($conventions->className(GraphInstance))
       ->imports($conventions->className(IReferencedObject))
-      //->imports($nodeSpecifics)->implements($nodeSpecifics)
+      ->imports($nodeSpecifics)->implements($nodeSpecifics)
       ->addField(
          javaField(['private'], $specificsClass, 'specifics')
       )

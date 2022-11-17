@@ -26,7 +26,7 @@ import org.eclipse.collections.impl.utility.Iterate;
 import org.eclipse.collections.api.tuple.Pair;
 import org.finos.legend.engine.plan.dependencies.domain.dataQuality.BasicChecked;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
-import org.finos.legend.engine.plan.dependencies.store.nonRelational.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
 import org.finos.legend.engine.plan.execution.cache.ExecutionCache;
 import org.finos.legend.engine.plan.execution.cache.graphFetch.GraphFetchCacheByEqualityKeys;
@@ -38,12 +38,13 @@ import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphFetchResult;
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphObjectsBatch;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
+import org.finos.legend.engine.plan.execution.stores.document.NonRelationalDatabaseCommandsVisitorBuilder;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.PreparedTempTableResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.RealizedNonRelationalResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.ResultInterpreterExtension;
 import org.finos.legend.engine.plan.execution.stores.document.result.graphFetch.NonRelationalGraphObjectsBatch;
-import org.finos.legend.engine.plan.execution.stores.relational.RelationalDatabaseCommandsVisitorBuilder;
+//import org.finos.legend.engine.plan.execution.stores.relational.RelationalDatabaseCommandsVisitorBuilder;
 import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection;
 import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
@@ -136,7 +137,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             {
                 scope.span().setTag("databaseType", documentQueryExecutionNode.getDatabaseTypeName());
                 scope.span().setTag("mongoQl", documentQueryExecutionNode.mongoQLQuery);
-                Result result = ((NonRelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational)).getRelationalExecutor().execute(documentQueryExecutionNode, profiles, executionState);
+                Result result = ((NonRelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational)).getNonRelationalExecutor().execute(documentQueryExecutionNode, profiles, executionState);
                 if (result instanceof DocumentQueryExecutionResult)
                 {
                     scope.span().setTag("executedMongoQL", ((DocumentQueryExecutionResult) result).getExecutedMql());
@@ -451,15 +452,15 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             for (Pair<String, String> setImpl : allInstanceSetImplementations)
             {
                 GraphFetchCacheByEqualityKeys cache = NonRelationalGraphFetchUtils.findCacheByEqualityKeys(nodeSubTree, setImpl.getOne(), setImpl.getTwo(), this.executionState.graphFetchCaches);
-                if (cache != null)
-                {
-                    List<Integer> primaryKeyIndices = pkColumnsFunction.apply(i).stream().map(FunctionHelper.unchecked(sqlResultSet::findColumn)).collect(Collectors.toList());
-                    multiSetCaches.addNextValidCache(cache.getExecutionCache(), new NonRelationalGraphFetchUtils.NonRelationalDocumetResultGraphFetchCacheKey(documentQueryExecutionResult, primaryKeyIndices));
-                }
-                else
-                {
-                    multiSetCaches.addNextEmptyCache();
-                }
+//                if (cache != null)
+//                {
+//                    List<Integer> primaryKeyIndices = pkColumnsFunction.apply(i).stream().map(FunctionHelper.unchecked(sqlResultSet::findColumn)).collect(Collectors.toList());
+//                    multiSetCaches.addNextValidCache(cache.getExecutionCache(), new NonRelationalGraphFetchUtils.NonRelationalDocumetResultGraphFetchCacheKey(documentQueryExecutionResult, primaryKeyIndices));
+//                }
+//                else
+//                {
+//                    multiSetCaches.addNextEmptyCache();
+//                }
                 i += 1;
             }
         }
@@ -534,10 +535,10 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
         // this isn't valid anymore
         try (Scope ignored = GlobalTracer.get().buildSpan("create temp table").withTag("tempTableName", tempTableName).withTag("databaseType", databaseType).startActive(true))
         {
-            NonRelationalStoreExecutionState nonRelationalStoreExecutionState = (NonRelationalStoreExecutionState) this.executionState.getStoreExecutionState(StoreType.Relational);
+            NonRelationalStoreExecutionState nonRelationalStoreExecutionState = (NonRelationalStoreExecutionState) this.executionState.getStoreExecutionState(StoreType.NonRelational);
             DatabaseManager databaseManager = DatabaseManager.fromString(databaseType);
             BlockConnection blockConnection = nonRelationalStoreExecutionState.getBlockConnectionContext().getBlockConnection(nonRelationalStoreExecutionState, databaseConnection, this.profiles);
-            databaseManager.relationalDatabaseSupport().accept(RelationalDatabaseCommandsVisitorBuilder.getStreamResultToTempTableVisitor(nonRelationalStoreExecutionState.getRelationalExecutor().getRelationalExecutionConfiguration(), blockConnection, realizedNonRelationalResult, tempTableName, databaseTimeZone));
+            databaseManager.relationalDatabaseSupport().accept(NonRelationalDatabaseCommandsVisitorBuilder.getStreamResultToTempTableVisitor(nonRelationalStoreExecutionState.getNonRelationalExecutor().getNonRelationalExecutionConfiguration(), blockConnection, realizedNonRelationalResult, tempTableName, databaseTimeZone));
             blockConnection.addCommitQuery(databaseManager.relationalDatabaseSupport().dropTempTable(tempTableName));
             blockConnection.addRollbackQuery(databaseManager.relationalDatabaseSupport().dropTempTable(tempTableName));
             blockConnection.close();

@@ -15,14 +15,11 @@
 package org.finos.legend.engine.plan.execution.stores.document.result;
 
 import io.opentracing.Span;
-import org.eclipse.collections.api.block.function.Function;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.factory.Lists;
 import org.eclipse.collections.impl.utility.ListIterate;
-import org.finos.legend.engine.plan.dependencies.domain.date.PureDate;
-import org.finos.legend.engine.plan.dependencies.store.nonRelational.INonRelationalResult;
-import org.finos.legend.engine.plan.dependencies.store.relational.IRelationalResult;
+import org.finos.legend.engine.plan.dependencies.store.document.INonRelationalResult;
 import org.finos.legend.engine.plan.execution.nodes.helpers.ExecutionNodeClassResultHelper;
 import org.finos.legend.engine.plan.execution.nodes.helpers.ExecutionNodePartialClassResultHelper;
 import org.finos.legend.engine.plan.execution.nodes.helpers.ExecutionNodeTDSResultHelper;
@@ -42,6 +39,7 @@ import org.finos.legend.engine.plan.execution.result.serialization.Serialization
 import org.finos.legend.engine.plan.execution.result.serialization.Serializer;
 import org.finos.legend.engine.plan.execution.result.transformer.SetImplTransformers;
 import org.finos.legend.engine.plan.execution.result.transformer.TransformerInput;
+import org.finos.legend.engine.plan.execution.stores.document.serialization.NonRelationalResultToPureFormatSerializer;
 import org.finos.legend.engine.plan.execution.stores.relational.activity.RelationalExecutionActivity;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
 import org.finos.legend.engine.plan.execution.stores.relational.result.BinaryUtils;
@@ -89,9 +87,10 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
     private static final ImmutableList<String> TEMPORAL_DATE_ALIASES = Lists.immutable.of("k_businessDate", "k_processingDate");
 
     public final List<String> noSQLFields;
-    private final List<String> temporaryTables;
+    //private final List<String> temporaryTables;
     private final List<DocumentQueryResultField> resultFields;
     private List<String> fieldListForSerializer;
+    //private List<Doc>
 
     //private final Connection connection;
     //private final Statement statement;
@@ -105,7 +104,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
 
     public Span topSpan;
 
-    private final SQLResultDBColumnsMetaData resultDBColumnsMetaData;
+    //private final SQLResultDBColumnsMetaData resultDBColumnsMetaData;
 
     public MutableList<SetImplTransformers> setTransformers = Lists.mutable.empty();
 
@@ -116,7 +115,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
         super(activities);
         this.databaseType = databaseType;
         this.databaseTimeZone = databaseTimeZone;
-        this.temporaryTables = temporaryTables;
+        //this.temporaryTables = temporaryTables;
         this.topSpan = topSpan;
 
         try
@@ -130,13 +129,13 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
             long start = System.currentTimeMillis();
             String sql = ((RelationalExecutionActivity) activities.getLast()).sql;
             LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_START, sql).toString());
-            this.resultSet = this.statement.executeQuery(sql);
+            //this.resultSet = this.statement.executeQuery(sql);
             this.executedMongoQL = sql;
             LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_STOP, (double) System.currentTimeMillis() - start).toString());
-            this.resultSetMetaData = resultSet.getMetaData();
+            //this.resultSetMetaData = resultSet.getMetaData();
             this.fieldCount = this.resultSetMetaData.getColumnCount();
             this.resultFields = documentQueryResultFields;
-            this.resultDBColumnsMetaData = new SQLResultDBColumnsMetaData(this.resultFields, this.resultSetMetaData);
+            //this.resultDBColumnsMetaData = new SQLResultDBColumnsMetaData(this.resultFields, this.resultSetMetaData);
 
             this.noSQLFields = Lists.mutable.ofInitialCapacity(this.fieldCount);
             for (int i = 1; i <= this.fieldCount; i++)
@@ -182,7 +181,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
             this.fieldListForSerializer = this.noSQLFields;
             this.resultFields = documentQueryExecutionResult.getDocumentQueryResultFields();
             //this.resultDBColumnsMetaData = new SQLResultDBColumnsMetaData(this.resultFields, this.resultSetMetaData);
-            this.buildTransformersAndBuilder(node, documentQueryExecutionResult.getSQLExecutionNode().connection);
+            //this.buildTransformersAndBuilder(node, documentQueryExecutionResult.getSQLExecutionNode().connection);
         }
         catch (Throwable e)
         {
@@ -402,14 +401,17 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
         return this.fieldListForSerializer;
     }
 
+    /*
     public MutableList<Function<Object, Object>> getTransformers() throws SQLException
     {
         return this.setTransformers.size() == 1 ? this.setTransformers.get(0).transformers : this.setTransformers.get(this.resultSet.getInt("u_type")).transformers;
     }
+    */
 
     public Object getValue(int columnIndex) throws SQLException
     {
         Object result;
+        /*
         if (resultDBColumnsMetaData.isTimestampColumn(columnIndex))
         {
             Timestamp ts;
@@ -433,12 +435,15 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
         {
             result = resultSet.getObject(columnIndex);
         }
+        */
+        result = 1;
         return result;
     }
 
     public Object getTransformedValue(int columnIndex) throws SQLException
     {
         Object result = null;
+        /*
         switch (resultSetMetaData.getColumnType(columnIndex))
         {
             case Types.DATE:
@@ -535,14 +540,15 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
                 result = this.resultSet.getObject(columnIndex);
             }
         }
+         */
         return result;
     }
 
-    @Override
-    public ResultSet getResultSet()
-    {
-        return this.resultSet;
-    }
+//    @Override
+//    public ResultSet getResultSet()
+//    {
+//        return this.resultSet;
+//    }
 
     @Override
     public Builder getResultBuilder()
@@ -555,7 +561,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
     {
         try
         {
-            return new RealizedRelationalResult(this);
+            return new RealizedNonRelationalResult(this);
         }
         catch (SQLException e)
         {
@@ -568,16 +574,16 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
     {
         switch (format)
         {
-            case PURE:
-                return new RelationalResultToPureTDSSerializer(this);
-            case PURE_TDSOBJECT:
-                return new RelationalResultToPureTDSToObjectSerializer(this);
-            case CSV:
-                return new RelationalResultToCSVSerializer(this, true);
-            case CSV_TRANSFORMED:
-                return new RelationalResultToCSVSerializerWithTransformersApplied(this, true);
+//            case PURE:
+//                return new RelationalResultToPureTDSSerializer(this);
+//            case PURE_TDSOBJECT:
+//                return new RelationalResultToPureTDSToObjectSerializer(this);
+//            case CSV:
+//                return new RelationalResultToCSVSerializer(this, true);
+//            case CSV_TRANSFORMED:
+//                return new RelationalResultToCSVSerializerWithTransformersApplied(this, true);
             case DEFAULT:
-                return new RelationalResultToJsonDefaultSerializer(this);
+                return new NonRelationalResultToPureFormatSerializer(this, "A".getBytes(), "B".getBytes());
             default:
                 this.close();
                 throw new RuntimeException(format.toString() + " format not currently supported with RelationalResult");

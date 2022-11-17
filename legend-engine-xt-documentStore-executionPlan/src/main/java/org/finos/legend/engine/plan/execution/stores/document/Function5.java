@@ -1,4 +1,4 @@
-// Copyright 2020 Goldman Sachs
+// Copyright 2021 Goldman Sachs
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.dependencies.store.document;
+package org.finos.legend.engine.plan.execution.stores.document;
 
-import org.finos.legend.engine.plan.dependencies.store.shared.IResult;
+import java.io.Serializable;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-public interface INonRelationalResult extends IResult
+@FunctionalInterface
+public interface Function5<T1, T2, T3, T4, T5, R> extends Serializable
 {
-    //ResultSet getResultSet();
-
-    Object getValue(int columnIndex) throws SQLException;
-
-    Object getTransformedValue(int columnIndex) throws SQLException;
+    R value(T1 var1, T2 var2, T3 var3, T4 var4, T5 var5);
 }
+
