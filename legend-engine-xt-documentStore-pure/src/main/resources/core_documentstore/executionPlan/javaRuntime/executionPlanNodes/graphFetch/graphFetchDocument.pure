@@ -8,7 +8,6 @@ import meta::pure::executionPlan::*;
 import meta::pure::executionPlan::engine::*;
 import meta::pure::executionPlan::engine::java::*;
 import meta::pure::executionPlan::engine::java::graphFetch::common::*;
-//import meta::pure::executionPlan::engine::java::graphFetch::relational::*;
 import meta::pure::executionPlan::engine::java::naming::*;
 import meta::pure::executionPlan::engine::java::platform::*;
 import meta::pure::executionPlan::platformBinding::typeInfo::*;
@@ -28,11 +27,12 @@ import meta::document::store::mapping::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::pure::executionPlan::document::engine::java::*;
 import meta::pure::executionPlan::document::engine::java::addObjectMapperField::*;
-
+import meta::pure::executionPlan::engine::java::graphFetch::document::*;
 
 
 function meta::pure::executionPlan::engine::java::graphFetch::document::prepareForDocumentGraphFetch(node: DocumentGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]):GenerationContext[1]
 {
+  /*
    $node->match([
       //r : RelationalClassQueryTempTableGraphFetchExecutionNode[1] | $r->prepareForRelationalClassQueryTempTableGraphFetch($path, $context, $debug),
       p : DocumentGraphFetchExecutionNode[1] |
@@ -41,6 +41,32 @@ function meta::pure::executionPlan::engine::java::graphFetch::document::prepareF
                 ^$context(nodeInfos = $context.nodeInfos->concatenate(^NodeInfo(path = $path, returnType = $simpleType)));,
       m : ExecutionNode[1]                        | $context
    ])
+   */
+   $node->match([
+      r : DocumentClassQueryTempTableGraphFetchExecutionNode[1] | $r->prepareForDocumentClassQueryTempTableGraphFetch($path, $context, $debug),
+      p : DocumentGraphFetchExecutionNode[1]                    | $context
+   ])
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::prepareForDocumentClassQueryTempTableGraphFetch(node: DocumentClassQueryTempTableGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]):GenerationContext[1]
+{
+   print(if($debug.debug,|$debug.space+'('+$path+') prepareForDocumentClassQueryTempTableGraphFetch\n', |''));
+
+   let pureType = $node->typeFromStoreLocalNode();
+
+   let simpleType = ^SimpleJavaType(pureType = $pureType, javaType = $context.conventions->className($pureType));
+
+   let returnType = $node->match([
+      r : DocumentRootQueryTempTableGraphFetchExecutionNode[1] | if($r.checked->isTrue(), | ^CheckedJavaType(checkedOf = $simpleType), | $simpleType),
+      p : DocumentClassQueryTempTableGraphFetchExecutionNode[1]| $simpleType
+   ]);
+
+   ^$context
+   (
+      nodeInfos = $context.nodeInfos->concatenate(
+         ^NodeInfo(path = $path, returnType = $returnType)
+      )
+   );
 }
 
 function meta::pure::executionPlan::engine::java::graphFetch::document::store::generateDocumentStoreGraphFetchProject(node: DocumentGraphFetchExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1]):Project[1]
@@ -55,6 +81,122 @@ function meta::pure::executionPlan::engine::java::graphFetch::document::store::g
                            ->map(e | $e->addExecuteCachingMethods($node, $path, $context, $debug));
 
    newProject()->addClasses([$specificsClass, $executeClass]);
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeExecuteClass(node:DocumentGraphFetchExecutionNode[1], specificsClass: meta::external::language::java::metamodel::Class[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+{
+   let conventions   = $context.conventions;
+   
+   let nodeSpecifics = $conventions->className($node->match([
+      pr : DocumentPrimitiveQueryGraphFetchExecutionNode[1]          | INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics,
+      rq : DocumentRootQueryTempTableGraphFetchExecutionNode[1]      | INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics,
+      //cr : DocumentCrossRootQueryTempTableGraphFetchExecutionNode[1] | INonRelationalCrossRootQueryTempTableGraphFetchExecutionNodeSpecifics,
+      cq : DocumentClassQueryTempTableGraphFetchExecutionNode[1]     | INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics
+   ]));
+   
+
+   let executeClass = $conventions->planNodeClass('public', $path, 'Execute');
+   $executeClass
+      ->imports(javaPackage('java.util'))
+      ->imports(javaPackage('java.util.function'))
+      ->imports(javaPackage('java.util.stream'))
+      ->imports(javaReflectMethod())
+      ->imports(javaResultSet())
+      ->imports(javaClass('org.eclipse.collections.api.tuple.Pair'))
+      ->imports(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField'))
+      ->imports($conventions->className(IExecutionNodeContext))
+      ->imports($conventions->className(GraphInstance))
+      ->imports($conventions->className(IReferencedObject))
+      ->imports($nodeSpecifics)->implements($nodeSpecifics)
+      ->addField(
+         javaField(['private'], $specificsClass, 'specifics')
+      )
+      ->addConstructor(
+         javaConstructor(
+            ['public'], [],
+            j_this($executeClass)->j_field('specifics', $specificsClass)->j_assign(j_new($specificsClass, []))
+         )
+      );
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteGeneralMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
+{
+   let conventions    = $context.conventions;
+   let jThis          = j_this($executeClass);
+   let specificsField = $jThis->j_field('specifics');
+   let isPrimitive    = $node->instanceOf(DocumentPrimitiveQueryGraphFetchExecutionNode);
+   let isClassResult  = $node->instanceOf(DocumentClassQueryTempTableGraphFetchExecutionNode) && !$node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
+   let isLocalRoot    = $node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
+   //let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
+
+   let nextType = if (!$isPrimitive,
+                      | graphInstanceOf(javaWildcardExtends($conventions->className(IReferencedObject)), $conventions),
+                      | graphInstanceOf(javaWildcard(), $conventions)
+                  );
+
+  //let nextType = graphInstanceOf(javaWildcard(), $conventions);
+
+
+   $executeClass
+      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
+      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(['public'], $nextType, j_return($specificsField->j_invoke('nextGraphInstance', [], $nextType))))
+      ->map({exe |
+        /*
+         if ($isClassResult || $isLocalRoot || $isCrossRoot,
+             | $exe
+                  ->addMethod($exe->buildPrimaryKeyGettersMethod(['public'], j_return($specificsField->j_invoke('primaryKeyGetters', [], javaList(javaReflectMethod()))))),
+             | $exe
+         )
+         */
+         $exe
+      })
+      ->map({exe |
+        /*
+         if ($isCrossRoot,
+             | $exe
+                  ->addMethod($exe->buildMappingIdMethod(['public'], j_return($specificsField->j_invoke('mappingId', [], javaString()))))
+                  ->addMethod($exe->buildSourceInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('sourceInstanceSetId', [], javaString()))))
+                  ->addMethod($exe->buildTargetInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('targetInstanceSetId', [], javaString())))),
+             | if ($isClassResult || $isLocalRoot,
+                   | $exe
+                        ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
+                        ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
+                   | $exe
+               )
+         )
+         */
+         $exe
+      })
+      ->map({exe |
+      /*
+         if (!$isLocalRoot,
+             | $exe->addMethod($exe->buildAddChildToParentMethod(['public'], $specificsField->j_invoke('addChildToParent', [j_parameter(javaObject(), 'parent'), j_parameter(javaObject(), 'child'), j_parameter($conventions->className(IExecutionNodeContext), 'executionNodeContext')], javaVoid()), $conventions)),
+             | $exe
+         )
+         */
+         $exe
+      })
+      ->map({exe |
+      /*
+         if ($isCrossRoot,
+             | $exe->addMethod($exe->buildParentCrossKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
+             | if ($isPrimitive || $isClassResult,
+                   | $exe->addMethod($exe->buildParentPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentPrimaryKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
+                   | $exe
+               )
+         )
+         */
+         $exe
+      })
+      ->map({exe |
+      /*
+         if ($isCrossRoot,
+             | $exe->addMethod($exe->buildParentCrossKeyGettersMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyGetters', [], javaList(javaReflectMethod()))))),
+             | $exe
+         )
+         */
+         $exe
+      });
 }
 
 function meta::pure::executionPlan::engine::java::graphFetch::document::store::enrichForDocumentStoreGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
@@ -159,88 +301,6 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ]);
 }
 
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteGeneralMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
-{
-   let conventions    = $context.conventions;
-   let jThis          = j_this($executeClass);
-   let specificsField = $jThis->j_field('specifics');
-   //let isPrimitive    = $node->instanceOf(RelationalPrimitiveQueryGraphFetchExecutionNode);
-   //let isClassResult  = $node->instanceOf(RelationalClassQueryTempTableGraphFetchExecutionNode) && !$node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
-   //let isLocalRoot    = $node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
-   //let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
-
-/*
-   let nextType = if (!$isPrimitive,
-                      | graphInstanceOf(javaWildcardExtends($conventions->className(IReferencedObject)), $conventions),
-                      | graphInstanceOf(javaWildcard(), $conventions)
-                  );
-*/
-  //let nextType = graphInstanceOf(javaWildcard(), $conventions);
-
-  let nextType = graphInstanceOf(javaWildcardExtends($conventions->className(IReferencedObject)), $conventions);
-
-   $executeClass
-      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaResultSet(), 'resultSet'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
-      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(['public'], $nextType, j_return($specificsField->j_invoke('nextGraphInstance', [], $nextType))))
-      ->map({exe |
-        /*
-         if ($isClassResult || $isLocalRoot || $isCrossRoot,
-             | $exe
-                  ->addMethod($exe->buildPrimaryKeyGettersMethod(['public'], j_return($specificsField->j_invoke('primaryKeyGetters', [], javaList(javaReflectMethod()))))),
-             | $exe
-         )
-         */
-         $exe
-      })
-      ->map({exe |
-        /*
-         if ($isCrossRoot,
-             | $exe
-                  ->addMethod($exe->buildMappingIdMethod(['public'], j_return($specificsField->j_invoke('mappingId', [], javaString()))))
-                  ->addMethod($exe->buildSourceInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('sourceInstanceSetId', [], javaString()))))
-                  ->addMethod($exe->buildTargetInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('targetInstanceSetId', [], javaString())))),
-             | if ($isClassResult || $isLocalRoot,
-                   | $exe
-                        ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
-                        ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
-                   | $exe
-               )
-         )
-         */
-         $exe
-      })
-      ->map({exe |
-      /*
-         if (!$isLocalRoot,
-             | $exe->addMethod($exe->buildAddChildToParentMethod(['public'], $specificsField->j_invoke('addChildToParent', [j_parameter(javaObject(), 'parent'), j_parameter(javaObject(), 'child'), j_parameter($conventions->className(IExecutionNodeContext), 'executionNodeContext')], javaVoid()), $conventions)),
-             | $exe
-         )
-         */
-         $exe
-      })
-      ->map({exe |
-      /*
-         if ($isCrossRoot,
-             | $exe->addMethod($exe->buildParentCrossKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
-             | if ($isPrimitive || $isClassResult,
-                   | $exe->addMethod($exe->buildParentPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentPrimaryKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
-                   | $exe
-               )
-         )
-         */
-         $exe
-      })
-      ->map({exe |
-      /*
-         if ($isCrossRoot,
-             | $exe->addMethod($exe->buildParentCrossKeyGettersMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyGetters', [], javaList(javaReflectMethod()))))),
-             | $exe
-         )
-         */
-         $exe
-      });
-}
-
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addExecuteCachingMethods(executeClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
 {
    let jThis          = j_this($executeClass);
@@ -264,41 +324,6 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       */
       $exe
    });
-}
-
-function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::initializeExecuteClass(node:DocumentGraphFetchExecutionNode[1], specificsClass: meta::external::language::java::metamodel::Class[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
-{
-   let conventions   = $context.conventions;
-   
-   let nodeSpecifics = $conventions->className($node->match([
-      //rr : DocumentPrimitiveQueryGraphFetchExecutionNode[1]          | INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics,
-      rr : DocumentRootQueryTempTableGraphFetchExecutionNode[1]      | INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
-      //cr : DocumentCrossRootQueryTempTableGraphFetchExecutionNode[1] | INonRelationalCrossRootQueryTempTableGraphFetchExecutionNodeSpecifics,
-      //rr : DocumentClassQueryTempTableGraphFetchExecutionNode[1]     | INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics
-   ]));
-   
-
-   let executeClass = $conventions->planNodeClass('public', $path, 'Execute');
-   $executeClass
-      ->imports(javaPackage('java.util'))
-      ->imports(javaPackage('java.util.function'))
-      ->imports(javaPackage('java.util.stream'))
-      ->imports(javaReflectMethod())
-      ->imports(javaResultSet())
-      ->imports(javaClass('org.eclipse.collections.api.tuple.Pair'))
-      ->imports($conventions->className(IExecutionNodeContext))
-      ->imports($conventions->className(GraphInstance))
-      ->imports($conventions->className(IReferencedObject))
-      ->imports($nodeSpecifics)->implements($nodeSpecifics)
-      ->addField(
-         javaField(['private'], $specificsClass, 'specifics')
-      )
-      ->addConstructor(
-         javaConstructor(
-            ['public'], [],
-            j_this($executeClass)->j_field('specifics', $specificsClass)->j_assign(j_new($specificsClass, []))
-         )
-      );
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsPrepareMethod(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
@@ -867,7 +892,7 @@ function meta::pure::executionPlan::engine::java::documentReferenceIdentifierGet
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
 {
-   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaResultSet(), 'resultSet'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
+   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], type: meta::external::language::java::metamodel::Type[1], code: Code[*]):meta::external::language::java::metamodel::Method[1]
