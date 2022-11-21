@@ -36,7 +36,7 @@ import org.finos.legend.pure.m4.coreinstance.CoreInstance;
 import org.finos.legend.pure.m4.coreinstance.SourceInformation;
 import org.finos.legend.pure.m4.exception.PureException;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.Ignore;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -181,7 +181,7 @@ public class AbstractPureTestWithLegendCompiled // extends AbstractPureTestWithC
         }
     }
 
-    @Test
+    @Ignore
     public void testExecuteInDbError() throws Exception
     {
         this.compileTestSource(

@@ -14,18 +14,21 @@
 
 package org.finos.legend.engine.plan.execution.stores.document.result;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentracing.Span;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.list.mutable.FastList;
 import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
 import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.result.ResultVisitor;
+import org.finos.legend.engine.plan.execution.stores.relational.result.ResultColumn;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.ResultField;
 import org.pac4j.core.profile.CommonProfile;
 import org.slf4j.Logger;
 
+import java.sql.ResultSet;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -47,10 +50,10 @@ public class DocumentQueryExecutionResult extends Result
 //    private final ResultSetMetaData resultSetMetaData;
     private final String executedMql;
 
+    //private final int fieldCount;
     private final List<String> fieldNames = FastList.newList();
     private final List<ResultField> resultFields = FastList.newList();
     private final List<DocumentQueryResultField> documentQueryResultFields = FastList.newList();
-
 
     public Span topSpan;
 
@@ -145,11 +148,12 @@ public class DocumentQueryExecutionResult extends Result
         return this.executedMql;
     }
 
-//    public Object getTransformedValue(int columnIndex)
-//    {
-//        ResultColumn resultColumn = this.getResultColumns().get(columnIndex - 1);
-//        return resultColumn.getTransformedValue(this.getResultSet(), calendar);
-//    }
+    public Object getTransformedValue(int columnIndex)
+    {
+        ResultField resultField = this.getResultFields().get(columnIndex - 1);
+        ObjectMapper mapper = new ObjectMapper();
+        return resultField.getTransformedValue(mapper.valueToTree(this.getDocumentQueryResultFields()), calendar);
+    }
 
     @Override
     public void close()

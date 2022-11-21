@@ -50,7 +50,7 @@ Class meta::external::store::document::metamodel::mapping::DocumentQueryExecutio
    connection: DatabaseConnection[1];
 }
 
-// TODO: do we need dataType?
+// TODO: do we need dataType - not used?
 Class meta::document::store::mapping::DocumentResultColumn
 {
    label : String[1];
