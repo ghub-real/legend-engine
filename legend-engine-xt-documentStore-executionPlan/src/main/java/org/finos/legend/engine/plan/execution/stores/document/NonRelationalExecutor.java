@@ -16,6 +16,7 @@ package org.finos.legend.engine.plan.execution.stores.document;
 
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.bson.Document;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.list.mutable.FastList;
@@ -31,6 +32,8 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.n
 import org.pac4j.core.profile.CommonProfile;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -88,7 +91,7 @@ public class NonRelationalExecutor
     {
         LOGGER.info("Executing against MongoDB");
 
-        String databaseTimeZone = node.getDatabaseTimeZone() == null ? DEFAULT_DB_TIME_ZONE : node.getDatabaseTimeZone();
+        String databaseTimeZone = node.getConnection() == null ? DEFAULT_DB_TIME_ZONE : node.getDatabaseTimeZone();
         String databaseType = node.getDatabaseTypeName();
         List<String> tempTableList = FastList.newList();
 
@@ -101,7 +104,7 @@ public class NonRelationalExecutor
         MongoDBDatasourceSpecification datasourceSpecification = (MongoDBDatasourceSpecification) databaseConnection.datasourceSpecification;
 
         //DatabaseManager databaseManager = DatabaseManager.fromString(databaseType);
-        List<String> results = Lists.mutable.empty();
+        Iterator<Document> results = new ArrayList<Document>().listIterator();
         LocalMongoDBClient mongoDBClient = null;
         String query = node.getQuery();
 
@@ -110,7 +113,7 @@ public class NonRelationalExecutor
             try
             {
                 mongoDBClient = new LocalMongoDBClient(datasourceSpecification);
-                results = mongoDBClient.executeCustomAggregationQueryToDefaultDB(query);
+                results = mongoDBClient.executeCustomAggregationQueryToDefaultDB(query).listIterator();
             }
             catch (Exception e)
             {
@@ -138,7 +141,8 @@ public class NonRelationalExecutor
 //            return new VoidRelationalResult(executionState.activities, connectionManagerConnection, profiles);
 //        }
 
-        return new DocumentQueryExecutionResult(executionState.activities, node, databaseType, databaseTimeZone, profiles, tempTableList, executionState.topSpan);
+        return new DocumentQueryExecutionResult(executionState.activities, node, databaseType, databaseTimeZone,
+                profiles, tempTableList, executionState.topSpan, results);
     }
 
 //    private void prepareForSQLExecution(ExecutionNode node, Connection connection, String databaseTimeZone, String databaseTypeName, List<String> tempTableList, MutableList<CommonProfile> profiles, ExecutionState executionState)

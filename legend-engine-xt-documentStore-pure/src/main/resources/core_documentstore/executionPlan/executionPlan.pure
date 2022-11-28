@@ -38,7 +38,7 @@ Enum meta::external::store::document::graphFetch::executionPlan::DocumentRelatio
 Class meta::external::store::document::metamodel::mapping::DocumentQueryResultField
 {
    label : String[1];
-   dataType : meta::external::store::document::metamodel::TypeReference[0..1];
+   //dataType : String[1];
 }
 
 Class meta::external::store::document::metamodel::mapping::DocumentQueryExecutionNode extends ExecutionNode

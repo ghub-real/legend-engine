@@ -29,4 +29,14 @@ public class JavaPlatformImplementation extends PlatformImplementation
     public List<JavaClass> classes;
     public String executionClassFullName;
     public String executionMethodName;
+
+    public List<JavaClass> getClasses() {
+        return this.classes;
+    }
+
+    public void setClasses(List<JavaClass> classes) {
+        this.classes =  classes;
+    }
+
+
 }

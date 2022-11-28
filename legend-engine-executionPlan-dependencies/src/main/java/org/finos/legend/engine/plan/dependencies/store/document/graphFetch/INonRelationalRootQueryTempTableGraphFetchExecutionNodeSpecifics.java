@@ -14,13 +14,14 @@
 
 package org.finos.legend.engine.plan.dependencies.store.document.graphFetch;
 
+import org.bson.Document;
 import org.eclipse.collections.api.tuple.Pair;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
 import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
+import java.util.Iterator;
 import java.util.List;
 
 public interface INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
@@ -35,7 +36,7 @@ public interface INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecific
     List<Method> primaryKeyGetters();
 
     /* Prepare for reading */
-    void prepare(List<DocumentQueryResultField> documentQueryResultFields, String databaseTimeZone, String databaseConnection);
+    void prepare(List<? extends IDocumentQueryResultField> documentQueryResultFields, Iterator<Document> resultDocuments, String databaseTimeZone, String databaseConnection);
 
     /* Read next graphFetch instance */
     IGraphInstance<? extends IReferencedObject> nextGraphInstance();

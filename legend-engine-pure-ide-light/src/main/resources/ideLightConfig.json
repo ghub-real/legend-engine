@@ -29,7 +29,7 @@
     }
   },
   "sourceLocationConfiguration" : {
-    "coreFilesLocation" : "/Users/renu/finos/legend-pure",
-    "welcomeFileDirectory" : "/Users/renu/finos/legend-pure"
+    "coreFilesLocation" : "/Users/hugo/IdeaProjects/finos/renu-document-store/legend-pure",
+    "welcomeFileDirectory" : "/Users/hugo/IdeaProjects/finos/renu-document-store/legend-engine/malatt/"
   }
 }

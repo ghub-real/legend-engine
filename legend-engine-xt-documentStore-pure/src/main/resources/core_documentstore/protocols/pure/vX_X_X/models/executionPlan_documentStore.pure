@@ -17,9 +17,11 @@ import meta::document::store::mapping::*;
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
 {
    mongoQLQuery : String[1];
+   mongoQLQuery2 : String[1];
    onConnectionCloseCommitQuery : String[0..1];
    onConnectionCloseRollbackQuery : String[0..1];
-   //resultColumns : meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLResultColumn[*];
+   resultFields : meta::external::store::document::metamodel::mapping::DocumentQueryResultField[*];
+  // resultFields2 : meta::external::store::document::metamodel::mapping::DocumentQueryResultField[1];
    connection : meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1];
 }
 

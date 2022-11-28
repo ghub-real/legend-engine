@@ -16,6 +16,7 @@ package org.finos.legend.engine.plan.execution.stores.document.result;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentracing.Span;
+import org.bson.Document;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.list.mutable.FastList;
 import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import java.sql.ResultSet;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -43,10 +45,17 @@ public class DocumentQueryExecutionResult extends Result
     private final String databaseTimeZone;
     private final Calendar calendar;
     private final List<String> temporaryTables;
-//  SQL specific stuff
+
+    public Iterator<Document> getResults()
+    {
+        return results;
+    }
+
+    //  SQL specific stuff
 //    private final Connection connection;
 //    private final Statement statement;
 //    private final ResultSet resultSet;
+    private final Iterator<Document> results;
 //    private final ResultSetMetaData resultSetMetaData;
     private final String executedMql;
 
@@ -57,7 +66,11 @@ public class DocumentQueryExecutionResult extends Result
 
     public Span topSpan;
 
-    public DocumentQueryExecutionResult(List<ExecutionActivity> activities, DocumentQueryExecutionNode executionNode, String databaseType, String databaseTimeZone, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
+    public DocumentQueryExecutionResult(List<ExecutionActivity> activities, DocumentQueryExecutionNode executionNode,
+                                        String databaseType, String databaseTimeZone,
+                                        MutableList<CommonProfile> profiles,
+                                        List<String> temporaryTables, Span topSpan,
+                                        Iterator<Document> documentResults)
     {
         super("success", activities);
 
@@ -68,6 +81,7 @@ public class DocumentQueryExecutionResult extends Result
         this.databaseTimeZone = databaseTimeZone;
         this.calendar = new GregorianCalendar(TimeZone.getTimeZone(databaseTimeZone));
         this.temporaryTables = temporaryTables;
+        this.results = documentResults;
 
         this.topSpan = topSpan;
     }
@@ -125,7 +139,7 @@ public class DocumentQueryExecutionResult extends Result
 
     public List<DocumentQueryResultField> getDocumentQueryResultFields()
     {
-        return documentQueryResultFields;
+        return this.documentQueryExecutionNode.getResultFields();
     }
 
     public Span getTopSpan()

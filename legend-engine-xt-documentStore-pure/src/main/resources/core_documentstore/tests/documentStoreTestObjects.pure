@@ -59,12 +59,12 @@ function meta::external::store::document::tests::object::getAllFields(): meta::e
     //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
 
     let field1 = ^meta::external::store::document::metamodel::Field(
-          name = 'fName',
+          name = 'firstName',
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
           nullable = false
     );
     let field2 = ^meta::external::store::document::metamodel::Field(
-          name = 'lName',
+          name = 'lastName',
           type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
           nullable = false
     );

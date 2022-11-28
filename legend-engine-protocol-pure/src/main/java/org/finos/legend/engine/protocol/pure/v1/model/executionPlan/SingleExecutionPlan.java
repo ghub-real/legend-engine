@@ -57,4 +57,9 @@ public class SingleExecutionPlan extends ExecutionPlan
         }
         return this.rootExecutionNode.getExecutionStateParams(inputState);
     }
+
+    public PlatformImplementation getGlobalImplementationSupport()
+    {
+        return globalImplementationSupport;
+    }
 }

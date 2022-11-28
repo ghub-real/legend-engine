@@ -103,7 +103,6 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->imports(javaReflectMethod())
       ->imports(javaResultSet())
       ->imports(javaClass('org.eclipse.collections.api.tuple.Pair'))
-      ->imports(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField'))
       ->imports($conventions->className(IExecutionNodeContext))
       ->imports($conventions->className(GraphInstance))
       ->imports($conventions->className(IReferencedObject))
@@ -136,37 +135,29 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 
   //let nextType = graphInstanceOf(javaWildcard(), $conventions);
 
-
+// goncah, this generates class Execute implements INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
    $executeClass
-      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
+      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaList(javaClass('org.finos.legend.engine.plan.dependencies.store.document.graphFetch.DocumentQueryResultField')), 'documentQueryResultFields'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
       ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(['public'], $nextType, j_return($specificsField->j_invoke('nextGraphInstance', [], $nextType))))
       ->map({exe |
-        /*
-         if ($isClassResult || $isLocalRoot || $isCrossRoot,
+         if ($isClassResult || $isLocalRoot,
              | $exe
-                  ->addMethod($exe->buildPrimaryKeyGettersMethod(['public'], j_return($specificsField->j_invoke('primaryKeyGetters', [], javaList(javaReflectMethod()))))),
+                  ->addMethod($exe->buildPrimaryKeyGettersMethod(['public'], j_return($specificsField->j_invoke('primaryKeyGetters', [], javaList(javaReflectMethod())))))
+                  ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
+                  ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
+
              | $exe
          )
-         */
-         $exe
       })
-      ->map({exe |
-        /*
-         if ($isCrossRoot,
-             | $exe
-                  ->addMethod($exe->buildMappingIdMethod(['public'], j_return($specificsField->j_invoke('mappingId', [], javaString()))))
-                  ->addMethod($exe->buildSourceInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('sourceInstanceSetId', [], javaString()))))
-                  ->addMethod($exe->buildTargetInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('targetInstanceSetId', [], javaString())))),
-             | if ($isClassResult || $isLocalRoot,
-                   | $exe
-                        ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
-                        ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
-                   | $exe
-               )
-         )
-         */
-         $exe
-      })
+      /* ->map({exe |
+
+         if (true,
+                            | $exe
+                                 ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
+                                 ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
+                            | $exe
+                        )
+      }) */
       ->map({exe |
       /*
          if (!$isLocalRoot,
@@ -176,18 +167,14 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
          */
          $exe
       })
-      ->map({exe |
       /*
-         if ($isCrossRoot,
-             | $exe->addMethod($exe->buildParentCrossKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
-             | if ($isPrimitive || $isClassResult,
+      ->map({exe |
+         if ($isPrimitive || $isClassResult,
                    | $exe->addMethod($exe->buildParentPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentPrimaryKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
                    | $exe
                )
-         )
-         */
-         $exe
       })
+      */
       ->map({exe |
       /*
          if ($isCrossRoot,
@@ -306,23 +293,15 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    let jThis          = j_this($executeClass);
    let specificsField = $jThis->j_field('specifics');
    //let isLocalRoot    = $node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
+   let isLocalRoot    = $node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
    //let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
 
    $executeClass->map({exe |
-      /*
       if ($isLocalRoot,
           | $exe
                ->addMethod($exe->buildSupportsCachingMethod(['public'], j_return(j_boolean(true)))),
-          | if ($isCrossRoot,
-                | $exe
-                     ->addMethod($exe->buildSupportsCrossCachingMethod(['public'], j_return($specificsField->j_invoke('supportsCrossCaching', [], javaObject()))))
-                     ->addMethod($exe->buildTargetPropertiesOrderedMethod(['public'], j_return($specificsField->j_invoke('targetPropertiesOrdered', [], javaList(javaString())))))
-                     ->addMethod($exe->buildParentCrossKeyGettersOrderedByTargetPropertiesMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyGettersOrderedByTargetProperties', [], javaList(javaReflectMethod()))))),
-                | $exe
-            )
+          | $exe
       )
-      */
-      $exe
    });
 }
 
@@ -616,13 +595,14 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    let conventions    = $context.conventions;
    let isComplexNode  = $node.resultType->instanceOf(PartialClassResultType);
    let typeInfos      = $context.typeInfos;
-   /*
-   let isPrimitive    = $node->instanceOf(RelationalPrimitiveQueryGraphFetchExecutionNode);
-   let isClassResult  = $node->instanceOf(RelationalClassQueryTempTableGraphFetchExecutionNode) && !$node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
-   let isLocalRoot    = $node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
-   let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
-   let isComplex      = $isClassResult || $isLocalRoot || $isCrossRoot;
-   */
+
+   let isPrimitive    = $node->instanceOf(DocumentPrimitiveQueryGraphFetchExecutionNode);
+     let isClassResult  = $node->instanceOf(DocumentClassQueryTempTableGraphFetchExecutionNode) && !$node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
+     let isLocalRoot    = $node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
+     //let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
+
+  // let isComplex      = $isClassResult || $isLocalRoot;
+
    let isComplex = true;
 
    let jThis                = j_this($specificsClass);
@@ -729,7 +709,42 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
             },
             {| $spe }
          )
-      });
+      })
+
+    ->map({spe |
+          if ( ($isClassResult || $isLocalRoot),
+            {|
+                let partialClassResultType = $node.resultType->cast(@PartialClassResultType);
+                let resultClass            = $node->typeFromStoreLocalNode()->cast(@meta::pure::metamodel::type::Class<Any>);
+                let sets                   = $partialClassResultType.setImplementations->cast(@DocumentInstanceSetImplementation);
+                let pairType               = javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]);
+
+                let currentSets            = $node.resultType->cast(@PartialClassResultType).setImplementations;
+                let setIndexParam          = j_parameter(javaInt(), 'setIndex');
+                let keyStringsFunction     = {set: DocumentInstanceSetImplementation[1] |
+                  let setIdx = $currentSets->indexOf($set);
+                  let setPk  = $set->resolvePrimaryKey();
+                  $setPk->map(x | 'pk_' + $setPk->indexOf($x)->toString() + if($currentSets->size() == 1, | '', | '_' + $setIdx->toString()))->map(x | j_string($x));
+                };
+
+                $spe
+                  ->addMethod(
+                      $spe->buildAllInstanceSetImplementationsMethod(
+                        [],
+                        j_return(javaArrays()->j_invoke('asList', $sets->map(s | javaClass('org.eclipse.collections.impl.tuple.Tuples')->j_invoke('pair', [j_string($s.parent->elementToPath()), j_string($s.id)], $pairType)), javaList($pairType)))
+                      )
+                  )
+                  ->addMethod(
+                      $spe->buildPrimaryKeyColumnsMethod(
+                        [],
+                        $sets->map(s | j_if($setIndexParam->j_eq(j_int($sets->indexOf($s))), j_return(javaArrays()->j_invoke('asList', $keyStringsFunction->eval($s), javaList(javaString())))))->concatenate(j_return(j_null()))
+                      )
+                  );
+            },
+             {| $spe }
+          )
+      })
+;
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsCachingMethods(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
@@ -892,7 +907,7 @@ function meta::pure::executionPlan::engine::java::documentReferenceIdentifierGet
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
 {
-   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
+   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaList(javaClass('? extends org.finos.legend.engine.plan.dependencies.store.document.graphFetch.IDocumentQueryResultField')), 'documentQueryResultFields'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], type: meta::external::language::java::metamodel::Type[1], code: Code[*]):meta::external::language::java::metamodel::Method[1]
@@ -903,4 +918,19 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrimaryKeyGettersMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
 {
    javaMethod($modifiers, javaList(javaReflectMethod()), 'primaryKeyGetters', [], $code)
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrimaryKeyColumnsMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod($modifiers, javaList(javaString()), 'primaryKeyColumns', [javaParam(javaInt(), 'setIndex')], $code)
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildSupportsCachingMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod($modifiers, javaBoolean(), 'supportsCaching', [], $code)
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildAllInstanceSetImplementationsMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod($modifiers, javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()])), 'allInstanceSetImplementations', [], $code)
 }

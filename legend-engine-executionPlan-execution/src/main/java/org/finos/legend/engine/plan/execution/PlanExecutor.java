@@ -34,6 +34,7 @@ import org.finos.legend.engine.plan.execution.stores.StoreExecutorConfiguration;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.ExecutionPlan;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecutionPlan;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.JavaPlatformImplementation;
 import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.finos.legend.engine.shared.core.identity.factory.IdentityFactoryProvider;
 import org.finos.legend.engine.shared.core.url.EngineUrlStreamHandlerFactory;
@@ -307,6 +308,17 @@ public class PlanExecutor
         }
         try
         {
+            SingleExecutionPlan ex = (SingleExecutionPlan) plan;
+
+            JavaPlatformImplementation jpi = (JavaPlatformImplementation) ex.getGlobalImplementationSupport();
+
+// goncah add these when we want to use our own java classes passed by the plan as strings, copied in for Execute/Specific/ Graph Fetch person node
+//            jpi.getClasses().remove(6);
+//            jpi.getClasses().remove(5);
+//            jpi.getClasses().remove(4);
+//            jpi.setClasses(new ArrayList<>());
+
+
             EngineJavaCompiler engineJavaCompiler = JavaHelper.compilePlan(plan, profiles);
             if (engineJavaCompiler != null)
             {

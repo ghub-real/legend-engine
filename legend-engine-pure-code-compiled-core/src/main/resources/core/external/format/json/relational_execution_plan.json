@@ -1,0 +1,288 @@
+{
+  "_type": "platform",
+  "resultType": {
+    "_type": "dataType",
+    "dataType": "String"
+  },
+  "executionNodes": [
+    {
+      "_type": "globalGraphFetchExecutionNode",
+      "resultType": {
+        "_type": "partialClass",
+        "setImplementations": [
+          {
+            "mapping": "meta::external::store::document::tests::simple::simpleRelationalMapping",
+            "id": "meta_external_store_document_tests_simple_Person",
+            "propertyMappings": [
+              {
+                "property": "firstName",
+                "type": "String",
+                "enumMapping": {}
+              },
+              {
+                "property": "age",
+                "type": "Integer",
+                "enumMapping": {}
+              },
+              {
+                "property": "lastName",
+                "type": "String",
+                "enumMapping": {}
+              }
+            ],
+            "class": "meta::external::store::document::tests::simple::Person"
+          }
+        ],
+        "propertiesWithParameters": [
+          {
+            "property": "firstName",
+            "parameters": null
+          },
+          {
+            "property": "lastName",
+            "parameters": null
+          }
+        ],
+        "class": "meta::external::store::document::tests::simple::Person"
+      },
+      "executionNodes": [],
+      "resultSizeRange": {
+        "lowerBound": 0,
+        "upperBound": null
+      },
+      "requiredVariableInputs": null,
+      "implementation": null,
+      "authDependent": false,
+      "graphFetchTree": {
+        "_type": "rootGraphFetchTree",
+        "sourceInformation": null,
+        "subTrees": [
+          {
+            "_type": "propertyGraphFetchTree",
+            "sourceInformation": null,
+            "subTrees": [],
+            "property": "firstName",
+            "parameters": [],
+            "alias": null,
+            "subType": null
+          },
+          {
+            "_type": "propertyGraphFetchTree",
+            "sourceInformation": null,
+            "subTrees": [],
+            "property": "lastName",
+            "parameters": [],
+            "alias": null,
+            "subType": null
+          }
+        ],
+        "class": "meta::external::store::document::tests::simple::Person"
+      },
+      "store": "meta::external::store::document::tests::simple::TestDbStore",
+      "children": null,
+      "localGraphFetchExecutionNode": {
+        "_type": "RelationalRootQueryTempTableGraphFetchExecutionNode",
+        "resultType": {
+          "_type": "partialClass",
+          "setImplementations": [
+            {
+              "mapping": "meta::external::store::document::tests::simple::simpleRelationalMapping",
+              "id": "meta_external_store_document_tests_simple_Person",
+              "propertyMappings": [
+                {
+                  "property": "firstName",
+                  "type": "String",
+                  "enumMapping": {}
+                },
+                {
+                  "property": "age",
+                  "type": "Integer",
+                  "enumMapping": {}
+                },
+                {
+                  "property": "lastName",
+                  "type": "String",
+                  "enumMapping": {}
+                }
+              ],
+              "class": "meta::external::store::document::tests::simple::Person"
+            }
+          ],
+          "propertiesWithParameters": [
+            {
+              "property": "firstName",
+              "parameters": null
+            },
+            {
+              "property": "lastName",
+              "parameters": null
+            }
+          ],
+          "class": "meta::external::store::document::tests::simple::Person"
+        },
+        "executionNodes": [
+          {
+            "_type": "SQLExecutionNode",
+            "resultType": {
+              "_type": "dataType",
+              "dataType": "meta::pure::metamodel::type::Any"
+            },
+            "executionNodes": [],
+            "resultSizeRange": null,
+            "requiredVariableInputs": null,
+            "implementation": null,
+            "authDependent": false,
+            "sqlQuery": "select \"root\".ID as \"pk_0\", \"root\".FIRSTNAME as \"firstName\", \"root\".LASTNAME as \"lastName\" from personTable as \"root\"",
+            "onConnectionCloseCommitQuery": null,
+            "onConnectionCloseRollbackQuery": null,
+            "connection": {
+              "_type": "RelationalDatabaseConnection",
+              "element": "meta::external::store::document::tests::simple::TestDbStore",
+              "elementSourceInformation": null,
+              "sourceInformation": null,
+              "type": "H2",
+              "timeZone": "GMT",
+              "quoteIdentifiers": null,
+              "postProcessorWithParameter": [],
+              "datasourceSpecification": {
+                "_type": "LocalH2DatasourceSpecification",
+                "sourceInformation": null,
+                "testDataSetupCsv": null,
+                "testDataSetupSqls": null
+              },
+              "authenticationStrategy": {
+                "_type": "TestDatabaseAuthenticationStrategy",
+                "sourceInformation": null
+              },
+              "databaseType": null,
+              "postProcessors": []
+            },
+            "resultColumns": [
+              {
+                "label": "\"pk_0\"",
+                "dataType": "INTEGER"
+              },
+              {
+                "label": "\"firstName\"",
+                "dataType": "VARCHAR(200)"
+              },
+              {
+                "label": "\"lastName\"",
+                "dataType": "VARCHAR(200)"
+              }
+            ]
+          }
+        ],
+        "resultSizeRange": null,
+        "requiredVariableInputs": null,
+        "implementation": {
+          "_type": "java",
+          "code": null,
+          "compiledClasses": null,
+          "byteCode": null,
+          "classes": null,
+          "executionClassFullName": "_pure.plan.root.n1.localGraph.Execute",
+          "executionMethodName": null
+        },
+        "authDependent": false,
+        "nodeIndex": 0,
+        "parentIndex": null,
+        "graphFetchTree": {
+          "_type": "rootGraphFetchTree",
+          "sourceInformation": null,
+          "subTrees": [
+            {
+              "_type": "propertyGraphFetchTree",
+              "sourceInformation": null,
+              "subTrees": [],
+              "property": "firstName",
+              "parameters": [],
+              "alias": null,
+              "subType": null
+            },
+            {
+              "_type": "propertyGraphFetchTree",
+              "sourceInformation": null,
+              "subTrees": [],
+              "property": "lastName",
+              "parameters": [],
+              "alias": null,
+              "subType": null
+            }
+          ],
+          "class": "meta::external::store::document::tests::simple::Person"
+        },
+        "relationalNode": null,
+        "children": null,
+        "tempTableName": "temp_table_node_0",
+        "columns": [
+          {
+            "label": "pk_0",
+            "dataType": "INTEGER"
+          }
+        ],
+        "batchSize": 1000,
+        "checked": false
+      },
+      "parentIndex": null,
+      "xStorePropertyMapping": null,
+      "enableConstraints": true,
+      "checked": false,
+      "xStorePropertyFetchDetails": null
+    }
+  ],
+  "resultSizeRange": null,
+  "requiredVariableInputs": null,
+  "implementation": {
+    "_type": "java",
+    "code": null,
+    "compiledClasses": null,
+    "byteCode": null,
+    "classes": null,
+    "executionClassFullName": "_pure.plan.root.Serialize",
+    "executionMethodName": null
+  },
+  "authDependent": false,
+  "pure": {
+    "_type": "func",
+    "sourceInformation": null,
+    "function": "serialize",
+    "fControl": "serialize_T_MANY__RootGraphFetchTree_1__String_1_",
+    "parameters": [
+      {
+        "_type": "collection",
+        "sourceInformation": null,
+        "values": [],
+        "multiplicity": {
+          "lowerBound": 0,
+          "upperBound": null
+        }
+      },
+      {
+        "_type": "rootGraphFetchTree",
+        "sourceInformation": null,
+        "subTrees": [
+          {
+            "_type": "propertyGraphFetchTree",
+            "sourceInformation": null,
+            "subTrees": [],
+            "property": "firstName",
+            "parameters": [],
+            "alias": null,
+            "subType": null
+          },
+          {
+            "_type": "propertyGraphFetchTree",
+            "sourceInformation": null,
+            "subTrees": [],
+            "property": "lastName",
+            "parameters": [],
+            "alias": null,
+            "subType": null
+          }
+        ],
+        "class": "meta::external::store::document::tests::simple::Person"
+      }
+    ]
+  }
+}

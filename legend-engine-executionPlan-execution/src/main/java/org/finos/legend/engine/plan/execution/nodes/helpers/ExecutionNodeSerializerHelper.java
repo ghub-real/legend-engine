@@ -98,7 +98,14 @@ public class ExecutionNodeSerializerHelper
                     serializer.serialize(first);
                     if (iter.hasNext())
                     {
-                        iter.forEachRemaining(serializer::serialize);
+                        int i = 0;
+                        // goncah TODO: figure out why we never finish/endless for loop in the case of document, I believe resultSet reading
+                        // eventually returns null and that's how they get out
+                        while (iter.hasNext() && i < 2)  {
+                            T second = iter.next();
+                            serializer.serialize(second);
+                            i++;
+                        }
                         generator.writeEndArray();
                     }
                 }

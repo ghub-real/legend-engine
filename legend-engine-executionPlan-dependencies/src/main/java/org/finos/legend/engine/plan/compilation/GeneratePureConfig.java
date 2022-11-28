@@ -14,6 +14,7 @@
 
 package org.finos.legend.engine.plan.compilation;
 
+import org.bson.Document;
 import org.eclipse.collections.api.factory.Sets;
 import org.eclipse.collections.api.tuple.Pair;
 import org.finos.legend.engine.plan.dependencies.domain.dataQuality.BasicDefect;
@@ -31,6 +32,8 @@ import org.finos.legend.engine.plan.dependencies.domain.date.Month;
 import org.finos.legend.engine.plan.dependencies.domain.date.PureDate;
 import org.finos.legend.engine.plan.dependencies.domain.date.Quarter;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.IDocumentQueryResultField;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.DataParsingException;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.IGraphFetchM2MExecutionNodeContext;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.IStoreStreamReader;
@@ -40,7 +43,6 @@ import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IInMe
 import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IInMemoryRootGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IInMemoryRootGraphFetchMergeExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IStoreStreamReadingExecutionNodeSpecifics;
-import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.platform.IGraphSerializer;
 import org.finos.legend.engine.plan.dependencies.store.platform.IPlatformPureExpressionExecutionNodeGraphFetchMergeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.platform.IPlatformPureExpressionExecutionNodeGraphFetchUnionSpecifics;
@@ -164,6 +166,9 @@ public class GeneratePureConfig
         MAIN_DEPENDENCIES.put(PURE_PACKAGE + "IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics", IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics.class);
         MAIN_DEPENDENCIES.put(PURE_PACKAGE + "IServiceParametersResolutionExecutionNodeSpecifics", IServiceParametersResolutionExecutionNodeSpecifics.class);
         MAIN_DEPENDENCIES.put(PURE_PACKAGE + "INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics", INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics.class);
+        MAIN_DEPENDENCIES.put(PURE_PACKAGE + "IDocumentQueryResultField", IDocumentQueryResultField.class);
+        MAIN_DEPENDENCIES.put(PURE_PACKAGE + "Document", Document.class);
+
     }
 
     private final Class<?> extensionClass;

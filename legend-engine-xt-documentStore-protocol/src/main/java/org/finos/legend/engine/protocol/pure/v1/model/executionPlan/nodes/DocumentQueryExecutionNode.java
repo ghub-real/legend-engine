@@ -25,14 +25,24 @@ import java.util.List;
 public class DocumentQueryExecutionNode extends ExecutionNode
 {
     public String mongoQLQuery;
+    public String mongoQLQuery2;
     public String onConnectionCloseCommitQuery;
     public String onConnectionCloseRollbackQuery;
     public DatabaseConnection connection;
-    public List<DocumentQueryResultField> resultColumns = Collections.emptyList();
+    public List<DocumentQueryResultField> resultFields;
 
-    public DatabaseConnection getConnection()
+    public DocumentQueryExecutionNode()
     {
-        return connection;
+    }
+
+    public DocumentQueryExecutionNode(String mongoQLQuery, String mongoQLQuery2, String onConnectionCloseCommitQuery, String onConnectionCloseRollbackQuery, DatabaseConnection connection, List<DocumentQueryResultField> resultFields)
+    {
+        this.mongoQLQuery = mongoQLQuery;
+        this.mongoQLQuery2 = mongoQLQuery2;
+        this.onConnectionCloseCommitQuery = onConnectionCloseCommitQuery;
+        this.onConnectionCloseRollbackQuery = onConnectionCloseRollbackQuery;
+        this.connection = connection;
+        this.resultFields = resultFields;
     }
 
     @Override
@@ -40,6 +50,67 @@ public class DocumentQueryExecutionNode extends ExecutionNode
     {
         return executionNodeVisitor.visit(this);
     }
+
+    public void setMongoQLQuery(String mongoQLQuery)
+    {
+        this.mongoQLQuery = mongoQLQuery;
+    }
+
+    public void setMongoQLQuery2(String mongoQLQuery2)
+    {
+        this.mongoQLQuery2 = mongoQLQuery2;
+    }
+
+    public void setOnConnectionCloseCommitQuery(String onConnectionCloseCommitQuery)
+    {
+        this.onConnectionCloseCommitQuery = onConnectionCloseCommitQuery;
+    }
+
+    public void setOnConnectionCloseRollbackQuery(String onConnectionCloseRollbackQuery)
+    {
+        this.onConnectionCloseRollbackQuery = onConnectionCloseRollbackQuery;
+    }
+
+    public void setConnection(DatabaseConnection connection)
+    {
+        this.connection = connection;
+    }
+
+    public void setResultFields(List<DocumentQueryResultField> resultFields)
+    {
+        this.resultFields = resultFields;
+    }
+
+    public String getMongoQLQuery()
+    {
+        return mongoQLQuery;
+    }
+
+    public String getMongoQLQuery2()
+    {
+        return mongoQLQuery2;
+    }
+
+    public String getOnConnectionCloseCommitQuery()
+    {
+        return onConnectionCloseCommitQuery;
+    }
+
+    public String getOnConnectionCloseRollbackQuery()
+    {
+        return onConnectionCloseRollbackQuery;
+    }
+
+    public DatabaseConnection getConnection()
+    {
+        return connection;
+    }
+
+    public List<DocumentQueryResultField> getResultFields()
+    {
+        return resultFields;
+    }
+
 
     /* Database APIs */
     public String getQuery()
@@ -62,6 +133,6 @@ public class DocumentQueryExecutionNode extends ExecutionNode
     @JsonIgnore
     public List<DocumentQueryResultField> getSQLResultColumns()
     {
-        return ListIterate.collect(this.resultColumns, DocumentQueryResultField::new);
+        return resultFields;
     }
 }

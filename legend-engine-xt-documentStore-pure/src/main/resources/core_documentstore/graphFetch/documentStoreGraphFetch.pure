@@ -237,10 +237,23 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 {
    let sql = $query->documentQueryToString($dbConnection.type, $dbConnection.timeZone, $dbConnection.quoteIdentifiers, $extensions);
    
+
+   println('meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode');
+
+ //  let results = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne()));
+  
+  //  println('results:');
+
+    
+   // println($results);
+
+   
    ^DocumentQueryExecutionNode
     (
        documentQuery         = $sql,
-       resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne())), // not passing in meta::relational::translation::TranslationContext
+       //resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne())), // not passing in meta::relational::translation::TranslationContext
+       resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name)), // not passing in meta::relational::translation::TranslationContext
+
        resultType       = ^ResultType(type = Any),
        connection       = $dbConnection->meta::external::store::document::mapping::functions::updateConnection($extensions)->cast(@DatabaseConnection),
        supportFunctions = documentStorePlanSupportFunctions($dbConnection)

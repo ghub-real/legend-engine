@@ -69,17 +69,19 @@ function go():Any[*]
     // print($storeDefinition);
 
 // document store execution plan
-    //let executionPlan = meta::pure::executionPlan::executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
+  //  let result = meta::pure::executionPlan::executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
 
 // document store execute
-    let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+ let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
 
     let mapping = meta::external::store::document::tests::simple::simpleRelationalMapping;
 
 // relational execute
-    //let result = execute($query, $mapping, $myRunTime, meta::relational::extension::relationalExtensions()).values;
 
-    //println($result);
+println('test');
+ //let result = execute($query, $mapping, $myRunTime, meta::relational::extension::relationalExtensions()).values;
+
+    println($result);
 
 }
 
