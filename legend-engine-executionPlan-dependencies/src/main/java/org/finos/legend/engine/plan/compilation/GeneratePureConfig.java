@@ -31,6 +31,9 @@ import org.finos.legend.engine.plan.dependencies.domain.date.Month;
 import org.finos.legend.engine.plan.dependencies.domain.date.PureDate;
 import org.finos.legend.engine.plan.dependencies.domain.date.Quarter;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.DataParsingException;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.IGraphFetchM2MExecutionNodeContext;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.IStoreStreamReader;
@@ -40,7 +43,6 @@ import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IInMe
 import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IInMemoryRootGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IInMemoryRootGraphFetchMergeExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.inMemory.graphFetch.IStoreStreamReadingExecutionNodeSpecifics;
-import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.platform.IGraphSerializer;
 import org.finos.legend.engine.plan.dependencies.store.platform.IPlatformPureExpressionExecutionNodeGraphFetchMergeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.platform.IPlatformPureExpressionExecutionNodeGraphFetchUnionSpecifics;
@@ -114,6 +116,8 @@ public class GeneratePureConfig
 {
     private static final String PURE_PACKAGE = "meta::pure::executionPlan::engine::";
 
+    private static final String LEGEND_DOCUMENT_PACKAGE = "meta::external::store::document::metamodel::execute::";
+
     static final Map<String, Class<?>> MAIN_DEPENDENCIES = new LinkedHashMap<>();
 
     static
@@ -164,6 +168,8 @@ public class GeneratePureConfig
         MAIN_DEPENDENCIES.put(PURE_PACKAGE + "IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics", IRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics.class);
         MAIN_DEPENDENCIES.put(PURE_PACKAGE + "IServiceParametersResolutionExecutionNodeSpecifics", IServiceParametersResolutionExecutionNodeSpecifics.class);
         MAIN_DEPENDENCIES.put(PURE_PACKAGE + "INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics", INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics.class);
+        MAIN_DEPENDENCIES.put(PURE_PACKAGE + "INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics", INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics.class);
+        MAIN_DEPENDENCIES.put(PURE_PACKAGE + "DocumentResultSet", DocumentResultSet.class);
     }
 
     private final Class<?> extensionClass;
@@ -237,6 +243,7 @@ public class GeneratePureConfig
         standardTypes.put(ResultSet.class, new FactoryType("javaResultSet"));
         standardTypes.put(StringBuilder.class, new FactoryType("javaStringBuilder"));
         standardTypes.put(URL.class, new FactoryType("javaURL"));
+        standardTypes.put(org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet.class, new FactoryType("javaDocumentResultSet"));
     }
 
     public GeneratePureConfig addClass(String pureClassPath, Class<?> clazz)

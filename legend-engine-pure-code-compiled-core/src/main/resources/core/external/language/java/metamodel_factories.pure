@@ -82,6 +82,7 @@ function meta::external::language::java::factory::javaDecimalFormat():          
 function meta::external::language::java::factory::javaDecimalFormatSymbols():   meta::external::language::java::metamodel::Class[1] { javaClass('java.text.DecimalFormatSymbols'); }
 
 function meta::external::language::java::factory::javaResultSet():              meta::external::language::java::metamodel::Class[1] { javaClass('java.sql.ResultSet'); }
+function meta::external::language::java::factory::javaDocumentResultSet():      meta::external::language::java::metamodel::Class[1] { javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'); }
 function meta::external::language::java::factory::javaSqlDate():                meta::external::language::java::metamodel::Class[1] { javaClass('java.sql.Date'); }
 function meta::external::language::java::factory::javaSqlTimestamp():                meta::external::language::java::metamodel::Class[1] { javaClass('java.sql.Timestamp'); }
 

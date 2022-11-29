@@ -89,9 +89,9 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    
    let nodeSpecifics = $conventions->className($node->match([
       pr : DocumentPrimitiveQueryGraphFetchExecutionNode[1]          | INonRelationalPrimitiveQueryGraphFetchExecutionNodeSpecifics,
-      rq : DocumentRootQueryTempTableGraphFetchExecutionNode[1]      | INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics,
+      rq : DocumentRootQueryTempTableGraphFetchExecutionNode[1]      | INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
       //cr : DocumentCrossRootQueryTempTableGraphFetchExecutionNode[1] | INonRelationalCrossRootQueryTempTableGraphFetchExecutionNodeSpecifics,
-      cq : DocumentClassQueryTempTableGraphFetchExecutionNode[1]     | INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics
+      //cq : DocumentClassQueryTempTableGraphFetchExecutionNode[1]     | INonRelationalClassQueryTempTableGraphFetchExecutionNodeSpecifics
    ]));
    
 
@@ -101,9 +101,10 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->imports(javaPackage('java.util.function'))
       ->imports(javaPackage('java.util.stream'))
       ->imports(javaReflectMethod())
-      ->imports(javaResultSet())
+      //->imports(javaResultSet())
       ->imports(javaClass('org.eclipse.collections.api.tuple.Pair'))
-      ->imports(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField'))
+      ->imports(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'))
+      //->imports(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSetImpl'))
       ->imports($conventions->className(IExecutionNodeContext))
       ->imports($conventions->className(GraphInstance))
       ->imports($conventions->className(IReferencedObject))
@@ -138,7 +139,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 
 
    $executeClass
-      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
+      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'), 'documentResultSet'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
       ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(['public'], $nextType, j_return($specificsField->j_invoke('nextGraphInstance', [], $nextType))))
       ->map({exe |
         /*
@@ -892,7 +893,7 @@ function meta::pure::executionPlan::engine::java::documentReferenceIdentifierGet
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
 {
-   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
+   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'), 'documentResultSet'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], type: meta::external::language::java::metamodel::Type[1], code: Code[*]):meta::external::language::java::metamodel::Method[1]

@@ -20,12 +20,13 @@ import io.opentracing.util.GlobalTracer;
 import org.eclipse.collections.api.block.function.Function2;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.impl.list.mutable.FastList;
 import org.eclipse.collections.impl.tuple.Tuples;
 import org.eclipse.collections.impl.utility.Iterate;
-import org.eclipse.collections.api.tuple.Pair;
 import org.finos.legend.engine.plan.dependencies.domain.dataQuality.BasicChecked;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
 import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
 import org.finos.legend.engine.plan.execution.cache.ExecutionCache;
@@ -39,23 +40,13 @@ import org.finos.legend.engine.plan.execution.result.graphFetch.GraphFetchResult
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphObjectsBatch;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
 import org.finos.legend.engine.plan.execution.stores.document.NonRelationalDatabaseCommandsVisitorBuilder;
+import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.PreparedTempTableResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.RealizedNonRelationalResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.ResultInterpreterExtension;
 import org.finos.legend.engine.plan.execution.stores.document.result.graphFetch.NonRelationalGraphObjectsBatch;
-//import org.finos.legend.engine.plan.execution.stores.relational.RelationalDatabaseCommandsVisitorBuilder;
-import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection;
-import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
-import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalExecutionNodeExecutor;
-//import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutionState;
-//import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
-//import org.finos.legend.engine.plan.execution.stores.relational.result.PreparedTempTableResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
-import org.finos.legend.engine.plan.execution.stores.relational.result.RealizedRelationalResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.SQLExecutionResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.graphFetch.RelationalGraphObjectsBatch;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AggregationAwareExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AllocationExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ConstantExecutionNode;
@@ -75,8 +66,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphF
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalTempTableGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryCrossStoreGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryPropertyGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryRootGraphFetchExecutionNode;
@@ -91,7 +80,6 @@ import org.pac4j.core.profile.CommonProfile;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -102,7 +90,6 @@ import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -146,9 +133,12 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             }
 
         }
-        else if (executionNode instanceof DocumentRootQueryTempTableGraphFetchExecutionNode)
+        else
         {
-            return executeDocumentRootQueryTempTableGraphFetchExecutionNode((DocumentRootQueryTempTableGraphFetchExecutionNode) executionNode);
+            if (executionNode instanceof DocumentRootQueryTempTableGraphFetchExecutionNode)
+            {
+                return executeDocumentRootQueryTempTableGraphFetchExecutionNode((DocumentRootQueryTempTableGraphFetchExecutionNode) executionNode);
+            }
         }
         throw new RuntimeException("Not implemented!");
 
@@ -274,7 +264,6 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
     }
 
 
-
     private Result executeDocumentRootQueryTempTableGraphFetchExecutionNode(DocumentRootQueryTempTableGraphFetchExecutionNode node)
     {
         int batchSize = node.batchSize == null ? 1000 : node.batchSize;
@@ -288,8 +277,8 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             rootResult = node.executionNodes.get(0).accept(new ExecutionNodeExecutor(this.profiles, this.executionState));
             DocumentQueryExecutionResult documentQueryExecutionResult = (DocumentQueryExecutionResult) rootResult;
             DatabaseConnection databaseConnection = documentQueryExecutionResult.getDocumentQueryExecutionNode().connection;
-            List<DocumentQueryResultField> resultFields = ((DocumentQueryExecutionResult) rootResult).getDocumentQueryResultFields();
-
+            DocumentResultSet documentResultSet = ((DocumentQueryExecutionResult) rootResult).getResultSet();
+            // DocumentResultSet resultSet = ((DocumentResultSet)rootResult).
             INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
 
             List<Method> primaryKeyGetters = nodeSpecifics.primaryKeyGetters();
@@ -301,7 +290,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             boolean cachingEnabledForNode = this.checkForCachingAndPopulateCachingHelpers(allInstanceSetImplementations, nodeSpecifics.supportsCaching(), node.graphFetchTree, documentQueryExecutionResult, nodeSpecifics::primaryKeyColumns, multiSetCache);
 
             /* Prepare for reading */
-            nodeSpecifics.prepare(resultFields, documentQueryExecutionResult.getDatabaseTimeZone(), ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().writeValueAsString(databaseConnection));
+            nodeSpecifics.prepare(documentResultSet, documentQueryExecutionResult.getDatabaseTimeZone(), ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().writeValueAsString(databaseConnection));
 
             AtomicLong batchIndex = new AtomicLong(0L);
             Spliterator<GraphObjectsBatch> graphObjectsBatchSpliterator = new Spliterators.AbstractSpliterator<GraphObjectsBatch>(Long.MAX_VALUE, Spliterator.ORDERED)
@@ -326,7 +315,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
                         List<Pair<IGraphInstance<? extends IReferencedObject>, ExecutionCache<GraphFetchCacheKey, Object>>> instancesToDeepFetchAndCache = new ArrayList<>();
 
                         int objectCount = 0;
-                        for (int i = 0; i < resultFields.size(); i++)
+                        while (documentResultSet.next())
                         {
                             relationalGraphObjectsBatch.incrementRowCount();
 
@@ -473,34 +462,6 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
         return cachingEnabledForNode;
     }
 
-    private static class NonRelationalMultiSetExecutionCacheWrapper
-    {
-        List<Boolean> setCachingEnabled;
-        List<ExecutionCache<GraphFetchCacheKey, Object>> setCaches;
-        List<NonRelationalGraphFetchUtils.NonRelationalDocumetResultGraphFetchCacheKey> documentResultCacheKeys;
-
-        NonRelationalMultiSetExecutionCacheWrapper(int setIdCount)
-        {
-            this.setCachingEnabled = new ArrayList<>(setIdCount);
-            this.setCaches = new ArrayList<>(setIdCount);
-            this.documentResultCacheKeys = new ArrayList<>(setIdCount);
-        }
-
-        void addNextValidCache(ExecutionCache<GraphFetchCacheKey, Object> cache, NonRelationalGraphFetchUtils.NonRelationalDocumetResultGraphFetchCacheKey cacheKey)
-        {
-            this.setCachingEnabled.add(true);
-            this.setCaches.add(cache);
-            this.documentResultCacheKeys.add(cacheKey);
-        }
-
-        void addNextEmptyCache()
-        {
-            this.setCachingEnabled.add(false);
-            this.setCaches.add(null);
-            this.documentResultCacheKeys.add(null);
-        }
-    }
-
     private void executeTempTableNodeChildren(DocumentTempTableGraphFetchExecutionNode node, RealizedNonRelationalResult realizedNonRelationalResult, org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection databaseConnection, String databaseType, String databaseTimeZone, DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> nodeObjectsMap, List<Method> nodePrimaryKeyGetters, ExecutionState state)
     {
         NonRelationalGraphObjectsBatch nonRelationalGraphObjectsBatch = (NonRelationalGraphObjectsBatch) state.graphObjectsBatch;
@@ -569,5 +530,33 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             return multiSetCache.setCaches.get(setIndex).getIfPresent(multiSetCache.documentResultCacheKeys.get(setIndex));
         }
         return null;
+    }
+
+    private static class NonRelationalMultiSetExecutionCacheWrapper
+    {
+        List<Boolean> setCachingEnabled;
+        List<ExecutionCache<GraphFetchCacheKey, Object>> setCaches;
+        List<NonRelationalGraphFetchUtils.NonRelationalDocumetResultGraphFetchCacheKey> documentResultCacheKeys;
+
+        NonRelationalMultiSetExecutionCacheWrapper(int setIdCount)
+        {
+            this.setCachingEnabled = new ArrayList<>(setIdCount);
+            this.setCaches = new ArrayList<>(setIdCount);
+            this.documentResultCacheKeys = new ArrayList<>(setIdCount);
+        }
+
+        void addNextValidCache(ExecutionCache<GraphFetchCacheKey, Object> cache, NonRelationalGraphFetchUtils.NonRelationalDocumetResultGraphFetchCacheKey cacheKey)
+        {
+            this.setCachingEnabled.add(true);
+            this.setCaches.add(cache);
+            this.documentResultCacheKeys.add(cacheKey);
+        }
+
+        void addNextEmptyCache()
+        {
+            this.setCachingEnabled.add(false);
+            this.setCaches.add(null);
+            this.documentResultCacheKeys.add(null);
+        }
     }
 }

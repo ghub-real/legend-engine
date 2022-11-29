@@ -42,6 +42,7 @@ public class DocumentQueryExecutionResult extends Result
     private final String databaseType;
     private final String databaseTimeZone;
     private final Calendar calendar;
+
     private final DocumentResultSet resultSet;
     private final NonRelationalClient client;
     // private final List<String> temporaryTables;
@@ -98,7 +99,7 @@ public class DocumentQueryExecutionResult extends Result
         return this.databaseTimeZone;
     }
 
-//    public List<String> getTemporaryTables()
+    //    public List<String> getTemporaryTables()
 //    {
 //        return temporaryTables;
 //    }
@@ -113,10 +114,10 @@ public class DocumentQueryExecutionResult extends Result
 //        return this.statement;
 //    }
 //
-//    public ResultSet getResultSet()
-//    {
-//        return this.resultSet;
-//    }
+    public DocumentResultSet getResultSet()
+    {
+        return resultSet;
+    }
 //
 //    public ResultSetMetaData getResultSetMetaData()
 //    {
