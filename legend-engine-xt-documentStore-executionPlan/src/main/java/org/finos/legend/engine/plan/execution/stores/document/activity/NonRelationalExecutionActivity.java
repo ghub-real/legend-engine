@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.nonrelational.client;
+package org.finos.legend.engine.plan.execution.stores.document.activity;
 
-import com.mongodb.client.MongoClient;
+import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
 
-import java.util.List;
-
-public interface NonRelationalClient
+public class NonRelationalExecutionActivity extends ExecutionActivity
 {
-    MongoClient getMongoDBClient();
-    // NonRelationalClient buildNonRelationalClient(Identity identity, String connectionUri);
 
-    List<String> executeNativeQuery(String mongoQuery);
+        public String sql;
+
+        public NonRelationalExecutionActivity(String sqlQuery)
+        {
+            this.sql = sqlQuery;
+        }
 }

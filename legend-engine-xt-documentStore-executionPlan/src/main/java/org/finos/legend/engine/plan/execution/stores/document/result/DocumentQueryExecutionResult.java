@@ -18,17 +18,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentracing.Span;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.list.mutable.FastList;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSetImpl;
 import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
 import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.result.ResultVisitor;
-import org.finos.legend.engine.plan.execution.stores.relational.result.ResultColumn;
+import org.finos.legend.engine.plan.execution.stores.document.activity.NonRelationalExecutionActivity;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.ResultField;
 import org.pac4j.core.profile.CommonProfile;
 import org.slf4j.Logger;
 
-import java.sql.ResultSet;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -37,37 +39,40 @@ import java.util.TimeZone;
 public class DocumentQueryExecutionResult extends Result
 {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Alloy Execution Server");
-
-    DocumentQueryExecutionNode documentQueryExecutionNode;
     private final String databaseType;
     private final String databaseTimeZone;
     private final Calendar calendar;
-    private final List<String> temporaryTables;
+    private final DocumentResultSet resultSet;
+    private final NonRelationalClient client;
+    // private final List<String> temporaryTables;
 //  SQL specific stuff
 //    private final Connection connection;
 //    private final Statement statement;
-//    private final ResultSet resultSet;
 //    private final ResultSetMetaData resultSetMetaData;
     private final String executedMql;
-
     //private final int fieldCount;
     private final List<String> fieldNames = FastList.newList();
+    // Simple object with mapping of model datatype  & db data type
     private final List<ResultField> resultFields = FastList.newList();
+    //From protocol - execution node.
     private final List<DocumentQueryResultField> documentQueryResultFields = FastList.newList();
-
     public Span topSpan;
+    DocumentQueryExecutionNode documentQueryExecutionNode;
 
-    public DocumentQueryExecutionResult(List<ExecutionActivity> activities, DocumentQueryExecutionNode executionNode, String databaseType, String databaseTimeZone, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
+    public DocumentQueryExecutionResult(List<ExecutionActivity> activities, DocumentQueryExecutionNode executionNode, String databaseType, String databaseTimeZone, NonRelationalClient nonRelationalClient, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
     {
         super("success", activities);
 
 
         this.documentQueryExecutionNode = executionNode;
-        this.executedMql = this.documentQueryExecutionNode.getQuery();
         this.databaseType = databaseType;
         this.databaseTimeZone = databaseTimeZone;
         this.calendar = new GregorianCalendar(TimeZone.getTimeZone(databaseTimeZone));
-        this.temporaryTables = temporaryTables;
+
+        this.client = nonRelationalClient;
+        String nativeQL = ((NonRelationalExecutionActivity) activities.get(activities.size() - 1)).sql;
+        this.executedMql = nativeQL;
+        this.resultSet = new DocumentResultSetImpl(nonRelationalClient.executeNativeQuery(nativeQL));
 
         this.topSpan = topSpan;
     }

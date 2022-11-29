@@ -12,16 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.nonrelational.client;
+package org.finos.legend.engine.plan.dependencies.store.document;
 
-import com.mongodb.client.MongoClient;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface NonRelationalClient
+public interface DocumentResultSet
 {
-    MongoClient getMongoDBClient();
-    // NonRelationalClient buildNonRelationalClient(Identity identity, String connectionUri);
+    Optional<JsonNode> getValue(String jsonPath);
 
-    List<String> executeNativeQuery(String mongoQuery);
+    boolean next();
+
+    void close();
+
+    boolean first();
+
+    boolean last();
+    // getMetaData - do we need this?
 }

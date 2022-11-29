@@ -14,15 +14,26 @@
 
 package org.finos.legend.engine.plan.dependencies.store.nonRelational;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
 import org.finos.legend.engine.plan.dependencies.store.shared.IResult;
 
-import java.sql.SQLException;
+import java.util.Optional;
 
 public interface INonRelationalResult extends IResult
 {
-    //ResultSet getResultSet();
+    DocumentResultSet getDocumentResultSet();
 
-    Object getValue(int columnIndex) throws SQLException;
+    Optional<JsonNode> getValue(String jsonPath);
 
-    Object getTransformedValue(int columnIndex) throws SQLException;
+    Optional<JsonNode> getTransformedValue(String jsonPath);
+
+    @Deprecated
+    Object getValue(int fieldIndex);
+
+    /**
+     * Can throw runtime exception if index not in range.
+     */
+    @Deprecated
+    Object getTransformedValue(int fieldIndex);
 }

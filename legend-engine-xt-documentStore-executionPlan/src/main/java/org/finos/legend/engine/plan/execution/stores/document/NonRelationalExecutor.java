@@ -16,23 +16,27 @@ package org.finos.legend.engine.plan.execution.stores.document;
 
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
-import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.list.mutable.FastList;
+import org.finos.legend.engine.plan.execution.nodes.helpers.freemarker.FreeMarkerExecutor;
 import org.finos.legend.engine.plan.execution.nodes.state.ExecutionState;
 import org.finos.legend.engine.plan.execution.result.Result;
+import org.finos.legend.engine.plan.execution.stores.StoreType;
+import org.finos.legend.engine.plan.execution.stores.document.activity.NonRelationalExecutionActivity;
 import org.finos.legend.engine.plan.execution.stores.document.config.NonRelationalExecutionConfiguration;
 import org.finos.legend.engine.plan.execution.stores.document.config.TemporaryTestDbConfiguration;
 import org.finos.legend.engine.plan.execution.stores.document.connection.manager.ConnectionManagerSelector;
+import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutionState;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.DocumentQueryExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DataStoreConnection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection;
+import org.finos.legend.engine.shared.core.operational.logs.LogInfo;
+import org.finos.legend.engine.shared.core.operational.logs.LoggingEventType;
 import org.pac4j.core.profile.CommonProfile;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class NonRelationalExecutor
@@ -95,58 +99,50 @@ public class NonRelationalExecutor
         Span span = GlobalTracer.get().activeSpan();
 
         // TODO: goncah we shouldn't need to cast and we should follow similar pattern with relational using DatabaseManager, ConnectionManager, DataSourceKey etc.
-
-
-        DataStoreConnection databaseConnection = (DataStoreConnection) node.connection;
-        MongoDBDatasourceSpecification datasourceSpecification = (MongoDBDatasourceSpecification) databaseConnection.datasourceSpecification;
-
-        //DatabaseManager databaseManager = DatabaseManager.fromString(databaseType);
-        List<String> results = Lists.mutable.empty();
-        LocalMongoDBClient mongoDBClient = null;
-        String query = node.getQuery();
-
-        if (!Objects.equals(query, "") && query != null)
+        NonRelationalClient nonRelationalClient = getClient(node, profiles, (NonRelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational));
+        if (span != null)
         {
-            try
-            {
-                mongoDBClient = new LocalMongoDBClient(datasourceSpecification);
-                results = mongoDBClient.executeCustomAggregationQueryToDefaultDB(query);
-            }
-            catch (Exception e)
-            {
-                LOGGER.error(e.toString());
-            }
-            finally
-            {
-                if (mongoDBClient != null)
-                {
-                    mongoDBClient.close();
-                }
-            }
-
+            span.log("Non-Relational Client acquired");
         }
-//        connectionManagerConnection = getConnection(node, profiles, (NonRelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational));
-//        if (span != null)
-//        {
-//            span.log("Connection acquired");
-//        }
 
-//        this.prepareForSQLExecution(node, connectionManagerConnection, databaseTimeZone, databaseType, tempTableList, profiles, executionState);
+        this.prepareForQueryExecution(node, nonRelationalClient, databaseTimeZone, databaseType, profiles, executionState);
+
+//        DataStoreConnection databaseConnection = (DataStoreConnection) node.connection;
+//        MongoDBDatasourceSpecification datasourceSpecification = (MongoDBDatasourceSpecification) databaseConnection.datasourceSpecification;
+//        List<String> results = Lists.mutable.empty();
+//        LocalMongoDBClient mongoDBClient = null;
+//        String query = node.getQuery();
 //
-//        if (node.isResultVoid())
+//        if (!Objects.equals(query, "") && query != null)
 //        {
-//            return new VoidRelationalResult(executionState.activities, connectionManagerConnection, profiles);
+//            try
+//            {
+//                mongoDBClient = new LocalMongoDBClient(datasourceSpecification);
+//                results = mongoDBClient.executeCustomAggregationQueryToDefaultDB(query);
+//            }
+//            catch (Exception e)
+//            {
+//                LOGGER.error(e.toString());
+//            }
+//            finally
+//            {
+//                if (mongoDBClient != null)
+//                {
+//                    mongoDBClient.close();
+//                }
+//            }
+//
 //        }
 
-        return new DocumentQueryExecutionResult(executionState.activities, node, databaseType, databaseTimeZone, profiles, tempTableList, executionState.topSpan);
+        return new DocumentQueryExecutionResult(executionState.activities, node, databaseType, databaseTimeZone, nonRelationalClient, profiles, tempTableList, executionState.topSpan);
     }
 
-//    private void prepareForSQLExecution(ExecutionNode node, Connection connection, String databaseTimeZone, String databaseTypeName, List<String> tempTableList, MutableList<CommonProfile> profiles, ExecutionState executionState)
-//    {
-//        String sqlQuery;
-//
-//        sqlQuery = node instanceof RelationalExecutionNode ? ((RelationalExecutionNode) node).sqlQuery() : ((SQLExecutionNode) node).sqlQuery();
-//
+    private void prepareForQueryExecution(DocumentQueryExecutionNode node, NonRelationalClient nonRelationalClient, String databaseTimeZone, String databaseTypeName, MutableList<CommonProfile> profiles, ExecutionState executionState)
+    {
+        String documentQuery;
+
+        documentQuery = node.getQuery(); // returns mongoQuery
+
 //        DatabaseManager databaseManager = DatabaseManager.fromString(databaseTypeName);
 //        for (Map.Entry<String, Result> var : executionState.getResults().entrySet())
 //        {
@@ -161,97 +157,53 @@ public class NonRelationalExecutor
 //            {
 //                sqlQuery = sqlQuery.replace("(${" + var.getKey() + "})", ((PreparedTempTableResult) var.getValue()).getTempTableName());
 //            }
-//        }
-//
-//        if (sqlQuery == null)
-//        {
-//            throw new RuntimeException("Relational execution not supported on external server");
-//        }
-//
-//        try
-//        {
-//            sqlQuery = FreeMarkerExecutor.process(sqlQuery, executionState, databaseTypeName, databaseTimeZone);
-//            Span span = GlobalTracer.get().activeSpan();
-//            if (span != null)
-//            {
-//                span.setTag("generatedSQL", sqlQuery);
-//            }
-//        }
-//        catch (Exception e)
-//        {
-//            throw new IllegalStateException("Reprocessing sql failed with vars " + executionState.getResults().keySet(), e);
-//        }
-//
-//        LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_REPROCESS_SQL, "Reprocessing sql with vars " + executionState.getResults().keySet() + ": " + sqlQuery).toString());
-//
-//        executionState.activities.add(new RelationalExecutionActivity(sqlQuery));
-//    }
-
-//    private void prepareTempTable(Connection connectionManagerConnection, StreamingResult res, String tempTableName, String databaseTypeName, String databaseTimeZone, List<String> tempTableList)
-//    {
-//        DatabaseManager databaseManager = DatabaseManager.fromString(databaseTypeName);
-//        try (Scope ignored = GlobalTracer.get().buildSpan("create temp table").withTag("tempTableName", tempTableName).withTag("databaseType", databaseTypeName).startActive(true))
-//        {
-//            databaseManager.relationalDatabaseSupport().accept(RelationalDatabaseCommandsVisitorBuilder.getStreamResultToTempTableVisitor(null, connectionManagerConnection, res, tempTableName, databaseTimeZone));
-//        }
-//        catch (Exception e)
-//        {
-//            try
-//            {
-//                if (!tempTableList.isEmpty())
+//            else if (var.getValue() instanceof RelationalResult && (sqlQuery.contains("inFilterClause_" + var.getKey() + "})") || sqlQuery.contains("${" + var.getKey() + "}")))
 //                {
-//                    try (Statement statement = connectionManagerConnection.createStatement())
+//                    if (((RelationalResult) var.getValue()).columnCount == 1)
 //                    {
-//                        tempTableList.forEach((Consumer<? super String>) table ->
-//                        {
-//                            try
-//                            {
-//                                statement.execute(databaseManager.relationalDatabaseSupport().dropTempTable(table));
-//                            }
-//                            catch (Exception ignored)
-//                            {
-//                            }
-//                        });
+//                        RealizedRelationalResult realizedRelationalResult = (RealizedRelationalResult) var.getValue().realizeInMemory();
+//                        List<Map<String, Object>> rowValueMaps = realizedRelationalResult.getRowValueMaps(false);
+//                        executionState.addResult(var.getKey(), new ConstantResult(rowValueMaps.stream().flatMap(map -> map.values().stream()).collect(Collectors.toList())));
 //                    }
 //                }
-//                connectionManagerConnection.close();
-//                throw new RuntimeException(e);
-//            }
-//            catch (Exception ex)
-//            {
-//                throw new RuntimeException(e);
-//            }
 //        }
-//    }
-//
-//    private Connection getConnection(RelationalExecutionNode node, MutableList<CommonProfile> profiles, NonRelationalStoreExecutionState executionState)
-//    {
-//        return this.getConnection(node.connection, node.onConnectionCloseRollbackQuery, node.onConnectionCloseCommitQuery, profiles, executionState);
-//    }
-//
-//    private Connection getConnection(SQLExecutionNode node, MutableList<CommonProfile> profiles, NonRelationalStoreExecutionState executionState)
-//    {
-//        return this.getConnection(node.connection, node.onConnectionCloseRollbackQuery, node.onConnectionCloseCommitQuery, profiles, executionState);
-//    }
 
-//    private Connection getConnection(DatabaseConnection databaseConnection, String onConnectionCloseRollbackQuery, String onConnectionCloseCommitQuery, MutableList<CommonProfile> profiles, NonRelationalStoreExecutionState executionState)
-//    {
-//        if (executionState.retainConnection())
-//        {
-//            BlockConnection blockConnection = executionState.getBlockConnectionContext().getBlockConnection(executionState, databaseConnection, profiles);
-//            if (onConnectionCloseRollbackQuery != null)
-//            {
-//                blockConnection.addRollbackQuery(onConnectionCloseRollbackQuery);
-//            }
-//            if (onConnectionCloseCommitQuery != null)
-//            {
-//                blockConnection.addCommitQuery(onConnectionCloseCommitQuery);
-//            }
-//            return blockConnection;
-//        }
-//        return executionState.getNonRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext());
-//    }
-//
+        if (documentQuery == null)
+        {
+            throw new RuntimeException("NonRelation query does not exist in DocumentQueryExecutionNode(?)");
+        }
+
+        try
+        {
+            documentQuery = FreeMarkerExecutor.process(documentQuery, executionState, databaseTypeName, databaseTimeZone);
+            Span span = GlobalTracer.get().activeSpan();
+            if (span != null)
+            {
+                span.setTag("generatedDocumentQuery", documentQuery);
+            }
+        }
+        catch (Exception e)
+        {
+            throw new IllegalStateException("Reprocessing document failed with vars " + executionState.getResults().keySet(), e);
+        }
+
+        LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_NONRELATIONAL_REPROCESS_SQL, "Reprocessing sql with vars " + executionState.getResults().keySet() + ": " + documentQuery).toString());
+
+        executionState.activities.add(new NonRelationalExecutionActivity(documentQuery));
+    }
+
+
+    private NonRelationalClient getClient(DocumentQueryExecutionNode node, MutableList<CommonProfile> profiles, NonRelationalStoreExecutionState executionState)
+    {
+        return this.getClient(node.connection, node.onConnectionCloseRollbackQuery, node.onConnectionCloseCommitQuery, profiles, executionState);
+    }
+
+
+    private NonRelationalClient getClient(DatabaseConnection databaseConnection, String onConnectionCloseRollbackQuery, String onConnectionCloseCommitQuery, MutableList<CommonProfile> profiles, NonRelationalStoreExecutionState executionState)
+    {
+        return executionState.getNonRelationalExecutor().getConnectionManager().getDatabaseConnection(profiles, databaseConnection, executionState.getRuntimeContext());
+    }
+
 //    public static String process(String query, Map<?, ?> vars, String templateFunctions)
 //    {
 //        String result = "";
