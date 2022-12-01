@@ -79,7 +79,6 @@ function meta::external::store::document::tests::object::getAllFields(): meta::e
 
 function meta::external::store::document::tests::object::getDocumentStoreAndMapping() : meta::pure::functions::collection::Pair<DocumentStore, RootDocumentInstanceSetImplementation>[1]
 {
-    println('meta::external::store::document::tests::object::getDocumentStoreAndMapping()');
     let domainClass = meta::external::store::document::tests::simple::Person;
     //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
     let mongoStore = meta::external::store::document::tests::object::TestMongoStore();

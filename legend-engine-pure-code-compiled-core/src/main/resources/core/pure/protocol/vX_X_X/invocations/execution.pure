@@ -106,18 +106,6 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::executeP
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::executePlan(planJSON:String[1], host: String[1], port: Integer[1]) : String[1]
 {
 
-  println('meta::protocols::pure::v1_18_0::invocation::execution::execute::executePlan');
-  println('planJSON:');
-println($planJSON);
-
-  println('host:');
-println($host);
-
-
-  println('port:');
-println($port);
-
-
    let resp = meta::pure::functions::io::http::executeHTTPRaw(
       ^URL(host = $host , port = $port, path = 'api/pure/v1/execution/executePlan'),
       HTTPMethod.POST,

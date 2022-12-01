@@ -1078,7 +1078,6 @@ function meta::external::language::java::transform::registerLibrary(conventions:
 
 function meta::external::language::java::transform::defaultProhibitedFunctions(extraProhibitedFunctions : Function<Any>[*]): Function<{Conventions[1],Function<Any>[1]->Boolean[1]}>[1]
 {
-  println('meta::external::language::java::transform::defaultProhibitedFunctions');
    let functionsBlacklist = [
       // Instances
       copy_T_1__String_1__KeyExpression_MANY__T_1_,

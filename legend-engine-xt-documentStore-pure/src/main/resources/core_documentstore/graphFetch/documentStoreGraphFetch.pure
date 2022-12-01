@@ -93,11 +93,6 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let rootTree     = $clusteredTree->byPassClusteringInfo()->cast(@RoutedRootGraphFetchTree<Any>);
    let setImpls     = $rootTree.sets->cast(@RootDocumentInstanceSetImplementation);
    let store        = $sq.store->cast(@DocumentStore);
-   
-   
-  //  let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@meta::external::store::document::runtime::connections::TestDocumentStoreConnection)->map(x | ^$x(element = $store));
-  println('$runtime->connectionByElement($store)->toOne()');
-  println($runtime->connectionByElement($store)->toOne());
   
    let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@DatabaseConnection)->map(x | ^$x(element = $store));
    let oneRuntime   = ^Runtime(connections = [$dbConnection]);
@@ -139,8 +134,6 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
       checked = $checked
    );
 
-println('documentRootQueryTempTableGraphFetchExecutionNode:');
-println($documentRootQueryTempTableGraphFetchExecutionNode);
    $documentRootQueryTempTableGraphFetchExecutionNode;
 }
 
@@ -237,8 +230,6 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 {
    let sql = $query->documentQueryToString($dbConnection.type, $dbConnection.timeZone, $dbConnection.quoteIdentifiers, $extensions);
    
-
-   println('meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode');
 
  //  let results = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne()));
   

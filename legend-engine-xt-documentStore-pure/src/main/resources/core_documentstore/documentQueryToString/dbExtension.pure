@@ -71,7 +71,6 @@ function <<access.private>> meta::external::store::document::extension::document
 
 function meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension(version:String[1]):String[1]
 {
-  println('meta::external::store::document::extension::documentQueryToString::documentStoreSerializerExtension');
    let a = 'meta::protocols::pure::'+$version+'::extension::store::document::getDocumentStoreExtension_String_1__SerializerExtension_1_';
    $a;
 }
