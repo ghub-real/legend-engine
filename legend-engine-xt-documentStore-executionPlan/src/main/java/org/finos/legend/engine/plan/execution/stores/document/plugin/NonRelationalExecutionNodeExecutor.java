@@ -318,7 +318,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             nodeSpecifics.prepare(documentResultSet, databaseTimeZone, databaseConnectionStr);
 
 
-            Object testObj = nodeSpecifics.nextGraphInstance();
+//            Object testObj = nodeSpecifics.nextGraphInstance();
             AtomicLong batchIndex = new AtomicLong(0L);
 
 

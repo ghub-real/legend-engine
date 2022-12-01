@@ -32,7 +32,7 @@ public class DocumentResultSetImpl implements DocumentResultSet
     {
         this.results = docs;
         this.size = results.size();
-        this.currentRow = 0;
+        this.currentRow = -1;
     }
 
     @Override
