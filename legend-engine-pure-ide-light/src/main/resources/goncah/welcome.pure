@@ -36,9 +36,91 @@ function poc::tests::createTableAndFillDb(connection : meta::relational::runtime
 }
 
 
+
+
+
+function testDocumentPersonQuery1() : Boolean[1] {
+
+
+  let myDb = meta::external::store::document::tests::simple::TestDbStore;
+
+    let myRunTime = meta::external::store::document::tests::simple::testRuntime($myDb);
+    let connection = $myRunTime.connectionByElement($myDb)->cast(@TestDatabaseConnection);
+    poc::tests::createTableAndFillDb($connection);
+
+    let tree = #{
+      meta::external::store::document::tests::simple::Person {
+         firstName,
+         lastName
+      }
+    }#;
+
+    let query = {|meta::external::store::document::tests::simple::Person.all()->graphFetch($tree)->serialize($tree)};
+
+    let testDocumentStoreSetup = meta::external::store::document::tests::object::getPersonTestSetup();
+    let documentStoreExtensions = [meta::external::store::document::extension::documentStoreExtensions()];
+    let testRuntime = meta::external::store::document::tests::object::TestPersonLocalMongoRuntime();
+
+
+    let executionContext = ^meta::pure::runtime::ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+
+    let debugContext = ^meta::pure::tools::DebugContext(
+      debug=false,
+      space=''
+    );
+
+    let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+    println('document execution result:');
+    println($result);
+
+    true;
+}
+
+function testDocumentFirmQuery1() : Boolean[1] {
+
+
+    let myDb = meta::external::store::document::tests::simple::TestDbStore;
+
+    let myRunTime = meta::external::store::document::tests::simple::testRuntime($myDb);
+    let connection = $myRunTime.connectionByElement($myDb)->cast(@TestDatabaseConnection);
+    poc::tests::createTableAndFillDb($connection);
+
+    let tree = #{
+      meta::external::store::document::tests::simple::Firm {
+         name,
+         country
+      }
+    }#;
+
+    let query = {|meta::external::store::document::tests::simple::Firm.all()->graphFetch($tree)->serialize($tree)};
+
+    let testDocumentStoreSetup = meta::external::store::document::tests::object::getFirmTestSetup();
+    let documentStoreExtensions = [meta::external::store::document::extension::documentStoreExtensions()];
+    let testRuntime = meta::external::store::document::tests::object::TestFirmLocalMongoRuntime();
+
+
+    let executionContext = ^meta::pure::runtime::ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+
+    let debugContext = ^meta::pure::tools::DebugContext(
+      debug=false,
+      space=''
+    );
+
+    let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+    println('document execution result:');
+    println($result);
+
+
+    true;
+}
+
+
+
 function go():Any[*]
 {
-    println('ok',3);
+     println('ok',3);
+
+
     let myDb = meta::external::store::document::tests::simple::TestDbStore;
 
     let myRunTime = meta::external::store::document::tests::simple::testRuntime($myDb);
@@ -54,9 +136,9 @@ function go():Any[*]
 
     let query = {|meta::external::store::document::tests::simple::Person.all()->graphFetch($tree)->serialize($tree)};
 
-    let testDocumentStoreSetup = meta::external::store::document::tests::object::getTestSetup();
+    let testDocumentStoreSetup = meta::external::store::document::tests::object::getPersonTestSetup();
     let documentStoreExtensions = [meta::external::store::document::extension::documentStoreExtensions()];
-    let testRuntime = meta::external::store::document::tests::object::TestLocalMongoRuntime();
+    let testRuntime = meta::external::store::document::tests::object::TestPersonLocalMongoRuntime();
 
 
     let executionContext = ^meta::pure::runtime::ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
@@ -72,13 +154,21 @@ function go():Any[*]
   //  let result = meta::pure::executionPlan::executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
 
 // document store execute
-  let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+  //let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
 
     let mapping = meta::external::store::document::tests::simple::simpleRelationalMapping;
 
 // relational execute
-    //let result = execute($query, $mapping, $myRunTime, meta::relational::extension::relationalExtensions()).values;
 
-    println($result);
+    let relationalResult = execute($query, $mapping, $myRunTime, meta::relational::extension::relationalExtensions()).values;
+    println('relational execution result:');
+    println($relationalResult);
 
+    println('document execution result:');
+    let documentResult = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+    println($documentResult);
+
+
+    testDocumentPersonQuery1();
+    testDocumentFirmQuery1();
 }

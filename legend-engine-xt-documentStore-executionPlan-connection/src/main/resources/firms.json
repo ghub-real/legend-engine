@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "Corp A",
+    "country": "US"
+  },
+  {
+    "id": 2,
+    "name": "Corp B",
+    "country": "Canada"
+  },
+  {
+    "id": 3,
+    "name": "Corp C",
+    "country": "UK"
+  }
+]

@@ -109,6 +109,28 @@ public class MongoDbResource
     }
 
 
+
+    @POST
+    @Path("/defaultdb/collections/firms/recreate")
+    @ApiOperation(value = "Empty and recreate all items for persons collection")
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response recreateFirmsCollection() throws JsonProcessingException
+    {
+
+        ArrayNode personsJson;
+        try
+        {
+            personsJson = (ArrayNode) mapper.readTree(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("firms.json")));
+        }
+        catch (IOException e)
+        {
+            log.error("Failed to parse input file contents", e);
+            throw new RuntimeException(e);
+        }
+
+        this.dropCollection("firms");
+        return this.insertCollectionItemAsJson("firms", personsJson);
+    }
     @POST
     @Path("/defaultdb/collections/persons/recreate")
     @ApiOperation(value = "Empty and recreate all items for persons collection")

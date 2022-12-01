@@ -1193,11 +1193,11 @@ public class RelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Res
             DatabaseConnection databaseConnection = sqlExecutionResult.getSQLExecutionNode().connection;
             ResultSet rootResultSet = ((SQLExecutionResult) rootResult).getResultSet();
 
-//            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
+            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
 
             // goncah copied generated classes for debugging..
 
-            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = new Specifics();
+//            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = new Specifics();
 
             List<Method> primaryKeyGetters = nodeSpecifics.primaryKeyGetters();
 
