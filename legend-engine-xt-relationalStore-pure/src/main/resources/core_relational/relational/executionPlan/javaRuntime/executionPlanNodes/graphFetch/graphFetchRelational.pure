@@ -988,7 +988,6 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 
 function meta::pure::executionPlan::engine::java::graphFetch::relational::enrichForRelationalGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: RelationalGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
 {
-  println('meta::pure::executionPlan::engine::java::graphFetch::relational::enrichForRelationalGraphExecution');
    let constraintsToExclude = $node.graphFetchTree.constraintsExclusions;
    let qualifiersProject  = $cl->updateImplementationClassWithQualifiedProperties($node->typeFromStoreLocalNode(), $context);
    let constraintsProject = $cl->createConstraintCheckingForClass($node->typeFromStoreLocalNode(), $constraintsToExclude, $context, $debug->indent());
@@ -999,7 +998,6 @@ function meta::pure::executionPlan::engine::java::graphFetch::relational::enrich
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::relational::updateImplementationClassWithQualifiedProperties(implClass: meta::external::language::java::metamodel::Class[1], nodeType: meta::pure::metamodel::type::Class<Any>[1], context: GenerationContext[1]): Project[1]
 {
-    println('eta::pure::executionPlan::engine::java::graphFetch::relational::updateImplementationClassWithQualifiedProperties');
    let conventions = $context.conventions;
    let typeInfo = $context.typeInfos->forClass($nodeType);
    let jThis     = j_this($implClass);
