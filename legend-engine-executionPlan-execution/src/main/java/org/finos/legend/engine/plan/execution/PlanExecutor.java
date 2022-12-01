@@ -34,6 +34,7 @@ import org.finos.legend.engine.plan.execution.stores.StoreExecutorConfiguration;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.ExecutionPlan;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecutionPlan;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.JavaPlatformImplementation;
 import org.finos.legend.engine.shared.core.ObjectMapperFactory;
 import org.finos.legend.engine.shared.core.identity.factory.IdentityFactoryProvider;
 import org.finos.legend.engine.shared.core.url.EngineUrlStreamHandlerFactory;
@@ -307,6 +308,191 @@ public class PlanExecutor
         }
         try
         {
+            SingleExecutionPlan ex = (SingleExecutionPlan) plan;
+
+            JavaPlatformImplementation jpi = (JavaPlatformImplementation) ex.getGlobalImplementationSupport();
+
+// goncah add these when we want to use our own java classes passed by the plan as strings, copied in for Execute/Specific/ Graph Fetch person node
+//            jpi.getClasses().remove(6);
+//            jpi.getClasses().remove(5);
+//            jpi.getClasses().remove(4);
+//            jpi.setClasses(new ArrayList<>());
+
+//jpi.getClasses().get(5).source = "package _pure.plan.root.n1.localGraph;\n" +
+//        "\n" +
+//        "import java.math.*;\n" +
+//        "import java.util.*;\n" +
+//        "import java.util.function.*;\n" +
+//        "import java.util.stream.*;\n" +
+//        "import org.finos.legend.engine.plan.dependencies.domain.date.DayOfWeek;\n" +
+//        "import org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit;\n" +
+//        "import org.finos.legend.engine.plan.dependencies.domain.date.PureDate;\n" +
+//        "import org.finos.legend.engine.plan.dependencies.util.Library;\n" +
+//        "import com.fasterxml.jackson.annotation.JsonInclude;\n" +
+//        "import com.fasterxml.jackson.core.JsonGenerator;\n" +
+//        "import com.fasterxml.jackson.databind.JsonSerializer;\n" +
+//        "import com.fasterxml.jackson.databind.ObjectMapper;\n" +
+//        "import com.fasterxml.jackson.databind.SerializerProvider;\n" +
+//        "import com.fasterxml.jackson.databind.module.SimpleModule;\n" +
+//        "import java.io.IOException;\n" +
+//        "\n" +
+//        "public class GraphFetch_Node0_Person_Impl implements _pure.app.meta.external.store.document.tests.simple.Person, org.finos.legend.engine.plan.dependencies.domain.dataQuality.Constrained<_pure.app.meta.external.store.document.tests.simple.Person>, java.io.Serializable\n" +
+//        "{\n" +
+//        "    private String firstName;\n" +
+//        "    private String lastName;\n" +
+//        "    private Object pk$_0;\n" +
+//        "    private static final ObjectMapper objectMapper$ = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).registerModule(new SimpleModule().addSerializer(PureDate.class, new JsonSerializer<PureDate>() { @Override public void serialize(PureDate value, JsonGenerator gen, SerializerProvider serializers) throws IOException { gen.writeRawValue(\"\\\"\" + value.toString() + \"\\\"\"); } }));\n" +
+//        "    private String setId$;\n" +
+//        "    public static String databaseConnection$;\n" +
+//        "    private String alloyStoreObjectReference$;\n" +
+//        "    private static final long serialVersionUID = 624778034L;\n" +
+//        "\n" +
+//        "    public String getFirstName()\n" +
+//        "    {\n" +
+//        "        return this.firstName;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void setFirstName(String firstName)\n" +
+//        "    {\n" +
+//        "        this.firstName = firstName;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void addFirstName(String object)\n" +
+//        "    {\n" +
+//        "        if ((Object) this.firstName != null)\n" +
+//        "        {\n" +
+//        "            throw new IllegalStateException(\"Found multiple objects for property 'firstName' of multiplicity with bound 1\");\n" +
+//        "        }\n" +
+//        "        this.firstName = object;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public String getLastName()\n" +
+//        "    {\n" +
+//        "        return this.lastName;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void setLastName(String lastName)\n" +
+//        "    {\n" +
+//        "        this.lastName = lastName;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void addLastName(String object)\n" +
+//        "    {\n" +
+//        "        if ((Object) this.lastName != null)\n" +
+//        "        {\n" +
+//        "            throw new IllegalStateException(\"Found multiple objects for property 'lastName' of multiplicity with bound 1\");\n" +
+//        "        }\n" +
+//        "        this.lastName = object;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public List<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect> allConstraints()\n" +
+//        "    {\n" +
+//        "        return this.allConstraints(new org.finos.legend.engine.plan.dependencies.domain.dataQuality.GraphContext());\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public _pure.app.meta.external.store.document.tests.simple.Person withConstraintsApplied()\n" +
+//        "    {\n" +
+//        "        java.util.List<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect> defects = allConstraints();\n" +
+//        "        if (!defects.isEmpty())\n" +
+//        "        {\n" +
+//        "            throw new IllegalStateException(defects.stream().map(org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect::getMessage).collect(java.util.stream.Collectors.joining(\"\\n\")));\n" +
+//        "        }\n" +
+//        "        return this;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public org.finos.legend.engine.plan.dependencies.domain.dataQuality.IChecked<_pure.app.meta.external.store.document.tests.simple.Person> toChecked()\n" +
+//        "    {\n" +
+//        "        return this.toChecked(null, true);\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public org.finos.legend.engine.plan.dependencies.domain.dataQuality.IChecked<_pure.app.meta.external.store.document.tests.simple.Person> toChecked(boolean applyConstraints)\n" +
+//        "    {\n" +
+//        "        return this.toChecked(null, applyConstraints);\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public org.finos.legend.engine.plan.dependencies.domain.dataQuality.IChecked<_pure.app.meta.external.store.document.tests.simple.Person> toChecked(Object source)\n" +
+//        "    {\n" +
+//        "        return this.toChecked(source, true);\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public org.finos.legend.engine.plan.dependencies.domain.dataQuality.IChecked<_pure.app.meta.external.store.document.tests.simple.Person> toChecked(Object source,\n" +
+//        "                                                                                                                                                       boolean applyConstraints)\n" +
+//        "    {\n" +
+//        "        java.util.List<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect> defects = applyConstraints ? allConstraints() : java.util.Collections.emptyList();\n" +
+//        "        return new org.finos.legend.engine.plan.dependencies.domain.dataQuality.IChecked<_pure.app.meta.external.store.document.tests.simple.Person>() {\n" +
+//        "            public java.util.List<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect> getDefects() { return defects; }\n" +
+//        "            public Object getSource() { return source; }\n" +
+//        "            public _pure.app.meta.external.store.document.tests.simple.Person getValue() { return GraphFetch_Node0_Person_Impl.this; }\n" +
+//        "        };\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public List<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect> allConstraints(org.finos.legend.engine.plan.dependencies.domain.dataQuality.GraphContext context)\n" +
+//        "    {\n" +
+//        "        List<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect> result = new ArrayList<org.finos.legend.engine.plan.dependencies.domain.dataQuality.IDefect>();\n" +
+//        "        if (!context.visited.contains(this))\n" +
+//        "        {\n" +
+//        "            context.visited.add(this);\n" +
+//        "        }\n" +
+//        "        return result;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public Object getPk$_0()\n" +
+//        "    {\n" +
+//        "        return this.pk$_0;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void setPk$_0(Object pk$_0)\n" +
+//        "    {\n" +
+//        "        this.pk$_0 = pk$_0;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public String getSetId$()\n" +
+//        "    {\n" +
+//        "        return this.setId$;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void setSetId$(String setId)\n" +
+//        "    {\n" +
+//        "        this.setId$ = setId;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public String getAlloyStoreObjectReference$()\n" +
+//        "    {\n" +
+//        "        return \"abcdef456\";\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public void setAlloyStoreObjectReference$(String reference)\n" +
+//        "    {\n" +
+//        "        this.alloyStoreObjectReference$ = reference;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    private static long getClassSize$()\n" +
+//        "    {\n" +
+//        "        return 108L;\n" +
+//        "    }\n" +
+//        "\n" +
+//        "    public long getInstanceSize$()\n" +
+//        "    {\n" +
+//        "        long size = GraphFetch_Node0_Person_Impl.getClassSize$();\n" +
+//        "        if (this.firstName != null)\n" +
+//        "        {\n" +
+//        "            size = size + this.firstName.length();\n" +
+//        "        }\n" +
+//        "        if (this.lastName != null)\n" +
+//        "        {\n" +
+//        "            size = size + this.lastName.length();\n" +
+//        "        }\n" +
+//        "        if (this.setId$ != null)\n" +
+//        "        {\n" +
+//        "            size = size + this.setId$.length();\n" +
+//        "        }\n" +
+//        "        if (this.alloyStoreObjectReference$ != null)\n" +
+//        "        {\n" +
+//        "            size = size + this.alloyStoreObjectReference$.length();\n" +
+//        "        }\n" +
+//        "        return size;\n" +
+//        "    }\n" +
+//        "}";
             EngineJavaCompiler engineJavaCompiler = JavaHelper.compilePlan(plan, profiles);
             if (engineJavaCompiler != null)
             {

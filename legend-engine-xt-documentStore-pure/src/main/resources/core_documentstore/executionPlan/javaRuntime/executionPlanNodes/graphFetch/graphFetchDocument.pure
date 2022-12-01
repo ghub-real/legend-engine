@@ -103,7 +103,6 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->imports(javaReflectMethod())
       ->imports(javaResultSet())
       ->imports(javaClass('org.eclipse.collections.api.tuple.Pair'))
-      ->imports(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField'))
       ->imports($conventions->className(IExecutionNodeContext))
       ->imports($conventions->className(GraphInstance))
       ->imports($conventions->className(IReferencedObject))
@@ -136,37 +135,29 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 
   //let nextType = graphInstanceOf(javaWildcard(), $conventions);
 
-
+// goncah, this generates class Execute implements INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
    $executeClass
-      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
+      ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(['public'], $specificsField->j_invoke('prepare', [j_parameter(javaList(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet')), 'documentResultSet'), j_parameter(javaString(), 'databaseTimeZone'), j_parameter(javaString(), 'databaseConnection')], javaVoid())))
       ->addMethod($executeClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(['public'], $nextType, j_return($specificsField->j_invoke('nextGraphInstance', [], $nextType))))
       ->map({exe |
-        /*
-         if ($isClassResult || $isLocalRoot || $isCrossRoot,
+         if ($isClassResult || $isLocalRoot,
              | $exe
-                  ->addMethod($exe->buildPrimaryKeyGettersMethod(['public'], j_return($specificsField->j_invoke('primaryKeyGetters', [], javaList(javaReflectMethod()))))),
+                  ->addMethod($exe->buildPrimaryKeyGettersMethod(['public'], j_return($specificsField->j_invoke('primaryKeyGetters', [], javaList(javaReflectMethod())))))
+                  ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
+                  ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
+
              | $exe
          )
-         */
-         $exe
       })
-      ->map({exe |
-        /*
-         if ($isCrossRoot,
-             | $exe
-                  ->addMethod($exe->buildMappingIdMethod(['public'], j_return($specificsField->j_invoke('mappingId', [], javaString()))))
-                  ->addMethod($exe->buildSourceInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('sourceInstanceSetId', [], javaString()))))
-                  ->addMethod($exe->buildTargetInstanceSetIdMethod(['public'], j_return($specificsField->j_invoke('targetInstanceSetId', [], javaString())))),
-             | if ($isClassResult || $isLocalRoot,
-                   | $exe
-                        ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
-                        ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
-                   | $exe
-               )
-         )
-         */
-         $exe
-      })
+      /* ->map({exe |
+
+         if (true,
+                            | $exe
+                                 ->addMethod($exe->buildAllInstanceSetImplementationsMethod(['public'], j_return($specificsField->j_invoke('allInstanceSetImplementations', [], javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]))))))
+                                 ->addMethod($exe->buildPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('primaryKeyColumns', [j_parameter(javaInt(), 'setIndex')], javaList(javaString()))))),
+                            | $exe
+                        )
+      }) */
       ->map({exe |
       /*
          if (!$isLocalRoot,
@@ -176,18 +167,14 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
          */
          $exe
       })
-      ->map({exe |
       /*
-         if ($isCrossRoot,
-             | $exe->addMethod($exe->buildParentCrossKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
-             | if ($isPrimitive || $isClassResult,
+      ->map({exe |
+         if ($isPrimitive || $isClassResult,
                    | $exe->addMethod($exe->buildParentPrimaryKeyColumnsMethod(['public'], j_return($specificsField->j_invoke('parentPrimaryKeyColumns', [j_parameter(javaList(javaString()), 'queryResultColumns')], javaList(javaString()))))),
                    | $exe
                )
-         )
-         */
-         $exe
       })
+      */
       ->map({exe |
       /*
          if ($isCrossRoot,
@@ -274,6 +261,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->imports(javaClass('java.sql.Types'))
       ->imports(javaClass('org.eclipse.collections.impl.tuple.Tuples'))
       ->imports(javaClass('org.eclipse.collections.api.tuple.Pair'))
+      ->imports(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'))
       ->imports($conventions->className(IExecutionNodeContext))
       ->imports($conventions->className(IConstantResult))
       ->imports($conventions->className(GraphInstance))
@@ -286,6 +274,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
          javaField(['private', 'static', 'final'], javaList(javaClass('java.lang.Integer')), 'STRICT_DATE_TYPES', 'Arrays.asList(Types.DATE, Types.NULL)'),
          javaField(['private', 'static', 'final'], javaList(javaClass('java.lang.Integer')), 'DATE_TIME_TYPES', 'Arrays.asList(Types.TIMESTAMP, Types.NULL)'),
          javaField(['private'], javaResultSet(), 'resultSet'),
+         javaField(['private'], javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'), 'documentResultSet'),
          javaField(['private'], javaString(), 'databaseTimeZone'),
          javaField(['private'], javaString(), 'databaseConnection'),
          javaField(['private'], javaList(javaClass('java.lang.Integer')), 'columnTypes'),
@@ -306,23 +295,15 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    let jThis          = j_this($executeClass);
    let specificsField = $jThis->j_field('specifics');
    //let isLocalRoot    = $node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
+   let isLocalRoot    = $node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
    //let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
 
    $executeClass->map({exe |
-      /*
       if ($isLocalRoot,
           | $exe
                ->addMethod($exe->buildSupportsCachingMethod(['public'], j_return(j_boolean(true)))),
-          | if ($isCrossRoot,
-                | $exe
-                     ->addMethod($exe->buildSupportsCrossCachingMethod(['public'], j_return($specificsField->j_invoke('supportsCrossCaching', [], javaObject()))))
-                     ->addMethod($exe->buildTargetPropertiesOrderedMethod(['public'], j_return($specificsField->j_invoke('targetPropertiesOrdered', [], javaList(javaString())))))
-                     ->addMethod($exe->buildParentCrossKeyGettersOrderedByTargetPropertiesMethod(['public'], j_return($specificsField->j_invoke('parentCrossKeyGettersOrderedByTargetProperties', [], javaList(javaReflectMethod()))))),
-                | $exe
-            )
+          | $exe
       )
-      */
-      $exe
    });
 }
 
@@ -332,12 +313,12 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    let isComplexNode = $node.resultType->instanceOf(PartialClassResultType);
    let typeInfos     = $context.typeInfos;
 
-   let rsetParam = j_parameter(javaResultSet(), 'resultSet');
+   let rsetParam = j_parameter(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'), 'documentResultSet');
    let tzParam   = j_parameter(javaString(), 'databaseTimeZone');
    let cParam    = j_parameter(javaString(), 'databaseConnection');
 
    let jThis                = j_this($specificsClass);
-   let resultSetField       = $jThis->j_field('resultSet');
+   let resultSetField       = $jThis->j_field('documentResultSet');
    let dbTimeZoneField      = $jThis->j_field('databaseTimeZone');
    let dbConnectionField    = $jThis->j_field('databaseConnection');
    let calendarField        = $jThis->j_field('calendar');
@@ -425,187 +406,8 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->addMethod(
          $specificsClass->meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(
             [],
-            j_try(
-               [
-                  $resultSetField->j_assign($rsetParam),
-                  $dbTimeZoneField->j_assign($tzParam),
-                  $dbConnectionField->j_assign($cParam),
-                  $calendarField->j_assign(j_new(javaClass('java.util.GregorianCalendar'), [javaClass('java.util.TimeZone')->j_invoke('getTimeZone', [$dbTimeZoneField], javaClass('java.util.TimeZone'))])),
-                  $resultSetMetDataVar->j_declare($resultSetField->j_invoke('getMetaData', [], javaClass('java.sql.ResultSetMetaData'))),
-                  $columnCountVar->j_declare($resultSetMetDataVar->j_invoke('getColumnCount', [], javaInt())),
-                  $columnTypesField->j_assign(j_new(javaArrayList(javaClass('java.lang.Integer')), [])),
-                  $columnNamesVar->j_declare(j_new(javaArrayList(javaString()), [])),
-                  j_for($i->j_declare(j_int(1)), $i->j_le($columnCountVar), $i->j_inc(),
-                     [
-                        $columnLabelVar->j_declare($resultSetMetDataVar->j_invoke('getColumnLabel', [$i], javaString())),
-                        $columnNamesVar->j_invoke(
-                           'add',
-                           $columnLabelVar->j_invoke('startsWith', [j_string('"')], javaBoolean())->j_and($columnLabelVar->j_invoke('endsWith', [j_string('"')], javaBoolean()))->j_conditional(
-                              $columnLabelVar->j_invoke('substring', [j_int(1), $columnLabelVar->j_invoke('length', [], javaInt())->j_minus(j_int(1))], javaString())->j_invoke('toUpperCase', [], javaString()),
-                              $columnLabelVar->j_invoke('toUpperCase', [], javaString())
-                           ), javaVoid()),
-                        $columnTypesField->j_invoke('add', [$resultSetMetDataVar->j_invoke('getColumnType', [$i], javaInt())], javaVoid())
-                     ]
-                  )
-               ]->concatenate(
-                  if ($isComplexNode,
-                     {|
-                        let partialClassResultType = $node.resultType->cast(@PartialClassResultType);
-                        let resultClass = $node->typeFromStoreLocalNode()->cast(@meta::pure::metamodel::type::Class<Any>);
-                        let sets = $partialClassResultType.setImplementations->cast(@DocumentInstanceSetImplementation);
-                        let nonExplodingSimplePrimitiveProperties = $typeInfos->allProperties($typeInfos->forClass($resultClass))->filter(x | $x->isPrimitiveValueProperty() && (!$x->hasGeneratedMilestoningPropertyStereotype()) && $x->functionReturnMultiplicity()->hasToOneUpperBound())->filter(x | $x->in($partialClassResultType.propertiesWithParameters.property));
-
-                        [
-                           $propertyIndicesField->j_assign(j_new(javaArrayList(javaList(javaInt())), []))
-                        ]->concatenate(
-                           $sets->size()->range()->map({s |
-                              let currentSet = $sets->at($s);
-                              let currentSetPks = if (!$currentSet->instanceOf(RootDocumentInstanceSetImplementation),
-                                                      | $currentSet->resolvePrimaryKey(),
-                                                      | []);
-                              /*
-                              let addMilestoningProps = getTemporalMilestoningStrategy($currentSet.class)->isNotEmpty() &&
-                                                        getTemporalMilestoningStrategy($currentSet.class)->toOne()->expandToSingleTemporalStrategies()->forAll(s| $s->relationalElementCanSupportStrategy($currentSet->resolveMainTable()));
-                              */
-                              let index_s = j_variable(javaList(javaInt()), 'index_' + $s->toString());
-                              [
-                                 $index_s->j_declare(j_new(javaArrayList(javaInt()), []))
-                              ]->concatenate(
-                                 $nonExplodingSimplePrimitiveProperties
-                                    ->map({p | $index_s->j_invoke('add', [$columnNamesVar->j_invoke('indexOf', [j_string($p.name->toOne()->toUpper())], javaInt())->j_plus(j_int(1))], javaVoid())})
-                              )
-                              /*
-                              ->concatenate($addMilestoningProps->if(
-                                 | let milestonedPropertyAliases = getTemporalMilestoningStrategy($currentSet.class)->toOne()->expandToSingleTemporalStrategies()->map(x | $x->temporalColumnAliasProperties()).second->sort();
-                                   $milestonedPropertyAliases->map({x | $index_s->j_invoke('add', [$columnNamesVar->j_invoke('indexOf', [j_string($x->toUpper())], javaInt())->j_plus(j_int(1))], javaVoid())});,
-                                 | [])
-                              )
-                              */
-                              ->concatenate(
-                                 $currentSetPks->size()->range()
-                                    ->map({pkIdx | $index_s->j_invoke('add', [$columnNamesVar->j_invoke('indexOf', [j_string('PK_' + $pkIdx->toString() + if($sets->size() == 1, | '', | '_' + $s->toString()))], javaInt())->j_plus(j_int(1))], javaVoid())})
-                              )
-                              ->concatenate(
-                                 [
-                                    $propertyIndicesField->j_invoke('add', [$index_s], javaVoid())
-                                 ]
-                              );
-                           })
-                        )->concatenate(
-                           [
-                              $node->graphImplClass($path, $context)->j_field(meta::pure::executionPlan::document::engine::java::databaseConnectionPropertyName(), javaString())->j_assign($cParam),
-                              $propertyGettersField->j_assign(j_new(javaArrayList(javaList(javaSupplier(javaObject()))), [])),
-                              $propertyIndexVar->j_declare(),
-                              $propertyGetterVar->j_declare(j_null())
-                           ]
-                        )->concatenate(
-                           $sets->size()->range()->map({s |
-                              let currentSet = $sets->at($s);
-                              let currentSetPks = if (!$currentSet->instanceOf(RootDocumentInstanceSetImplementation),
-                                                      | $currentSet->resolvePrimaryKey(),
-                                                      | []);
-                                                      /*
-                              let addMilestoningProps = getTemporalMilestoningStrategy($currentSet.class)->isNotEmpty() &&
-                                                        getTemporalMilestoningStrategy($currentSet.class)->toOne()->expandToSingleTemporalStrategies()->forAll(s| $s->relationalElementCanSupportStrategy($currentSet->resolveMainTable()));
-                                                        */
-                              //let allProperties = $nonExplodingSimplePrimitiveProperties->concatenate($addMilestoningProps->if(|$sets->at($s).class.properties->filter(p| $p->isPrimitiveValueProperty() && $p->hasGeneratedMilestoningPropertyStereotype()), |[])->sortBy(x | $x.name->toOne()));
-                              let allProperties = $nonExplodingSimplePrimitiveProperties;
-                              let propertyGetter_s = j_variable(javaList(javaSupplier(javaObject())), 'propertyGetter_' + $s->toString());
-
-                              [
-                                 $propertyGetter_s->j_declare(j_new(javaArrayList(javaSupplier(javaObject())), []))
-                              ]->concatenate(
-                                 $allProperties->size()->range()->map({propIndex |
-                                    let prop = $allProperties->at($propIndex);
-                                    let propertyName = $prop.name->toOne();
-                                    let propertyType = $prop->functionReturnType().rawType->toOne();
-                                    let propertyMultiplicity = $prop.multiplicity;
-
-                                    [
-                                       $propertyIndexVar->j_assign($propertyIndicesField->j_invoke('get', [j_int($s)], javaList(javaInt()))->j_invoke('get', [j_int($propIndex)], javaInt()))
-                                    ]->concatenate(
-                                       if ($propertyType->in([String, Integer, Float, Decimal, Boolean, StrictDate, DateTime, Date]),
-                                          {|
-                                             $propertyGetterVar->j_assign($jThis->j_invoke('getResultSetPropertyGetterFor' + $propertyType.name->toOne() + 'Property', [
-                                                $resultSetField,
-                                                $propertyIndexVar,
-                                                $resultSetMetDataVar->j_invoke('getColumnType', [$propertyIndexVar], javaInt()),
-                                                j_string($propertyName)
-                                             ], javaSupplier(javaObject())))
-                                          },
-                                          {|
-                                             if ($propertyType->instanceOf(meta::pure::metamodel::type::Enumeration),
-                                                {|
-                                                   let allPropertyMappings = $sets->at($s)->cast(@InstanceSetImplementation).allPropertyMappings()->filter(pm | $pm.property->instanceOf(Property) && $pm.property->functionReturnType().rawType->toOne()->instanceOf(meta::pure::metamodel::type::DataType));
-                                                   let currentPropertyMapping = $allPropertyMappings->filter(x | $x.property == $prop)->toOne()->cast(@DocumentPropertyMapping);
-                                                   $enumPropertyGetterCodes->eval($prop, $propertyType, $currentPropertyMapping);
-                                                },
-                                                {|
-                                                   [
-                                                      j_throw(j_new(javaRuntimeException(), [j_string('Type : \'' + $propertyType->elementToPath() + '\' not supported yet!')]))
-                                                   ]
-                                                }
-                                             );
-                                          }
-                                       )
-                                    )->concatenate(
-                                       [
-                                          $propertyGetter_s->j_invoke('add', $propertyGetterVar, javaVoid())
-                                       ]
-                                    );
-                                 })
-                              )
-                              ->concatenate(
-                                 [
-                                    $propertyGettersField->j_invoke('add', $propertyGetter_s, javaVoid())
-                                 ]
-                              );
-                           })
-                        );
-                     },
-                     {|
-                        let property = $node.graphFetchTree->cast(@PropertyGraphFetchTree).property;
-                        let propertyName = $property.name->toOne();
-                        let propertyType = $property->functionReturnType().rawType->toOne();
-
-                        [
-                           $propertyIndexVar->j_declare($columnNamesVar->j_invoke('indexOf', [j_string('NODE_' + $node.nodeIndex->toString() + '_RESULT')], javaInt())->j_plus(j_int(1))),
-                           $propertyIndicesField->j_assign(javaArrays()->j_invoke('asList', [javaArrays()->j_invoke('asList', [$propertyIndexVar], javaList(javaWildcard()))], javaList(javaWildcard()))),
-                           $propertyGetterVar->j_declare(j_null())
-                        ]->concatenate(
-                           if ($propertyType->in([String, Integer, Float, Decimal, Boolean, StrictDate, DateTime, Date]),
-                              {|
-                                 $propertyGetterVar->j_assign($jThis->j_invoke('getResultSetPropertyGetterFor' + $propertyType.name->toOne() + 'Property', [
-                                    $resultSetField,
-                                    $propertyIndexVar,
-                                    $resultSetMetDataVar->j_invoke('getColumnType', [$propertyIndexVar], javaInt()),
-                                    j_string($propertyName)
-                                 ], javaSupplier(javaObject())))
-                              },
-                              {|
-                                 if ($propertyType->instanceOf(meta::pure::metamodel::type::Enumeration),
-                                    {|
-                                       let currentPropertyMapping = $node.graphFetchTree->cast(@RoutedPropertyGraphFetchTree).propertyMapping->at(0)->cast(@DocumentPropertyMapping);
-                                       $enumPropertyGetterCodes->eval($property, $propertyType, $currentPropertyMapping);
-                                    },
-                                    {|
-                                       [
-                                          j_throw(j_new(javaRuntimeException(), [j_string('Type : \'' + $propertyType->elementToPath() + '\' not supported yet!')]))
-                                       ]
-                                    }
-                                 );
-                              }
-                           )
-                        )->concatenate(
-                           [
-                              $propertyGettersField->j_assign(javaArrays()->j_invoke('asList', [javaArrays()->j_invoke('asList', [$propertyGetterVar], javaList(javaWildcard()))], javaList(javaWildcard())))
-                           ]
-                        );
-                     }
-                  )
-               )->toOneMany(),
-               j_catch($runtimeException, j_throw($javaException)),
-               j_catch($javaException, j_throw(j_new(javaRuntimeException(), [$javaException])))
+            (
+            $resultSetField->j_assign($rsetParam)
             )
          )
       );
@@ -616,13 +418,14 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
    let conventions    = $context.conventions;
    let isComplexNode  = $node.resultType->instanceOf(PartialClassResultType);
    let typeInfos      = $context.typeInfos;
-   /*
-   let isPrimitive    = $node->instanceOf(RelationalPrimitiveQueryGraphFetchExecutionNode);
-   let isClassResult  = $node->instanceOf(RelationalClassQueryTempTableGraphFetchExecutionNode) && !$node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
-   let isLocalRoot    = $node->instanceOf(RelationalRootQueryTempTableGraphFetchExecutionNode);
-   let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
-   let isComplex      = $isClassResult || $isLocalRoot || $isCrossRoot;
-   */
+
+   let isPrimitive    = $node->instanceOf(DocumentPrimitiveQueryGraphFetchExecutionNode);
+     let isClassResult  = $node->instanceOf(DocumentClassQueryTempTableGraphFetchExecutionNode) && !$node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
+     let isLocalRoot    = $node->instanceOf(DocumentRootQueryTempTableGraphFetchExecutionNode);
+     //let isCrossRoot    = $node->instanceOf(RelationalCrossRootQueryTempTableGraphFetchExecutionNode);
+
+  // let isComplex      = $isClassResult || $isLocalRoot;
+
    let isComplex = true;
 
    let jThis                = j_this($specificsClass);
@@ -662,7 +465,8 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
                      if ($sets->size() == 1,
                         {|
                            $specificsClass->objectCreationCodes($implClass, $sets->at(0), $sets, $simplePrimitiveProperties, 0, $context)
-                              ->concatenate(
+                                   ->concatenate(  $simplePrimitiveProperties->meta::pure::executionPlan::engine::java::graphFetch::document::store::generateObjSetterCode())
+                                    ->concatenate(
                                  [
                                     j_return(j_newAnon(graphInstanceOf($implClass, $conventions), [],
                                        [
@@ -729,7 +533,42 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
             },
             {| $spe }
          )
-      });
+      })
+
+    ->map({spe |
+          if ( ($isClassResult || $isLocalRoot),
+            {|
+                let partialClassResultType = $node.resultType->cast(@PartialClassResultType);
+                let resultClass            = $node->typeFromStoreLocalNode()->cast(@meta::pure::metamodel::type::Class<Any>);
+                let sets                   = $partialClassResultType.setImplementations->cast(@DocumentInstanceSetImplementation);
+                let pairType               = javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()]);
+
+                let currentSets            = $node.resultType->cast(@PartialClassResultType).setImplementations;
+                let setIndexParam          = j_parameter(javaInt(), 'setIndex');
+                let keyStringsFunction     = {set: DocumentInstanceSetImplementation[1] |
+                  let setIdx = $currentSets->indexOf($set);
+                  let setPk  = $set->resolvePrimaryKey();
+                  $setPk->map(x | 'pk_' + $setPk->indexOf($x)->toString() + if($currentSets->size() == 1, | '', | '_' + $setIdx->toString()))->map(x | j_string($x));
+                };
+
+                $spe
+                  ->addMethod(
+                      $spe->buildAllInstanceSetImplementationsMethod(
+                        [],
+                        j_return(javaArrays()->j_invoke('asList', $sets->map(s | javaClass('org.eclipse.collections.impl.tuple.Tuples')->j_invoke('pair', [j_string($s.parent->elementToPath()), j_string($s.id)], $pairType)), javaList($pairType)))
+                      )
+                  )
+                  ->addMethod(
+                      $spe->buildPrimaryKeyColumnsMethod(
+                        [],
+                        $sets->map(s | j_if($setIndexParam->j_eq(j_int($sets->indexOf($s))), j_return(javaArrays()->j_invoke('asList', $keyStringsFunction->eval($s), javaList(javaString())))))->concatenate(j_return(j_null()))
+                      )
+                  );
+            },
+             {| $spe }
+          )
+      })
+;
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::addSpecificsCachingMethods(specificsClass: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], path:String[1], context:GenerationContext[1], debug:DebugContext[1]):meta::external::language::java::metamodel::Class[1]
@@ -792,38 +631,42 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
             $object->j_invoke($conventions->setterName($pkStr), [$pkVar], javaVoid())
          ];
       })
-   )->concatenate(
-      $propertyCount->range()->map({propIndex |
-      let prop = $properties->at($propIndex);
-      let propertyName = $prop.name->toOne();
-      let propertyType = $prop->genericType().typeArguments->at(1).rawType->toOne();
-      let propertyMultiplicity = $prop.multiplicity;
-      let javaType = if ($propertyType->instanceOf(meta::pure::metamodel::type::Enumeration),
-                         | $conventions->className($propertyType),
-                         | let jt = $pureTypeToJavaTypeMap->get($propertyType);
-                           assert($jt->isNotEmpty(), | 'Property type \'' + $propertyType->elementToPath() + '\' not supported yet. Property name: \'' + $propertyName + '\'');
-                           $jt->toOne();
-                     );
-      let resVar = j_variable($javaType, 'res');
+   )
+   
+  //  ->concatenate(
+  //     $propertyCount->range()->map({propIndex |
+  //     let prop = $properties->at($propIndex);
+  //     let propertyName = $prop.name->toOne();
+  //     let propertyType = $prop->genericType().typeArguments->at(1).rawType->toOne();
+  //     let propertyMultiplicity = $prop.multiplicity;
+  //     let javaType = if ($propertyType->instanceOf(meta::pure::metamodel::type::Enumeration),
+  //                        | $conventions->className($propertyType),
+  //                        | let jt = $pureTypeToJavaTypeMap->get($propertyType);
+  //                          assert($jt->isNotEmpty(), | 'Property type \'' + $propertyType->elementToPath() + '\' not supported yet. Property name: \'' + $propertyName + '\'');
+  //                          $jt->toOne();
+  //                    );
+  //     let resVar = j_variable($javaType, 'res');
 
-      [
-         $propertyIndex->j_assign($propertyIndicesField->j_invoke('get', [j_int($index)], javaList(javaInt()))->j_invoke('get', [j_int($propIndex)], javaInt())),
-         j_block(
-            [
-               $resVar->j_declare(j_cast($propertyGettersField->j_invoke('get', [j_int($index)], javaList(javaSupplier(javaObject())))->j_invoke('get', [j_int($propIndex)], javaSupplier(javaObject()))->j_invoke('get', [], javaObject()), $javaType))
-            ]->concatenate(
-               if ($propertyMultiplicity->getLowerBound() == 1,
-                   | j_if($resVar->j_eq(j_null()), j_throw(j_new(javaRuntimeException(),[j_string('Error reading in property \'' + $propertyName + '\'. Property of multiplicity [1] can not be null')]))),
-                   | []
-               )
-            )->concatenate(
-               [
-                  $object->j_invoke($conventions->setterName($prop), [$resVar], javaVoid())
-               ]
-            )
-         )
-      ];
-   }));
+  //     [
+  //        $propertyIndex->j_assign($propertyIndicesField->j_invoke('get', [j_int($index)], javaList(javaInt()))->j_invoke('get', [j_int($propIndex)], javaInt())),
+  //        j_block(
+  //           [
+  //              $resVar->j_declare(j_cast($propertyGettersField->j_invoke('get', [j_int($index)], javaList(javaSupplier(javaObject())))->j_invoke('get', [j_int($propIndex)], javaSupplier(javaObject()))->j_invoke('get', [], javaObject()), $javaType))
+  //           ]->concatenate(
+  //              if ($propertyMultiplicity->getLowerBound() == 1,
+  //                  | j_if($resVar->j_eq(j_null()), j_throw(j_new(javaRuntimeException(),[j_string('Error reading in property \'' + $propertyName + '\'. Property of multiplicity [1] can not be null')]))),
+  //                  | []
+  //              )
+  //           )->concatenate(
+  //              [
+  //                 $object->j_invoke($conventions->setterName($prop), [$resVar], javaVoid())
+  //              ]
+  //           )
+  //        )
+  //     ];
+  //  }))
+   
+   ;
 }
 
 function meta::pure::executionPlan::engine::java::graphFetch::document::store::enrichForDocumentGraphExecution(cl: meta::external::language::java::metamodel::Class[1], node: DocumentGraphFetchExecutionNode[1], context: GenerationContext[1], extensions: meta::pure::extension::Extension[*], debug: DebugContext[1]):Project[1]
@@ -842,57 +685,55 @@ function meta::pure::executionPlan::engine::java::documentReferenceIdentifierGet
    let referenceIdentifier = $conventions->fieldName($conventions->meta::pure::executionPlan::document::engine::java::storeObjectReferenceIdentifier());
    javaMethod(
       ['public'], javaString(), $conventions->getterName($conventions->meta::pure::executionPlan::document::engine::java::storeObjectReferenceIdentifier()), [],
-      'if (this.' + $referenceIdentifier + ' == null)\n'+
-      '{\n'+
-      '    try\n'+
-      '    {\n'+
-      '        StringBuilder referenceBuilder = new StringBuilder();\n'+
-      '        referenceBuilder.append("001:");\n'+
-      '        referenceBuilder.append("010:");\n\n'+
-      '        referenceBuilder.append("' + format('%010d', length('Relational')) + ':");\n'+
-      '        referenceBuilder.append("Relational:");\n\n'+
-      '        referenceBuilder.append("' + format('%010d', length($sets.parent->at(0)->elementToPath())) + ':");\n'+
-      '        referenceBuilder.append("' + $sets.parent->at(0)->elementToPath() + ':");\n\n'+
-      '        referenceBuilder.append("' + format('%010d', length($sets.id->joinStrings(';'))) + ':");\n'+
-      '        referenceBuilder.append("' + $sets.id->joinStrings(';') + ':");\n\n'+
-      '        String setId = this.' + $conventions->getterName(meta::pure::executionPlan::document::engine::java::setIdPropertyName()) + '();\n'+
-      '        referenceBuilder.append(String.format("%010d", setId.length()));\n'+
-      '        referenceBuilder.append(":");\n'+
-      '        referenceBuilder.append(setId);\n'+
-      '        referenceBuilder.append(":");\n\n'+
-      '        String databaseConnectionString = ' + $implClass->typeToString() + '.' + $conventions->fieldName(meta::pure::executionPlan::document::engine::java::databaseConnectionPropertyName()) + ';\n'+
-      '        referenceBuilder.append(String.format("%010d", databaseConnectionString.length()));\n'+
-      '        referenceBuilder.append(":");\n'+
-      '        referenceBuilder.append(databaseConnectionString);\n'+
-      '        referenceBuilder.append(":");\n\n'+
-      '        Map<String, Object> pkMap = new HashMap<>();\n\n'+
-      $sets->map({set |
-         let setIdx = $sets->indexOf($set);
-         let pks = $set->resolvePrimaryKey();
-         $pks->map({key |
-            let pkIdx = $pks->indexOf($key);
-            let pkString = 'pk$_' + $pkIdx->toString() + if($sets->size() == 1, | '', | '_' + $setIdx->toString());
-            '        pkMap.put("' + $conventions->fieldName($pkString) + '", this.' + $conventions->getterName($pkString)+ '());';
-         });
-      })->joinStrings('\n')+'\n'+
-      '        String pkMapString = objectMapper$.writeValueAsString(pkMap);\n'+
-      '        referenceBuilder.append(String.format("%010d", pkMapString.length()));\n'+
-      '        referenceBuilder.append(":");\n'+
-      '        referenceBuilder.append(pkMapString);\n\n'+
-      '        this.' + $referenceIdentifier + ' = "ASOR:" + org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString(referenceBuilder.toString().getBytes());\n'+
-      '    }\n'+
-      '    catch (Exception e)\n'+
-      '    {\n'+
-      '       throw new RuntimeException(e);\n'+
-      '    }\n'+
-      '}\n\n'+
-      'return this.' + $referenceIdentifier + ';'
+
+      'return "someuniquestr12345";'
    );
+}
+
+
+
+
+function meta::pure::executionPlan::engine::java::graphFetch::document::store::generateObjSetterCode(properties: Property<Nil,Any|*>[*]): meta::external::language::java::metamodel::SimpleCode[*]
+{
+  
+   let propertyCount = $properties->size();
+
+println($propertyCount);
+
+// .class.properties->filter(x | $x->isPrimitiveValueProperty() && $x->hasGeneratedMilestoningPropertyStereotype())
+
+    $propertyCount->range()->map({propIndex |
+      let prop = $properties->at($propIndex);
+      let propertyName = $prop.name->toOne();
+ 
+      let codeAsString =     meta::pure::functions::string::joinStrings([
+         'object.set',
+         
+         $propertyName->substring(0, 1)->toUpper(),
+
+         $propertyName->substring(1, $propertyName->length()),
+         '(this.documentResultSet.getValue("',
+         $propertyName,
+         '").asText());'
+
+         
+         ]);
+
+      ^meta::external::language::java::metamodel::SimpleCode( code = $codeAsString, type = ^meta::external::language::java::metamodel::PrimitiveType( simpleName = 'string') );
+   
+       
+    })->concatenate(
+      ^meta::external::language::java::metamodel::SimpleCode( code = '', type = ^meta::external::language::java::metamodel::PrimitiveType( simpleName = 'string') )
+    );
+   
+
+
+
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrepareMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
 {
-   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaList(javaClass('org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField')), 'documentQueryResultFields'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
+   javaMethod($modifiers, javaVoid(), 'prepare', [javaParam(javaClass('org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet'), 'documentResultSet'), javaParam(javaString(), 'databaseTimeZone'), javaParam(javaString(), 'databaseConnection')], $code)
 }
 
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildNextGraphInstanceMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], type: meta::external::language::java::metamodel::Type[1], code: Code[*]):meta::external::language::java::metamodel::Method[1]
@@ -903,4 +744,19 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
 function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrimaryKeyGettersMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
 {
    javaMethod($modifiers, javaList(javaReflectMethod()), 'primaryKeyGetters', [], $code)
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildPrimaryKeyColumnsMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod($modifiers, javaList(javaString()), 'primaryKeyColumns', [javaParam(javaInt(), 'setIndex')], $code)
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildSupportsCachingMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod($modifiers, javaBoolean(), 'supportsCaching', [], $code)
+}
+
+function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch::document::store::buildAllInstanceSetImplementationsMethod(class: meta::external::language::java::metamodel::Class[1], modifiers: String[*], code: Code[*]):meta::external::language::java::metamodel::Method[1]
+{
+   javaMethod($modifiers, javaList(javaParameterizedType(javaClass('org.eclipse.collections.api.tuple.Pair'), [javaString(), javaString()])), 'allInstanceSetImplementations', [], $code)
 }

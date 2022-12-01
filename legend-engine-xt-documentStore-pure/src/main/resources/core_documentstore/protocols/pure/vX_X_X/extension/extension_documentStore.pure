@@ -78,22 +78,35 @@ function meta::protocols::pure::vX_X_X::extension::store::document::getDocumentS
             */
                      rel:meta::external::store::document::metamodel::mapping::DocumentQueryExecutionNode[1]|
 
-                     println('documentquery execution node:');
+                     println('(external) documentquery execution node:');
                      println(meta::json::toJSON($rel));
 
-                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode(
+
+let dqen = ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExecutionNode(
                           // TODO: should be noSQL, needs to be whitelisted somewhere, related error: Could not resolve type id 'noSQL' as a subtype of `org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode`: known type ids = [aggregationAware, allocation, constant, createAndPopulateTempTable, dataQuality, documentQuery, error, externalFormatExternalize, externalFormatInternalize, flatDataDeserialize, flatDataSerialize, freeMarkerConditionalExecutionNode, function-parameters-validation, globalGraphFetchExecutionNode, graphFetchExecutionNode, graphFetchM2M, inMemoryCrossStoreGraphFetch, inMemoryPropertyGraphFetch, inMemoryRootGraphFetch, jsonDeserialize, jsonSerialize, limit, multiResultSequence, platform, platformMerge, platformUnion, pureExp, relational, relationalBlock, relationalClassInstantiation, relationalClassQueryTempTableGraphFetch, relationalCrossRootGraphFetchExecutionNode, relationalCrossRootQueryTempTableGraphFetch, relationalDataTypeInstantiation, relationalGraphFetchExecutionNode, relationalPrimitiveQueryGraphFetch, relationalRelationDataInstantiation, relationalRootGraphFetchExecutionNode, relationalRootQueryTempTableGraphFetch, relationalTdsInstantiation, relationalTempTableGraphFetchExecutionNode, restService, sequence, serviceParametersResolution, sql, storeStreamReading, urlStream, varResolution, xmlDeserialize, xmlSerialize] (for POJO property 'executionNodes')
                            _type = 'documentQuery',
                            resultType = $rel.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
                            resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            mongoQLQuery=$rel.documentQuery,
-                           //resultColumns = $rel.resultColumns->map(c | $c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultColumn()),
+                           //mongoQLQuery= 'blah',
+                           mongoQLQuery2= meta::json::toJSON($rel.resultFields),
+                           resultFields = $rel.resultFields,
+                          // resultFields2 = $rel.resultFields->at(0)->toOne(),
+                           authDependent = true,
                            //sqlQuery = $rel.sqlQuery,
                            onConnectionCloseCommitQuery = $rel.onConnectionCloseCommitQuery,
                            onConnectionCloseRollbackQuery = $rel.onConnectionCloseRollbackQuery,
                            connection = $rel.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection($extensions)
                         );
-                        ,
+
+ println('(protocol) documentquery execution node:');
+               
+ println(meta::json::toJSON($dqen));
+
+
+                        
+                       $dqen;
+                       ,
             /*  
                      rel:meta::relational::mapping::RelationalTdsInstantiationExecutionNode[1]|
                         ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::RelationalTdsInstantiationExecutionNode(

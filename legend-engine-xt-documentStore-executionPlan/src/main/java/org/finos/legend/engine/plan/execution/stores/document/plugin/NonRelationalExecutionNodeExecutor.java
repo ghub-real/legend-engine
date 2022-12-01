@@ -17,6 +17,7 @@ package org.finos.legend.engine.plan.execution.stores.document.plugin;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.bson.Document;
 import org.eclipse.collections.api.block.function.Function2;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
@@ -24,8 +25,10 @@ import org.eclipse.collections.impl.list.mutable.FastList;
 import org.eclipse.collections.impl.tuple.Tuples;
 import org.eclipse.collections.impl.utility.Iterate;
 import org.eclipse.collections.api.tuple.Pair;
+import org.finos.legend.engine.external.shared.format.imports.FileImportContent;
 import org.finos.legend.engine.plan.dependencies.domain.dataQuality.BasicChecked;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
 import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
 import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
 import org.finos.legend.engine.plan.execution.cache.ExecutionCache;
@@ -52,6 +55,7 @@ import org.finos.legend.engine.plan.execution.stores.relational.plugin.Relationa
 //import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutionState;
 //import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
 //import org.finos.legend.engine.plan.execution.stores.relational.result.PreparedTempTableResult;
+import org.finos.legend.engine.plan.execution.stores.document.plugin.tempgenfiles.Specifics;
 import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
 import org.finos.legend.engine.plan.execution.stores.relational.result.RealizedRelationalResult;
 import org.finos.legend.engine.plan.execution.stores.relational.result.SQLExecutionResult;
@@ -94,6 +98,7 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -109,6 +114,8 @@ import java.util.stream.StreamSupport;
 public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
 {
     private final ExecutionState executionState;
+
+    private FileImportContent fileImportContent;
     private final MutableList<CommonProfile> profiles;
     private MutableList<Function2<ExecutionState, List<Map<String, Object>>, Result>> resultInterpreterExtensions;
 
@@ -289,7 +296,12 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             DatabaseConnection databaseConnection = documentQueryExecutionResult.getDocumentQueryExecutionNode().connection;
             List<DocumentQueryResultField> resultFields = ((DocumentQueryExecutionResult) rootResult).getDocumentQueryResultFields();
 
+
+
             INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
+
+            // goncah copied generated classes for debugging..
+//            INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = new Specifics();
 
             List<Method> primaryKeyGetters = nodeSpecifics.primaryKeyGetters();
 
@@ -300,9 +312,44 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             boolean cachingEnabledForNode = this.checkForCachingAndPopulateCachingHelpers(allInstanceSetImplementations, nodeSpecifics.supportsCaching(), node.graphFetchTree, documentQueryExecutionResult, nodeSpecifics::primaryKeyColumns, multiSetCache);
 
             /* Prepare for reading */
-            nodeSpecifics.prepare(resultFields, documentQueryExecutionResult.getDatabaseTimeZone(), ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().writeValueAsString(databaseConnection));
+            String databaseTimeZone = documentQueryExecutionResult.getDatabaseTimeZone();
+           DocumentResultSet documentResultSet = documentQueryExecutionResult.getResultSet();
+            String databaseConnectionStr = ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().writeValueAsString(databaseConnection);
+            nodeSpecifics.prepare(documentResultSet, databaseTimeZone, databaseConnectionStr);
 
+
+            Object testObj = nodeSpecifics.nextGraphInstance();
             AtomicLong batchIndex = new AtomicLong(0L);
+
+
+
+            boolean isUnion = setIdCount > 1;
+
+
+
+//
+//
+//            List<String> resultStrs = Lists.mutable.empty();
+//            resultStrs.add("{\n" +
+//                    "  \"firstName\" : \"john\",\n" +
+//                    "  \"lastName\" : \"smith\"\n" +
+//                    "}");
+//            GraphObjectsBatch inMemoryGraphObjectsBatch = new GraphObjectsBatch(currentBatch, executionState.getGraphFetchBatchMemoryLimit());
+//            inMemoryGraphObjectsBatch.setObjectsForNodeIndex(0, resultStrs);
+//
+//
+//            List<GraphObjectsBatch> objectsBatches = Lists.mutable.empty();
+//
+//            objectsBatches.add(inMemoryGraphObjectsBatch);
+//
+//            Stream<GraphObjectsBatch> graphObjectsBatchStream = objectsBatches.stream();
+
+
+//            return new GraphFetchResult(graphObjectsBatchStream, rootResult).withGraphFetchSpan(graphFetchSpan);
+
+
+
+
             Spliterator<GraphObjectsBatch> graphObjectsBatchSpliterator = new Spliterators.AbstractSpliterator<GraphObjectsBatch>(Long.MAX_VALUE, Spliterator.ORDERED)
             {
                 @Override
@@ -325,7 +372,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
                         List<Pair<IGraphInstance<? extends IReferencedObject>, ExecutionCache<GraphFetchCacheKey, Object>>> instancesToDeepFetchAndCache = new ArrayList<>();
 
                         int objectCount = 0;
-                        for (int i = 0; i < resultFields.size(); i++)
+                            while (documentResultSet.next() )
                         {
                             relationalGraphObjectsBatch.incrementRowCount();
 
@@ -361,42 +408,42 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
 
                         relationalGraphObjectsBatch.setObjectsForNodeIndex(node.nodeIndex, resultObjects);
 
-                        if (!instancesToDeepFetchAndCache.isEmpty())
-                        {
-                            RealizedNonRelationalResult realizedNonRelationalResult = RealizedNonRelationalResult.emptyRealizedRelationalResult(node.columns);
-                            DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> rootMap = new DoubleStrategyHashMap<>(NonRelationalGraphFetchUtils.objectDocumentQueryResultDoubleHashStrategyWithEmptySecondStrategy(primaryKeyGetters));
-                            for (Pair<IGraphInstance<? extends IReferencedObject>, ExecutionCache<GraphFetchCacheKey, Object>> instanceAndCache : instancesToDeepFetchAndCache)
-                            {
-                                IGraphInstance<? extends IReferencedObject> rootGraphInstance = instanceAndCache.getOne();
-                                Object rootObject = rootGraphInstance.getValue();
-                                rootMap.put(rootObject, rootObject);
-                                relationalGraphObjectsBatch.addObjectMemoryUtilization(rootGraphInstance.instanceSize());
-                                if (!isLeaf)
-                                {
-                                    NonRelationalExecutionNodeExecutor.this.addKeyRowToRealizedNonRelationalResult(rootObject, primaryKeyGetters, realizedNonRelationalResult);
-                                }
-                            }
-
-                            /* Execute store local children */
-                            if (!isLeaf)
-                            {
-                                ExecutionState newState = new ExecutionState(executionState);
-                                newState.graphObjectsBatch = relationalGraphObjectsBatch;
-                                NonRelationalExecutionNodeExecutor.this.executeTempTableNodeChildren(node, realizedNonRelationalResult, databaseConnection, documentQueryExecutionResult.getDatabaseType(), documentQueryExecutionResult.getDatabaseTimeZone(), rootMap, primaryKeyGetters, newState);
-                            }
-                        }
-
-                        instancesToDeepFetchAndCache.stream().filter(x -> x.getTwo() != null).forEach(x ->
-                        {
-                            Object object = x.getOne().getValue();
-                            x.getTwo().put(new NonRelationalGraphFetchUtils.NonRelationalObjectGraphFetchCacheKey(object, primaryKeyGetters), object);
-                        });
+//                        if (!instancesToDeepFetchAndCache.isEmpty())
+//                        {
+//                            RealizedNonRelationalResult realizedNonRelationalResult = RealizedNonRelationalResult.emptyRealizedRelationalResult(node.columns);
+//                            DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> rootMap = new DoubleStrategyHashMap<>(NonRelationalGraphFetchUtils.objectDocumentQueryResultDoubleHashStrategyWithEmptySecondStrategy(primaryKeyGetters));
+//                            for (Pair<IGraphInstance<? extends IReferencedObject>, ExecutionCache<GraphFetchCacheKey, Object>> instanceAndCache : instancesToDeepFetchAndCache)
+//                            {
+//                                IGraphInstance<? extends IReferencedObject> rootGraphInstance = instanceAndCache.getOne();
+//                                Object rootObject = rootGraphInstance.getValue();
+//                                rootMap.put(rootObject, rootObject);
+//                                relationalGraphObjectsBatch.addObjectMemoryUtilization(rootGraphInstance.instanceSize());
+//                                if (!isLeaf)
+//                                {
+//                                    NonRelationalExecutionNodeExecutor.this.addKeyRowToRealizedNonRelationalResult(rootObject, primaryKeyGetters, realizedNonRelationalResult);
+//                                }
+//                            }
+//
+//                            /* Execute store local children */
+//                            if (!isLeaf)
+//                            {
+//                                ExecutionState newState = new ExecutionState(executionState);
+//                                newState.graphObjectsBatch = relationalGraphObjectsBatch;
+//                                NonRelationalExecutionNodeExecutor.this.executeTempTableNodeChildren(node, realizedNonRelationalResult, databaseConnection, documentQueryExecutionResult.getDatabaseType(), documentQueryExecutionResult.getDatabaseTimeZone(), rootMap, primaryKeyGetters, newState);
+//                            }
+//                        }
+//
+//                        instancesToDeepFetchAndCache.stream().filter(x -> x.getTwo() != null).forEach(x ->
+//                        {
+//                            Object object = x.getOne().getValue();
+//                            x.getTwo().put(new NonRelationalGraphFetchUtils.NonRelationalObjectGraphFetchCacheKey(object, primaryKeyGetters), object);
+//                        });
 
                         action.accept(relationalGraphObjectsBatch);
 
                         return !resultObjects.isEmpty();
                     }
-                    catch (/*SQLException |*/ InvocationTargetException | IllegalAccessException e)
+                    catch (/*SQLException |*/ Exception e)
                     {
                         throw new RuntimeException(e);
                     }

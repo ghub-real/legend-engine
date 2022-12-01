@@ -17,7 +17,7 @@ package org.finos.legend.engine.shared.core.operational.logs;
 public enum LoggingEventType
 {
     SERVER_START,
-
+    EXECUTION_NONRELATIONAL_REPROCESS_SQL,
     CATCH_ALL,
     JSON_PARSING_ERROR,
 

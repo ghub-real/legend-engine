@@ -14,17 +14,18 @@
 
 package org.finos.legend.engine.plan.execution.stores.document.result;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.opentracing.Span;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.factory.Lists;
 import org.eclipse.collections.impl.utility.ListIterate;
-import org.finos.legend.engine.plan.dependencies.store.document.INonRelationalResult;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
+import org.finos.legend.engine.plan.dependencies.store.nonRelational.INonRelationalResult;
 import org.finos.legend.engine.plan.execution.nodes.helpers.ExecutionNodeClassResultHelper;
 import org.finos.legend.engine.plan.execution.nodes.helpers.ExecutionNodePartialClassResultHelper;
 import org.finos.legend.engine.plan.execution.nodes.helpers.ExecutionNodeTDSResultHelper;
 import org.finos.legend.engine.plan.execution.result.ErrorResult;
-import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
 import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.result.ResultVisitor;
 import org.finos.legend.engine.plan.execution.result.StreamingResult;
@@ -40,46 +41,21 @@ import org.finos.legend.engine.plan.execution.result.serialization.Serializer;
 import org.finos.legend.engine.plan.execution.result.transformer.SetImplTransformers;
 import org.finos.legend.engine.plan.execution.result.transformer.TransformerInput;
 import org.finos.legend.engine.plan.execution.stores.document.serialization.NonRelationalResultToPureFormatSerializer;
-import org.finos.legend.engine.plan.execution.stores.relational.activity.RelationalExecutionActivity;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
-import org.finos.legend.engine.plan.execution.stores.relational.result.BinaryUtils;
 import org.finos.legend.engine.plan.execution.stores.relational.result.DatabaseIdentifiersCaseSensitiveVisitor;
 import org.finos.legend.engine.plan.execution.stores.relational.result.ExecutionNodeRelationalResultHelper;
-import org.finos.legend.engine.plan.execution.stores.relational.result.RealizedRelationalResult;
 import org.finos.legend.engine.plan.execution.stores.relational.result.RelationalResultVisitor;
-import org.finos.legend.engine.plan.execution.stores.relational.result.SQLExecutionResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.SQLResultDBColumnsMetaData;
 import org.finos.legend.engine.plan.execution.stores.relational.result.builder.relation.RelationBuilder;
-import org.finos.legend.engine.plan.execution.stores.relational.serialization.RelationalResultToCSVSerializer;
-import org.finos.legend.engine.plan.execution.stores.relational.serialization.RelationalResultToCSVSerializerWithTransformersApplied;
-import org.finos.legend.engine.plan.execution.stores.relational.serialization.RelationalResultToJsonDefaultSerializer;
-import org.finos.legend.engine.plan.execution.stores.relational.serialization.RelationalResultToPureTDSSerializer;
-import org.finos.legend.engine.plan.execution.stores.relational.serialization.RelationalResultToPureTDSToObjectSerializer;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalInstantiationExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.result.TDSColumn;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseConnection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseType;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.result.SQLResultColumn;
-import org.finos.legend.engine.shared.core.operational.logs.LogInfo;
-import org.finos.legend.engine.shared.core.operational.logs.LoggingEventType;
-import org.pac4j.core.profile.CommonProfile;
 import org.slf4j.Logger;
 
-import javax.print.Doc;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
-import java.util.function.Consumer;
+import java.util.Optional;
 
 public class NonRelationalResult extends StreamingResult implements INonRelationalResult
 {
@@ -90,7 +66,8 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
     //private final List<String> temporaryTables;
     private final List<DocumentQueryResultField> resultFields;
     private List<String> fieldListForSerializer;
-    //private List<Doc>
+
+    private DocumentResultSet resultSet;
 
     //private final Connection connection;
     //private final Statement statement;
@@ -110,56 +87,56 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
 
     public Builder builder;
 
-    public NonRelationalResult(MutableList<ExecutionActivity> activities, RelationalExecutionNode node, List<DocumentQueryResultField> documentQueryResultFields, String databaseType, String databaseTimeZone, Connection connection, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
-    {
-        super(activities);
-        this.databaseType = databaseType;
-        this.databaseTimeZone = databaseTimeZone;
-        //this.temporaryTables = temporaryTables;
-        this.topSpan = topSpan;
-
-        try
-        {
-//            this.connection = connection;
-//            this.statement = connection.createStatement();
-//            if (DatabaseType.MemSQL.name().equals(databaseType))
+//    public NonRelationalResult(MutableList<ExecutionActivity> activities, RelationalExecutionNode node, List<DocumentQueryResultField> documentQueryResultFields, String databaseType, String databaseTimeZone, Connection connection, MutableList<CommonProfile> profiles, List<String> temporaryTables, Span topSpan)
+//    {
+//        super(activities);
+//        this.databaseType = databaseType;
+//        this.databaseTimeZone = databaseTimeZone;
+//        //this.temporaryTables = temporaryTables;
+//        this.topSpan = topSpan;
+//
+//        try
+//        {
+////            this.connection = connection;
+////            this.statement = connection.createStatement();
+////            if (DatabaseType.MemSQL.name().equals(databaseType))
+////            {
+////                this.statement.setFetchSize(100);
+////            }
+//            long start = System.currentTimeMillis();
+//            String sql = ((RelationalExecutionActivity) activities.getLast()).sql;
+//            LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_START, sql).toString());
+//            //this.resultSet = this.statement.executeQuery(sql);
+//            this.executedMongoQL = sql;
+//            LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_STOP, (double) System.currentTimeMillis() - start).toString());
+//            //this.resultSetMetaData = resultSet.getMetaData();
+//            this.fieldCount = this.resultSetMetaData.getColumnCount();
+//            this.resultFields = documentQueryResultFields;
+//            //this.resultDBColumnsMetaData = new SQLResultDBColumnsMetaData(this.resultFields, this.resultSetMetaData);
+//
+//            this.noSQLFields = Lists.mutable.ofInitialCapacity(this.fieldCount);
+//            for (int i = 1; i <= this.fieldCount; i++)
 //            {
-//                this.statement.setFetchSize(100);
+//                this.noSQLFields.add(this.resultSetMetaData.getColumnLabel(i));
 //            }
-            long start = System.currentTimeMillis();
-            String sql = ((RelationalExecutionActivity) activities.getLast()).sql;
-            LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_START, sql).toString());
-            //this.resultSet = this.statement.executeQuery(sql);
-            this.executedMongoQL = sql;
-            LOGGER.info(new LogInfo(profiles, LoggingEventType.EXECUTION_RELATIONAL_STOP, (double) System.currentTimeMillis() - start).toString());
-            //this.resultSetMetaData = resultSet.getMetaData();
-            this.fieldCount = this.resultSetMetaData.getColumnCount();
-            this.resultFields = documentQueryResultFields;
-            //this.resultDBColumnsMetaData = new SQLResultDBColumnsMetaData(this.resultFields, this.resultSetMetaData);
-
-            this.noSQLFields = Lists.mutable.ofInitialCapacity(this.fieldCount);
-            for (int i = 1; i <= this.fieldCount; i++)
-            {
-                this.noSQLFields.add(this.resultSetMetaData.getColumnLabel(i));
-            }
-            this.fieldListForSerializer = this.noSQLFields;
-            this.buildTransformersAndBuilder(node, node.connection);
-        }
-        catch (Throwable e)
-        {
-            LOGGER.error("error initialising RelationalResult", e);
-            this.close();
-            if (e instanceof Error)
-            {
-                throw (Error) e;
-            }
-            if (e instanceof RuntimeException)
-            {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
-        }
-    }
+//            this.fieldListForSerializer = this.noSQLFields;
+//            this.buildTransformersAndBuilder(node, node.connection);
+//        }
+//        catch (Throwable e)
+//        {
+//            LOGGER.error("error initialising RelationalResult", e);
+//            this.close();
+//            if (e instanceof Error)
+//            {
+//                throw (Error) e;
+//            }
+//            if (e instanceof RuntimeException)
+//            {
+//                throw (RuntimeException) e;
+//            }
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public NonRelationalResult(DocumentQueryExecutionResult documentQueryExecutionResult, RelationalInstantiationExecutionNode node)
     {
@@ -408,7 +385,25 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
     }
     */
 
-    public Object getValue(int columnIndex) throws SQLException
+    @Override
+    public DocumentResultSet getDocumentResultSet()
+    {
+        return null;
+    }
+
+    @Override
+    public Optional<JsonNode> getValue(String jsonPath)
+    {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<JsonNode> getTransformedValue(String jsonPath)
+    {
+        return Optional.empty();
+    }
+
+    public Object getValue(int columnIndex)
     {
         Object result;
         /*
@@ -440,7 +435,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
         return result;
     }
 
-    public Object getTransformedValue(int columnIndex) throws SQLException
+    public Object getTransformedValue(int columnIndex)
     {
         Object result = null;
         /*

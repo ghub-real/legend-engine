@@ -64,6 +64,7 @@ import org.finos.legend.engine.plan.execution.stores.relational.blockConnection.
 import org.finos.legend.engine.plan.execution.stores.relational.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.commands.RelationalDatabaseCommands;
+import org.finos.legend.engine.plan.execution.stores.relational.plugin.tempgenfiles.Specifics;
 import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
 import org.finos.legend.engine.plan.execution.stores.relational.result.PreparedTempTableResult;
 import org.finos.legend.engine.plan.execution.stores.relational.result.RealizedRelationalResult;
@@ -1192,7 +1193,11 @@ public class RelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Res
             DatabaseConnection databaseConnection = sqlExecutionResult.getSQLExecutionNode().connection;
             ResultSet rootResultSet = ((SQLExecutionResult) rootResult).getResultSet();
 
-            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
+//            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
+
+            // goncah copied generated classes for debugging..
+
+            IRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = new Specifics();
 
             List<Method> primaryKeyGetters = nodeSpecifics.primaryKeyGetters();
 

@@ -14,6 +14,7 @@
 
 package org.finos.legend.engine.plan.execution.stores.document;
 
+import com.mongodb.DBCursor;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
@@ -46,10 +47,10 @@ public class LocalMongoDBClient
         return this.client.getDatabase(DEFAULT_DATABASE_NAME);
     }
 
-    private List<String> executeCustomAggregationQueryWithCursor(MongoDatabase database, String query)
+    private List<Document> executeCustomAggregationQueryWithCursor(MongoDatabase database, String query)
     {
         List<String> res = new ArrayList<>();
-
+        List<Document> docs = new ArrayList<>();
         try
         {
             Document bsonCmd = Document.parse(query);
@@ -57,7 +58,7 @@ public class LocalMongoDBClient
             // Execute the native query
             Document result = database.runCommand(bsonCmd);
             Document cursor = (Document) result.get("cursor");
-            List<Document> docs = (List<Document>) cursor.get("firstBatch");
+            docs = (List<Document>) cursor.get("firstBatch");
             docs.forEach(System.out::println);
 
 
@@ -68,15 +69,15 @@ public class LocalMongoDBClient
             System.out.println(e.toString());
         }
 
-        return res;
+        return docs;
     }
 
 
-    public List<String> executeCustomAggregationQueryToDefaultDB(String mongoQuery)
+    public List<Document> executeCustomAggregationQueryToDefaultDB(String mongoQuery)
     {
 
         MongoDatabase database = this.getDefaultDB();
-        List<String> results = executeCustomAggregationQueryWithCursor(database, mongoQuery);
+        List<Document> results = executeCustomAggregationQueryWithCursor(database, mongoQuery);
 
         return results;
     }

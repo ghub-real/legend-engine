@@ -15,9 +15,11 @@
 package org.finos.legend.engine.plan.execution.stores.document.connection.manager.strategic;
 
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.strategy.keys.AuthenticationStrategyKey;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.strategy.keys.TestDatabaseAuthenticationStrategyKey;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.strategy.keys.UserNamePasswordAuthenticationStrategyKey;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategyVisitor;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.UserNamePasswordAuthenticationStrategy;
 
 public class AuthenticationStrategyKeyGenerator implements AuthenticationStrategyVisitor<AuthenticationStrategyKey>
@@ -31,6 +33,11 @@ public class AuthenticationStrategyKeyGenerator implements AuthenticationStrateg
             String userNameVaultReference = userNamePasswordAuthStrategy.baseVaultReference == null ? userNamePasswordAuthStrategy.userNameVaultReference : userNamePasswordAuthStrategy.baseVaultReference + userNamePasswordAuthStrategy.userNameVaultReference;
             String passwordVaultReference = userNamePasswordAuthStrategy.baseVaultReference == null ? userNamePasswordAuthStrategy.passwordVaultReference : userNamePasswordAuthStrategy.baseVaultReference + userNamePasswordAuthStrategy.passwordVaultReference;
             return new UserNamePasswordAuthenticationStrategyKey(userNameVaultReference, passwordVaultReference);
+        }
+        if (authenticationStrategy instanceof TestDatabaseAuthenticationStrategy)
+        {
+//            TestDatabaseAuthenticationStrategy userNamePasswordAuthStrategy = (TestDatabaseAuthenticationStrategy) authenticationStrategy;
+            return new TestDatabaseAuthenticationStrategyKey();
         }
         return null;
     }

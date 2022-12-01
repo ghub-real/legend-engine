@@ -16,8 +16,13 @@ package org.finos.legend.engine.plan.execution.stores.nonrelational.client;
 
 import com.mongodb.client.MongoClient;
 
+import java.util.List;
+
 public interface NonRelationalClient
 {
     MongoClient getMongoDBClient();
     // NonRelationalClient buildNonRelationalClient(Identity identity, String connectionUri);
+
+
+    List<String> executeNativeQuery(String mongoQuery);
 }

@@ -16,12 +16,18 @@ package org.finos.legend.engine.plan.execution.stores.nonrelational;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
 import lombok.Value;
+import org.bson.Document;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Value
 public class LocalMongoDbClient implements NonRelationalClient
 {
+    private static final String DEFAULT_DATABASE_NAME = "my_database";
     MongoClient client;
     private final String clientUri;
 
@@ -37,10 +43,53 @@ public class LocalMongoDbClient implements NonRelationalClient
         client = MongoClients.create(clientUri);
     }
 
+
+
     @Override
     public MongoClient getMongoDBClient()
     {
         return client;
+    }
+
+    private MongoDatabase getDefaultDB()
+    {
+        return this.client.getDatabase(DEFAULT_DATABASE_NAME);
+    }
+
+
+    private List<String> executeNativeQueryWithCursor(MongoDatabase database, String query)
+    {
+        List<String> res = new ArrayList<>();
+
+        try
+        {
+            Document bsonCmd = Document.parse(query);
+
+            // Execute the native query
+            Document result = database.runCommand(bsonCmd);
+            Document cursor = (Document) result.get("cursor");
+            List<Document> docs = (List<Document>) cursor.get("firstBatch");
+            docs.forEach(System.out::println);
+
+
+            docs.forEach(doc -> res.add(doc.toJson()));
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.toString());
+        }
+
+        return res;
+    }
+
+
+    public List<String> executeNativeQuery(String mongoQuery)
+    {
+
+        MongoDatabase database = this.getDefaultDB();
+        List<String> results = executeNativeQueryWithCursor(database, mongoQuery);
+
+        return results;
     }
 
 

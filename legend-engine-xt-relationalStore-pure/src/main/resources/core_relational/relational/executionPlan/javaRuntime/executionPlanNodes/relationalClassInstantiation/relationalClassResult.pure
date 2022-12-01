@@ -93,6 +93,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::generateImp
 
 function <<access.private>> meta::pure::executionPlan::engine::java::generateRelationalMappingClassResultBaseImplementation(sets: RelationalInstanceSetImplementation[*], resultClass: Class<Any>[1], path: String[1], context: GenerationContext[1], debug: DebugContext[1]): meta::external::language::java::metamodel::Class[1]
 {
+  println('meta::pure::executionPlan::engine::java::generateRelationalMappingClassResultBaseImplementation');
    let typeInfo = $context.typeInfos->forClass($resultClass);
    let conventions = $context.conventions;
    let interface = $conventions->className($resultClass);
@@ -412,6 +413,8 @@ function <<access.private>> meta::pure::executionPlan::engine::java::createRelat
 
 function <<access.private>> meta::pure::executionPlan::engine::java::objectCreation(implClass: meta::external::language::java::metamodel::Class[1], set: RelationalInstanceSetImplementation[1], allSets: RelationalInstanceSetImplementation[*],  properties: Property<Nil,Any|*>[*], index: Integer[1], conventions:Conventions[1]):String[1]
 {
+
+  println('meta::pure::executionPlan::engine::java::objectCreation');
    let currentSetPks = if (!$set->instanceOf(RootRelationalInstanceSetImplementation) || ($set->cast(@RootRelationalInstanceSetImplementation)->meta::relational::functions::pureToSqlQuery::getGroupBy()->isEmpty() && ($set->cast(@RootRelationalInstanceSetImplementation)->meta::relational::functions::pureToSqlQuery::getDistinct()->isEmpty() || $set->cast(@RootRelationalInstanceSetImplementation)->meta::relational::functions::pureToSqlQuery::getDistinct()->toOne() == false)),
                            | $set->resolvePrimaryKey(),
                            | []);
@@ -1008,6 +1011,7 @@ function meta::pure::executionPlan::engine::java::encodeHexMethod():meta::extern
 
 function meta::pure::executionPlan::engine::java::relationalReferenceIdentifierGetterMethodForImplementation(sets: RelationalInstanceSetImplementation[*], implClass: meta::external::language::java::metamodel::Class[1], conventions: Conventions[1]):meta::external::language::java::metamodel::Method[1]
 {
+  println('meta::pure::executionPlan::engine::java::relationalReferenceIdentifierGetterMethodForImplementation');
    let referenceIdentifier = $conventions->fieldName($conventions->storeObjectReferenceIdentifier());
    javaMethod(
       ['public'], javaString(), $conventions->getterName($conventions->storeObjectReferenceIdentifier()), [],

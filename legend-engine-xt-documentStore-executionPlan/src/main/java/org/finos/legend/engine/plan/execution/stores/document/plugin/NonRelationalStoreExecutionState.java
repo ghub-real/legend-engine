@@ -31,17 +31,17 @@ public class NonRelationalStoreExecutionState implements StoreExecutionState
     private BlockConnectionContext blockConnectionContext;
     private RuntimeContext runtimeContext;
 
-    private NonRelationalStoreExecutionState(NonRelationalStoreState storeState, boolean retainConnection, RuntimeContext runtimeContext)
+    private NonRelationalStoreExecutionState(NonRelationalStoreState storeState, boolean retainConnection, BlockConnectionContext blockConnectionContext, RuntimeContext runtimeContext)
     {
         this.state = storeState;
         this.retainConnection = retainConnection;
-        //this.blockConnectionContext = blockConnectionContext;
+        this.blockConnectionContext = blockConnectionContext;
         this.runtimeContext = runtimeContext;
     }
 
     public NonRelationalStoreExecutionState(NonRelationalStoreState storeState)
     {
-        this(storeState, false, StoreExecutionState.emptyRuntimeContext());  //new BlockConnectionContext(),
+        this(storeState, false, new BlockConnectionContext(), StoreExecutionState.emptyRuntimeContext());  //new BlockConnectionContext(),
     }
 
     @Override
@@ -65,7 +65,7 @@ public class NonRelationalStoreExecutionState implements StoreExecutionState
     public StoreExecutionState copy()
     {
         // this.retainConnection ? this.blockConnectionContext : this.blockConnectionContext.copy()
-        return new NonRelationalStoreExecutionState(this.state, this.retainConnection, this.runtimeContext);
+        return new NonRelationalStoreExecutionState(this.state, this.retainConnection,  this.retainConnection ? this.blockConnectionContext : this.blockConnectionContext.copy(), this.runtimeContext);
     }
 
     @Override

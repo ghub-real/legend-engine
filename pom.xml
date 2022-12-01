@@ -216,7 +216,7 @@
         <timestamp>${maven.build.timestamp}</timestamp>
 
         <!-- Build Variables -->
-        <dependencies.failOnWarning>true</dependencies.failOnWarning>
+        <dependencies.failOnWarning>false</dependencies.failOnWarning>
         <encoding>UTF-8</encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -602,7 +602,7 @@
                         <configuration>
                             <configLocation>checkstyle.xml</configLocation>
                             <logViolationsToConsole>true</logViolationsToConsole>
-                            <failOnViolation>true</failOnViolation>
+                            <failOnViolation>false</failOnViolation>
                             <violationSeverity>warning</violationSeverity>
                             <sourceDirectories>
                                 <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>

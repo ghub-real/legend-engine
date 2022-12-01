@@ -1,0 +1,64 @@
+package _pure.plan.root.n1.localGraph;
+
+import java.lang.reflect.Method;
+import java.sql.ResultSet;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+import org.eclipse.collections.api.tuple.Pair;
+import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics;
+import org.finos.legend.engine.plan.dependencies.store.shared.IExecutionNodeContext;
+import org.finos.legend.engine.plan.dependencies.store.shared.IReferencedObject;
+import org.bson.Document;
+import java.util.List;
+import java.util.Iterator;
+import org.finos.legend.engine.plan.dependencies.store.document.graphFetch.IDocumentQueryResultField;
+
+public class Execute implements INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics
+{
+    private Specifics specifics;
+
+    public Execute()
+    {
+        this.specifics = new Specifics();
+    }
+
+
+    public IGraphInstance<? extends IReferencedObject> nextGraphInstance()
+    {
+        return this.specifics.nextGraphInstance();
+    }
+
+    public List<Method> primaryKeyGetters()
+    {
+        return this.specifics.primaryKeyGetters();
+    }
+
+    @Override
+    public void prepare(List<? extends IDocumentQueryResultField> documentQueryResultFields, Iterator<Document> results, String databaseTimeZone, String databaseConnection)
+    {
+        this.specifics.prepare(documentQueryResultFields, results, databaseTimeZone, databaseConnection);
+    }
+
+    public List<Pair<String, String>> allInstanceSetImplementations()
+    {
+        return this.specifics.allInstanceSetImplementations();
+    }
+
+    public List<String> primaryKeyColumns(int setIndex)
+    {
+        return this.specifics.primaryKeyColumns(setIndex);
+    }
+
+    public boolean supportsCaching()
+    {
+        return true;
+    }
+
+    @Override
+    public Object deepCopy(Object object)
+    {
+        return INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics.super.deepCopy(object);
+    }
+}

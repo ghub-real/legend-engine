@@ -129,7 +129,7 @@ public class RealizedNonRelationalResult extends StreamingResult
             int index = 0;
             for (DocumentQueryResultField col : this.fields)
             {
-                rowValMap.put(col.getNonQuotedLabel(), row.get(index));
+                rowValMap.put("", row.get(index));
                 index += 1;
             }
             rowValueMaps.add(rowValMap);
