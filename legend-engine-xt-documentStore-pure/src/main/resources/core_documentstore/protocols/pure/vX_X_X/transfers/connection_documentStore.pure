@@ -37,17 +37,17 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
 
 
 
- println('meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection');
+ //println('meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection');
 
- println('otherConnection:');
- println($otherConnection);
+ //println('otherConnection:');
+ //println($otherConnection);
    let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f |
-   println('f:');
-   println($f);
+   //println('f:');
+   //println($f);
    $f->eval($_type, $element, $type);
    )->concatenate([
      test:meta::protocols::pure::vX_X_X::metamodel::store::document::connection::TestDatabaseConnection[1]|
-     println('test called:');
+     //println('test called:');
          ^DocumentStoreConnection(
            _type = 'DocumentStoreConnection',
            type = $type,
@@ -55,7 +55,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
            quoteIdentifiers = $test.quoteIdentifiers,
            element = $element,
            //datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='localhost',port=27017,databaseName='myCollection'),
-          datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(_type='mongoDB', host='localhost',port=27017,databaseName='myCollection'),
+           datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::legend::specification::MongoDBDatasourceSpecification(_type='mongoDB', host='localhost',port=27017,databaseName='myCollection'),
            
            authenticationStrategy = ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::alloy::authentication::TestDatabaseAuthenticationStrategy(
              _type = 'test'
@@ -66,14 +66,14 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
         ,
       documentStore:meta::external::store::document::runtime::connections::DocumentStoreConnection[1] |
 
-      println('documentStore called:');
-         //let processors = transformPostProcessors($documentStore.postProcessors, $extensions);
-         let processors = [];
-         documentStore($type, $element, $documentStore.timeZone, $documentStore.quoteIdentifiers, $processors, $documentStore.datasourceSpecification, $documentStore.authenticationStrategy, $extensions);,
+      //println('documentStore called:');
+      //let processors = transformPostProcessors($documentStore.postProcessors, $extensions);
+      let processors = [];
+      documentStore($type, $element, $documentStore.timeZone, $documentStore.quoteIdentifiers, $processors, $documentStore.datasourceSpecification, $documentStore.authenticationStrategy, $extensions);,
       dbCon:meta::external::store::document::metamodel::runtime::DatabaseConnection[1]|
 
-      println('dbCon called:');
-      println($dbCon);
+      //println('dbCon called:');
+      //println($dbCon);
 
          ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection(
                   _type = $_type,
@@ -84,8 +84,8 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
                   type = $type);
     ])->toOneMany());
 
-    println('alloy connection:');
-    println(meta::json::toJSON($alloyConnection));
+    //println('alloy connection:');
+    //println(meta::json::toJSON($alloyConnection));
 
     $alloyConnection;
 }

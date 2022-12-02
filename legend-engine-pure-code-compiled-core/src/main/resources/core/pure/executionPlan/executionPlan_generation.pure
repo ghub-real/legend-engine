@@ -107,11 +107,11 @@ function meta::pure::executionPlan::executionPlan(routed:RoutingResult[1], f:Fun
 
 function meta::pure::executionPlan::executionPlan(clusters:ClusteredValueSpecification[*], routed:RoutingResult[1], routedFunction:FunctionDefinition<Any>[1], f:FunctionDefinition<Any>[1], m:Mapping[1], runtime:Runtime[1], context:ExecutionContext[1], inScopeVars:Map<String, List<Any>>[1], extensions:meta::pure::extension::Extension[*], debugContext:DebugContext[1]):ExecutionPlan[1]
 {
-  println('meta::pure::executionPlan::executionPlan--');
+  // println('meta::pure::executionPlan::executionPlan--');
    let functionParameters = $f->stubFuncParameters();
    
    let node = if ($clusters->size() == 1,
-       | println('HERE executionPlan 1'); let a = $clusters->at(0)->plan($runtime, $inScopeVars, $context, $extensions, $debugContext); $a;,
+       | let a = $clusters->at(0)->plan($runtime, $inScopeVars, $context, $extensions, $debugContext); $a;,
        | let allNodes = $clusters->fold({c,a|let x = $a.vars;
                                               println('HERE executionPlan fold');
                                              let node = $c->plan($runtime, $x, $context, $extensions, $debugContext);
@@ -160,9 +160,9 @@ function meta::pure::executionPlan::generatePlatformCode(plan:ExecutionPlan[1], 
 {
   println('meta::pure::executionPlan::generatePlatformCode');
    let platformBinding = $extensions->meta::pure::executionPlan::platformBinding::extractPlatformBindingById($platformId);
-   println('plan');
-   //println($plan);
-   //println($platformBinding.bindPlanToPlatform);
+   // println('plan');
+   // println($plan);
+   // println($platformBinding.bindPlanToPlatform);
    $platformBinding.bindPlanToPlatform->eval($plan, $config, $extensions, $debug);
 }
 
@@ -262,18 +262,18 @@ function meta::pure::executionPlan::plan(cluster:ClusteredValueSpecification[1],
             let query = ^meta::pure::mapping::StoreQuery(store=$cluster.store, fe=$fe, inScopeVars=$inScopeVars);
             //println('debugContext');
             //println($debugContext);
-            println('$cluster.s.planExecution');
-            println($cluster.s.planExecution);
-            println('$cluster.mapping');
-            println($cluster.mapping);
-            println('rt');
-            println($rt);
-            println('$cluster.exeCtx');
-            println($cluster.exeCtx);
-            println('$extensions');
-            println($extensions);
-            println('$debugContext');
-            println($debugContext);
+            //println('$cluster.s.planExecution');
+            //println($cluster.s.planExecution);
+            //println('$cluster.mapping');
+            //println($cluster.mapping);
+            //println('rt');
+            //println($rt);
+            //println('$cluster.exeCtx');
+            //println($cluster.exeCtx);
+            //println('$extensions');
+            //println($extensions);
+            //println('$debugContext');
+            //println($debugContext);
             let res = $cluster.s.planExecution->toOne()->eval($query, $cluster.val->match([r:RoutedValueSpecification[1]|$r, a:Any[*]|[]])->cast(@RoutedValueSpecification), $cluster.mapping, $rt, if ($cluster.exeCtx->isEmpty(), | $context, | $cluster.exeCtx->toOne()), $extensions, $debugContext);
             ^$res(fromCluster=$cluster);
     );

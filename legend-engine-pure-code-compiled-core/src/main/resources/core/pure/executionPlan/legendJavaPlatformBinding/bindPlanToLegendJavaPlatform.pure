@@ -46,7 +46,7 @@ function meta::pure::executionPlan::platformBinding::legendJava::bindPlanToLegen
    */
    let generatedProject   = $baseProject->concatenate($generatedNode.project)->toOneMany()->mergeProjects();
 
-   println('-----bindPlanToLegendJavaPlatform-----');
+   // println('-----bindPlanToLegendJavaPlatform-----');
 
    ^$plan
    (
@@ -78,16 +78,16 @@ function <<access.private>> meta::pure::executionPlan::platformBinding::legendJa
 
 function <<access.private>> meta::pure::executionPlan::platformBinding::legendJava::prepareForLegendJavaPlatformBinding(node: ExecutionNode[1], path: String[1], initialContext: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1]):GenerationContext[1]
 {
-  println('<<access.private>> meta::pure::executionPlan::platformBinding::legendJava::prepareForLegendJavaPlatformBinding');
-  println('path');
-  println($path);
+  //println('<<access.private>> meta::pure::executionPlan::platformBinding::legendJava::prepareForLegendJavaPlatformBinding');
+  //println('path');
+  //println($path);
    let childNodesWithIndex      = $node.executionNodes->size()->range()->map(i | pair($node.executionNodes->at($i), 'n' + toString($i + 1)));
    let extraChildNodesWithIndex = $node->extraChildNodesWithIndex($extensions);
 
-   println('childNodesWithIndex');
+   //println('childNodesWithIndex');
    //println($childNodesWithIndex);
 
-   println('extraChildNodesWithIndex');
+   //println('extraChildNodesWithIndex');
    //println($extraChildNodesWithIndex);
 
    let updatedContextForChildren = $childNodesWithIndex->concatenate($extraChildNodesWithIndex)->fold({child, agg |
@@ -97,9 +97,8 @@ function <<access.private>> meta::pure::executionPlan::platformBinding::legendJa
    let supportingExtension = $node->supportingLegendJavaExtension($extensions);
 
    let a = if ($supportingExtension.updateGenerationContextForNode->isNotEmpty(),
-       | println('IF TRUE'); let a = $supportingExtension.updateGenerationContextForNode->toOne()->eval($node, $updatedContextForChildren, $path, $extensions, $debug); $a;,
-       | println('IF FALSE');
-          let a = $node->match([
+       | let a = $supportingExtension.updateGenerationContextForNode->toOne()->eval($node, $updatedContextForChildren, $path, $extensions, $debug); $a;,
+       | let a = $node->match([
             g:GlobalGraphFetchExecutionNode[1]       | println('GlobalGraphFetchExecutionNode'); let a = $g->prepareForGlobalGraphFetchNode($path, $updatedContextForChildren, $debug); $a;,
             p:PureExpressionPlatformExecutionNode[1] | println('PureExpressionPlatformExecutionNode'); let a = $p->prepareForPlatformNode($path, $updatedContextForChildren, $extensions, $debug); $a;,
             p:PlatformMergeExecutionNode[1]          | println('PlatformMergeExecutionNode'); let a = $p->prepareForPlatformMergeNode($path, $updatedContextForChildren, $extensions, $debug); $a;,
@@ -123,21 +122,21 @@ function <<access.private>> meta::pure::executionPlan::platformBinding::legendJa
 function meta::pure::executionPlan::platformBinding::legendJava::generateLegendJavaPlatformBindingCode(node: ExecutionNode[1], path: String[1], context: GenerationContext[1], extensions: Extension[*], debug: DebugContext[1]): GeneratedNode[1]
 {
   println('meta::pure::executionPlan::platformBinding::legendJava::generateLegendJavaPlatformBindingCode');
-  println('extensions');
+  //println('extensions');
   //println($extensions);
    let supportingExtension = $node->supportingLegendJavaExtension($extensions);
-   println('supportingExtension');
-   println($supportingExtension);
+   //println('supportingExtension');
+   //println($supportingExtension);
 
    let generated = if ($supportingExtension.generateLegendJavaCodeForNode->isNotEmpty(),
-                       | println('HERE 1'); let a = $supportingExtension.generateLegendJavaCodeForNode->toOne()->eval($node, $path, $context, $extensions, $debug); $a;,
+                       | let a = $supportingExtension.generateLegendJavaCodeForNode->toOne()->eval($node, $path, $context, $extensions, $debug); $a;,
                        | $node->match([
-                            p:PureExpressionPlatformExecutionNode[1] | println('HERE 2'); let a = $p->generateImplementionForPlatformNode($path, $context, $extensions, $debug); $a;,
-                            e:ExecutionNode[1]                       | println('HERE 3'); let a = ^GeneratedCode(); $a;
+                            p:PureExpressionPlatformExecutionNode[1] | let a = $p->generateImplementionForPlatformNode($path, $context, $extensions, $debug); $a;,
+                            e:ExecutionNode[1]                       | let a = ^GeneratedCode(); $a;
                          ])
                    );
 
-   println('after generated');
+   //println('after generated');
 
    let generatedChildren = $node.executionNodes->generateLegendJavaPlatformBindingCodeForChildNodes(1, $path, $context, $extensions, $debug);
 

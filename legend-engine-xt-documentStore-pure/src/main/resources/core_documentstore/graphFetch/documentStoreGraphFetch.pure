@@ -96,8 +96,8 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    
    
   //  let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@meta::external::store::document::runtime::connections::TestDocumentStoreConnection)->map(x | ^$x(element = $store));
-  println('$runtime->connectionByElement($store)->toOne()');
-  println($runtime->connectionByElement($store)->toOne());
+  // println('$runtime->connectionByElement($store)->toOne()');
+  // println($runtime->connectionByElement($store)->toOne());
   
    let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@DatabaseConnection)->map(x | ^$x(element = $store));
    let oneRuntime   = ^Runtime(connections = [$dbConnection]);

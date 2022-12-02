@@ -17,17 +17,16 @@ package org.finos.legend.engine.plan.execution.stores.nonrelational;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import lombok.Value;
 import org.bson.Document;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Value
 public class LocalMongoDbClient implements NonRelationalClient
 {
     private static final String DEFAULT_DATABASE_NAME = "mongo_db";
+
     MongoClient client;
     private final String clientUri;
 
@@ -48,6 +47,7 @@ public class LocalMongoDbClient implements NonRelationalClient
     {
         return client;
     }
+
 
     private MongoDatabase getDefaultDB()
     {

@@ -23,8 +23,8 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.slf4j.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -43,12 +43,14 @@ import java.util.Objects;
 @Api(tags = "MongoDB - Utilities")
 @Path("graphQl/v1/mongodb")
 @Produces(MediaType.APPLICATION_JSON)
-@Slf4j
 public class MongoDbResource
 {
     private static final String DEFAULT_DATABASE_NAME = "my_database";
     private final LocalMongoDbClient mongoDbClient;
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("MongoDbResource");
+
 
     public MongoDbResource(LocalMongoDbClient mongoDbClient)
     {
@@ -123,7 +125,7 @@ public class MongoDbResource
         }
         catch (IOException e)
         {
-            log.error("Failed to parse input file contents", e);
+            LOGGER.error("Failed to parse input file contents", e);
             throw new RuntimeException(e);
         }
 
@@ -204,7 +206,7 @@ public class MongoDbResource
             }
             catch (JsonProcessingException e)
             {
-                log.error("Failed to parse item: ", e);
+                LOGGER.error("Failed to parse item: ", e);
                 throw new RuntimeException(e);
             }
         });
@@ -215,7 +217,7 @@ public class MongoDbResource
 
     private MongoDatabase getDefaultDB()
     {
-        return this.mongoDbClient.getClient().getDatabase(DEFAULT_DATABASE_NAME);
+        return this.mongoDbClient.getMongoDBClient().getDatabase(DEFAULT_DATABASE_NAME);
     }
 
     private List<String> executeCustomAggregationQueryWithCursor(MongoDatabase database, String query)

@@ -710,6 +710,7 @@ function <<access.private>> meta::pure::executionPlan::engine::java::graphFetch:
       ->map({spe |
          if ($isComplex,
             {|
+              println('Creating Primary Key Setters');
                let currentSets = $node.resultType->cast(@PartialClassResultType).setImplementations;
                let currentKeyStrings = $currentSets->map({set |
                   let setIdx = $currentSets->indexOf($set);

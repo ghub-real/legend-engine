@@ -23,19 +23,25 @@ Mapping meta::external::store::document::tests::object::MyDocStoreMapping
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::*;
 import meta::pure::functions::collection::*;
-function meta::external::store::document::tests::object::TestMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
+function <<access.private>> meta::external::store::document::tests::object::TestMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
 {
   let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
         package  = meta::external::store::document::tests::object,
         name     = 'TestMongoStore'
     );
-   let allFields = meta::external::store::document::tests::object::getAllFields();
+   let allPersonFields = meta::external::store::document::tests::object::getAllPersonFields();
+   let allFirmFields = meta::external::store::document::tests::object::getAllFirmFields();
 
    let docCollection = [
            ^meta::external::store::document::metamodel::Collection(
              id='101',
              name='persons',
-             fields = $allFields
+             fields = $allPersonFields
+           ),
+           ^meta::external::store::document::metamodel::Collection(
+             id='102',
+             name='firm',
+             fields = $allFirmFields
            )
    ];
 
@@ -44,17 +50,7 @@ function meta::external::store::document::tests::object::TestMongoStore(): meta:
 }
 
 
-// function meta::external::store::document::tests::object::getMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
-// {
-//   let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
-//         package  = meta::external::store::document::tests::object,
-//         name     = 'MyMongoStore'
-//     );
-
-//     $mongoStore;
-// }
-
-function meta::external::store::document::tests::object::getAllFields(): meta::external::store::document::metamodel::Field[*]
+function <<access.private>> meta::external::store::document::tests::object::getAllPersonFields(): meta::external::store::document::metamodel::Field[*]
 {
     //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
 
@@ -77,24 +73,109 @@ function meta::external::store::document::tests::object::getAllFields(): meta::e
     [$field1, $field2, $field3];
 }
 
+function <<access.private>> meta::external::store::document::tests::object::getAllFirmFields(): meta::external::store::document::metamodel::Field[*]
+{
+    //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+
+    let field1 = ^meta::external::store::document::metamodel::Field(
+          name = 'legalName',
+          type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
+          nullable = false
+    );
+    let field2 = ^meta::external::store::document::metamodel::Field(
+          name = 'nickName',
+          type = ^meta::external::store::document::metamodel::StringTypeReference(list=false),
+          nullable = false
+    );
+
+    [$field1, $field2];
+}
+
+
+function <<access.private>> meta::external::store::document::tests::object::TestMongoMapping(): meta::pure::mapping::Mapping[1]
+{
+    let personDomainClass = meta::external::store::document::tests::simple::Person;
+    let firmDomainClass = meta::external::store::document::tests::simple::Firm;
+    //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+    let mongoStore = meta::external::store::document::tests::object::TestMongoStore();
+    let allPersonFields = meta::external::store::document::tests::object::getAllPersonFields();
+    let allFirmFields = meta::external::store::document::tests::object::getAllFirmFields();
+
+
+  let  personPropMappings = [
+      ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
+        property = $personDomainClass.properties->filter(p | $p.name == 'firstName')->toOne(),
+        sourceSetImplementationId = 'person_set', targetSetImplementationId = '',
+        documentStoreElement = $allPersonFields->at(0)),
+      ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
+        property = $personDomainClass.properties->filter(p | $p.name == 'lastName')->toOne(),
+        sourceSetImplementationId = 'person_set', targetSetImplementationId = '',
+        documentStoreElement = $allPersonFields->at(1)),
+      ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
+        property = $personDomainClass.properties->filter(p | $p.name == 'otherNames')->toOne(),
+        sourceSetImplementationId = 'person_set', targetSetImplementationId = '',
+        documentStoreElement = $allPersonFields->at(2))
+   ];
+
+     let  firmPropMappings = [
+         ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
+           property = $firmDomainClass.properties->filter(p | $p.name == 'legalName')->toOne(),
+           sourceSetImplementationId = 'firm_set', targetSetImplementationId = '',
+           documentStoreElement = $allFirmFields->at(0)),
+         ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
+           property = $firmDomainClass.properties->filter(p | $p.name == 'nickName')->toOne(),
+           sourceSetImplementationId = 'firm_set', targetSetImplementationId = '',
+           documentStoreElement = $allFirmFields->at(1))
+      ];
+
+
+   let personCollectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
+                name = 'persons',
+                documentElement = $mongoStore.collections->filter(p | $p.name == 'persons')->toOne(),
+                documentStore=$mongoStore
+                );
+
+   let firmCollectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
+                name = 'firm',
+                documentElement = $mongoStore.collections->filter(p | $p.name == 'firm')->toOne(),
+                documentStore=$mongoStore
+                );
+
+   let personDocumentSetImpl = ^meta::external::store::document::metamodel::mapping::RootDocumentInstanceSetImplementation(
+                id = 'person_set',
+                root = true,
+                class = $personDomainClass,
+                parent =  meta::external::store::document::tests::object::MyDocStoreMapping,
+                userDefinedPrimaryKey = false,
+                mainCollectionAlias = $personCollectionAlias,
+                propertyMappings = $personPropMappings);
+
+
+   let firmDocumentSetImpl = ^meta::external::store::document::metamodel::mapping::RootDocumentInstanceSetImplementation(
+                  id = 'firm_set',
+                  root = true,
+                  class = $firmDomainClass,
+                  parent =  meta::external::store::document::tests::object::MyDocStoreMapping,
+                  userDefinedPrimaryKey = false,
+                  mainCollectionAlias = $firmCollectionAlias,
+                  propertyMappings = $firmPropMappings);
+
+  $personCollectionAlias->mutateAdd('setMappingOwner', $personDocumentSetImpl);
+  $firmCollectionAlias->mutateAdd('setMappingOwner', $firmDocumentSetImpl);
+
+  ^meta::pure::mapping::Mapping(classMappings=[$personDocumentSetImpl, $firmDocumentSetImpl], name='mongo_db_mapping');
+}
+/*
 function meta::external::store::document::tests::object::getDocumentStoreAndMapping() : meta::pure::functions::collection::Pair<DocumentStore, RootDocumentInstanceSetImplementation>[1]
 {
     let domainClass = meta::external::store::document::tests::simple::Person;
     //let mongoStore = meta::external::store::document::tests::object::getMongoStore();
     let mongoStore = meta::external::store::document::tests::object::TestMongoStore();
-    let allFields = meta::external::store::document::tests::object::getAllFields();
+    let allPersonFields = meta::external::store::document::tests::object::getAllPersonFields();
+    let allFirmFields = meta::external::store::document::tests::object::getAllPersonFields();
 
-    let docCollection = [
-        ^meta::external::store::document::metamodel::Collection(
-          id='101',
-          name='persons',
-          fields = $allFields
-        )
-      ];
 
-    $mongoStore->mutateAdd('collections', $docCollection);
-
-  let  firmPropMappings = [
+  let  personPropMappings = [
       ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
         property = $domainClass.properties->filter(p | $p.name == 'firstName')->toOne(),
         sourceSetImplementationId = 'firm_set', targetSetImplementationId = '',
@@ -112,7 +193,7 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
 
    let collectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
                 name = 'persons',
-                documentElement = $docCollection,
+                documentElement = $mongoStore.docCollection,
                 documentStore=$mongoStore
                 );
 
@@ -128,6 +209,7 @@ function meta::external::store::document::tests::object::getDocumentStoreAndMapp
   $collectionAlias->mutateAdd('setMappingOwner', $firmDocumentSetImpl);
   meta::pure::functions::collection::pair($mongoStore, $firmDocumentSetImpl);
 }
+*/
 
 function meta::external::store::document::tests::object::TestLocalMongoRuntime():meta::pure::runtime::Runtime[1]
 {
@@ -136,14 +218,13 @@ function meta::external::store::document::tests::object::TestLocalMongoRuntime()
 }
 
 
-function meta::external::store::document::tests::object::getLocalMongoRuntime(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::pure::runtime::Runtime[1]
+function <<access.private>> meta::external::store::document::tests::object::getLocalMongoRuntime(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::pure::runtime::Runtime[1]
 {
-  ^meta::pure::runtime::Runtime(connections =
-    meta::external::store::document::tests::object::localMongoDatabaseConnection($dataStore));
+  ^meta::pure::runtime::Runtime(connections = meta::external::store::document::tests::object::localMongoDatabaseConnection($dataStore));
 }
 
 
-function meta::external::store::document::tests::object::localMongoDatabaseConnection(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::external::store::document::runtime::connections::DocumentStoreConnection[1]
+function <<access.private>> meta::external::store::document::tests::object::localMongoDatabaseConnection(dataStore:meta::external::store::document::metamodel::DocumentStore[1]):meta::external::store::document::runtime::connections::DocumentStoreConnection[1]
 {
     ^meta::external::store::document::runtime::connections::DocumentStoreConnection(
         element = $dataStore,
@@ -162,12 +243,11 @@ Class meta::external::store::document::tests::object::TestSetup
 
 function meta::external::store::document::tests::object::getTestSetup(): meta::external::store::document::tests::object::TestSetup[1]
 {
-  let mongoStoreAndMapping = meta::external::store::document::tests::object::getDocumentStoreAndMapping();
-  let mapping = ^meta::pure::mapping::Mapping(classMappings=$mongoStoreAndMapping.second, name='nameOfMapping');
-  let runtime = meta::external::store::document::tests::object::getLocalMongoRuntime($mongoStoreAndMapping.first);
+  let mapping = meta::external::store::document::tests::object::TestMongoMapping();
+  let runtime = meta::external::store::document::tests::object::getLocalMongoRuntime(meta::external::store::document::tests::object::TestMongoStore());
   ^meta::external::store::document::tests::object::TestSetup(mapping = $mapping, runtime = $runtime);
 }
-
+/*
 function meta::external::store::document::tests::object::getCollection(): meta::external::store::document::metamodel::Collection[1]
 {
   // let mongoStore = meta::external::store::document::tests::object::getMongoStore();
@@ -199,6 +279,7 @@ function meta::external::store::document::tests::object::getCollectionWithLessFi
 
     $docCollection;
 }
+*/
 
 /*
 function meta::external::store::document::tests::object::getState(): meta::external::store::document::metamodel::State[1]

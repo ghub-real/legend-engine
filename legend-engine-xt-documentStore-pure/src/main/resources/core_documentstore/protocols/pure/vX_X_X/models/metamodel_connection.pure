@@ -35,8 +35,8 @@ Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::Tes
     {doc.doc = 'testDataSetupSqls field should never be populated manually. This is used exclusively in Legend Engine'}
     testDataSetupSqls : String[*];
 
-    {doc.doc = 'testDataSchemas field should never be populated manually. This is used exclusively in Legend Engine'}
-    testDataSchemas : meta::relational::metamodel::Schema[*];
+    // {doc.doc = 'testDataSchemas field should never be populated manually. This is used exclusively in Legend Engine'}
+    // testDataSchemas : meta::relational::metamodel::Schema[*];
 }
 
 Class meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection extends  meta::protocols::pure::vX_X_X::metamodel::runtime::Connection
