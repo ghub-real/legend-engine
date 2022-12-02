@@ -17,15 +17,13 @@ package org.finos.legend.engine.plan.execution.stores.document.plugin;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
-import org.bson.Document;
 import org.eclipse.collections.api.block.function.Function2;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.impl.list.mutable.FastList;
 import org.eclipse.collections.impl.tuple.Tuples;
 import org.eclipse.collections.impl.utility.Iterate;
-import org.eclipse.collections.api.tuple.Pair;
-import org.finos.legend.engine.external.shared.format.imports.FileImportContent;
 import org.finos.legend.engine.plan.dependencies.domain.dataQuality.BasicChecked;
 import org.finos.legend.engine.plan.dependencies.domain.graphFetch.IGraphInstance;
 import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
@@ -42,24 +40,13 @@ import org.finos.legend.engine.plan.execution.result.graphFetch.GraphFetchResult
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphObjectsBatch;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
 import org.finos.legend.engine.plan.execution.stores.document.NonRelationalDatabaseCommandsVisitorBuilder;
+import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.PreparedTempTableResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.RealizedNonRelationalResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.ResultInterpreterExtension;
 import org.finos.legend.engine.plan.execution.stores.document.result.graphFetch.NonRelationalGraphObjectsBatch;
-//import org.finos.legend.engine.plan.execution.stores.relational.RelationalDatabaseCommandsVisitorBuilder;
-import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection;
-import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
-import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalExecutionNodeExecutor;
-//import org.finos.legend.engine.plan.execution.stores.relational.plugin.RelationalStoreExecutionState;
-//import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
-//import org.finos.legend.engine.plan.execution.stores.relational.result.PreparedTempTableResult;
-import org.finos.legend.engine.plan.execution.stores.document.plugin.tempgenfiles.Specifics;
-import org.finos.legend.engine.plan.execution.stores.relational.result.FunctionHelper;
-import org.finos.legend.engine.plan.execution.stores.relational.result.RealizedRelationalResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.SQLExecutionResult;
-import org.finos.legend.engine.plan.execution.stores.relational.result.graphFetch.RelationalGraphObjectsBatch;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AggregationAwareExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AllocationExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ConstantExecutionNode;
@@ -79,8 +66,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphF
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.RelationalTempTableGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryCrossStoreGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryPropertyGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryRootGraphFetchExecutionNode;
@@ -95,10 +80,8 @@ import org.pac4j.core.profile.CommonProfile;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -107,15 +90,12 @@ import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<Result>
 {
     private final ExecutionState executionState;
-
-    private FileImportContent fileImportContent;
     private final MutableList<CommonProfile> profiles;
     private MutableList<Function2<ExecutionState, List<Map<String, Object>>, Result>> resultInterpreterExtensions;
 
@@ -317,38 +297,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             String databaseConnectionStr = ObjectMapperFactory.getNewStandardObjectMapperWithPureProtocolExtensionSupports().writeValueAsString(databaseConnection);
             nodeSpecifics.prepare(documentResultSet, databaseTimeZone, databaseConnectionStr);
 
-
-//            Object testObj = nodeSpecifics.nextGraphInstance();
             AtomicLong batchIndex = new AtomicLong(0L);
-
-
-
-            boolean isUnion = setIdCount > 1;
-
-
-
-//
-//
-//            List<String> resultStrs = Lists.mutable.empty();
-//            resultStrs.add("{\n" +
-//                    "  \"firstName\" : \"john\",\n" +
-//                    "  \"lastName\" : \"smith\"\n" +
-//                    "}");
-//            GraphObjectsBatch inMemoryGraphObjectsBatch = new GraphObjectsBatch(currentBatch, executionState.getGraphFetchBatchMemoryLimit());
-//            inMemoryGraphObjectsBatch.setObjectsForNodeIndex(0, resultStrs);
-//
-//
-//            List<GraphObjectsBatch> objectsBatches = Lists.mutable.empty();
-//
-//            objectsBatches.add(inMemoryGraphObjectsBatch);
-//
-//            Stream<GraphObjectsBatch> graphObjectsBatchStream = objectsBatches.stream();
-
-
-//            return new GraphFetchResult(graphObjectsBatchStream, rootResult).withGraphFetchSpan(graphFetchSpan);
-
-
-
 
             Spliterator<GraphObjectsBatch> graphObjectsBatchSpliterator = new Spliterators.AbstractSpliterator<GraphObjectsBatch>(Long.MAX_VALUE, Spliterator.ORDERED)
             {

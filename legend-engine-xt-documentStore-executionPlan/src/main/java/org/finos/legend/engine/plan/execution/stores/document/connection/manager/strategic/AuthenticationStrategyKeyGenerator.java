@@ -36,7 +36,6 @@ public class AuthenticationStrategyKeyGenerator implements AuthenticationStrateg
         }
         if (authenticationStrategy instanceof TestDatabaseAuthenticationStrategy)
         {
-//            TestDatabaseAuthenticationStrategy userNamePasswordAuthStrategy = (TestDatabaseAuthenticationStrategy) authenticationStrategy;
             return new TestDatabaseAuthenticationStrategyKey();
         }
         return null;

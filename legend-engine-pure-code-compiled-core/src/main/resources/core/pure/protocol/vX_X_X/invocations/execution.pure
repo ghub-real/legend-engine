@@ -89,7 +89,6 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::getPlanR
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::executePlan(plan:meta::pure::executionPlan::ExecutionPlan[1], context: ExecutionContext[0..1], host: String[1], port: Integer[1], extensions:meta::pure::extension::Extension[*]) : meta::pure::mapping::Result<Any|*>[1]
 {
-
    let planJSON = $plan->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformPlan($extensions)
                        ->meta::json::toJSON(1000, meta::json::config(false, false, true, true));
    let resultType = $planJSON->meta::protocols::pure::vX_X_X::invocation::execution::execute::getPlanReturnType();
@@ -105,7 +104,6 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::executeP
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::executePlan(planJSON:String[1], host: String[1], port: Integer[1]) : String[1]
 {
-
    let resp = meta::pure::functions::io::http::executeHTTPRaw(
       ^URL(host = $host , port = $port, path = 'api/pure/v1/execution/executePlan'),
       HTTPMethod.POST,
