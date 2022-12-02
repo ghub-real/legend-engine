@@ -21,7 +21,6 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExec
    onConnectionCloseCommitQuery : String[0..1];
    onConnectionCloseRollbackQuery : String[0..1];
    resultFields : meta::external::store::document::metamodel::mapping::DocumentQueryResultField[*];
-  // resultFields2 : meta::external::store::document::metamodel::mapping::DocumentQueryResultField[1];
    connection : meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1];
 }
 
