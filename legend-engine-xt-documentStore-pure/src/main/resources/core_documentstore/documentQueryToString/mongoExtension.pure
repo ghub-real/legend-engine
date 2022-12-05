@@ -50,6 +50,12 @@ function <<access.private>> meta::external::store::document::functions::document
 
 function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongo(selectDocumentQuery:SelectDocumentQuery[1], sgc:SqlGenerationContext[1], isSubSelect:Boolean[1]):String[1]
 {
+  processSelectDocumentQueryMongoSimplified($selectDocumentQuery);
+}
+
+function meta::external::store::document::functions::documentQueryToString::mongo::processSelectDocumentQueryMongoSimplified(selectDocumentQuery:SelectDocumentQuery[1]): String[1]
+{
+  println($selectDocumentQuery);
   '{"aggregate":"' + $selectDocumentQuery.data.alias.name->toOne() + '", "pipeline":' + processPipelines($selectDocumentQuery) + ', "cursor": { } }';
 }
 

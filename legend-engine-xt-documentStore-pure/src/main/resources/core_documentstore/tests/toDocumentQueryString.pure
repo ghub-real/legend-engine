@@ -1,0 +1,193 @@
+import meta::external::store::document::tests::object::*;
+import meta::external::store::document::extension::*;
+import meta::pure::runtime::*;
+import meta::pure::tools::*;
+import meta::pure::executionPlan::*;
+import meta::pure::graphFetch::executionPlan::*;
+import meta::external::store::document::metamodel::mapping::*;
+import meta::pure::graphFetch::execution::*;
+import meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::*;
+import meta::external::store::document::metamodel::*;
+import meta::external::store::document::functions::documentQueryToString::mongo::*;
+
+
+function <<access.private>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::extractMongoQueryFromPlan(executionPlan: ExecutionPlan[1]): String[1]
+{
+  $executionPlan.rootExecutionNode.executionNodes->at(0)->cast(@GlobalGraphFetchExecutionNode).localGraphFetchExecutionNode.executionNodes->at(0)->cast(@DocumentQueryExecutionNode).documentQuery
+}
+
+function <<test.Test>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::getCorrectMongoQueryWithFirstNameAndLastNameProjectAndWithoutFilterFromExecutionPlan():Boolean[1]
+{
+  let testDocumentStoreSetup = getPersonTestSetup();
+  let documentStoreExtensions = [documentStoreExtensions()];
+  let testRuntime = TestPersonLocalMongoRuntime();
+
+  let executionContext = ^ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+
+  let debugContext = ^DebugContext(
+    debug=false,
+    space=''
+  );
+
+  let tree = #{
+      meta::external::store::document::tests::simple::Person {
+        firstName,
+        lastName
+      }
+    }#;
+
+  let query = {|meta::external::store::document::tests::simple::Person.all()->graphFetch($tree)->serialize($tree)};
+
+  let executionPlan = executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
+
+  let actualMongoQuery = extractMongoQueryFromPlan($executionPlan);
+  let expectedMongoQuery = '{"aggregate":"persons", "pipeline":[{ "$match":{} }, { "$project": { "firstName": 1 ,"lastName": 1 } }], "cursor": { } }';
+  assertEquals($actualMongoQuery, $expectedMongoQuery);
+}
+
+function <<test.Test>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::getCorrectMongoQueryWithFirstNameProjectAndFilterOnFirstNameJohnFromExecutionPlan():Boolean[1]
+{
+  let testDocumentStoreSetup = getPersonTestSetup();
+  let documentStoreExtensions = [documentStoreExtensions()];
+  let testRuntime = TestPersonLocalMongoRuntime();
+
+  let executionContext = ^ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+
+  let debugContext = ^DebugContext(
+    debug=false,
+    space=''
+  );
+
+  let tree = #{
+      meta::external::store::document::tests::simple::Person {
+        firstName
+      }
+    }#;
+
+  let query = {|meta::external::store::document::tests::simple::Person.all()->filter(x | $x.firstName == 'John')->graphFetch($tree)->serialize($tree)};
+
+  let executionPlan = executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
+
+  let actualMongoQuery = extractMongoQueryFromPlan($executionPlan);
+  let expectedMongoQuery = '{"aggregate":"persons", "pipeline":[{"$match":{ "firstName": { "$eq": "John" } } }, { "$project": { "firstName": 1 } }], "cursor": { } }';
+  assertEquals($actualMongoQuery, $expectedMongoQuery);
+}
+
+function <<test.Test>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::getCorrectMongoQueryWithFirstNameAndLastNameProjectAndFilterOnFirstNameJohnAndLastNameHillFromExecutionPlan():Boolean[1]
+{
+  let testDocumentStoreSetup = getPersonTestSetup();
+  let documentStoreExtensions = [documentStoreExtensions()];
+  let testRuntime = TestPersonLocalMongoRuntime();
+
+  let executionContext = ^ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+
+  let debugContext = ^DebugContext(
+    debug=false,
+    space=''
+  );
+
+  let tree = #{
+      meta::external::store::document::tests::simple::Person {
+        firstName,
+        lastName
+      }
+    }#;
+
+  let query = {|meta::external::store::document::tests::simple::Person.all()->filter(x | $x.firstName == 'John' && $x.lastName == 'Hill')->graphFetch($tree)->serialize($tree)};
+
+  let executionPlan = executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
+
+  let actualMongoQuery = extractMongoQueryFromPlan($executionPlan);
+  let expectedMongoQuery = '{"aggregate":"persons", "pipeline":[{"$match":{ "$and": [{ "firstName": { "$eq": "John" } }, { "lastName": { "$eq": "Hill" } }] } }, { "$project": { "firstName": 1 ,"lastName": 1 } }], "cursor": { } }';
+  assertEquals($actualMongoQuery, $expectedMongoQuery);
+}
+
+
+function <<test.Test>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::getCorrectMongoQueryWithFirstNameAndLastNameProjectAndWithoutFilterFromSelectDocumentQuery():Boolean[1]
+{
+  let fields = [
+    ^Field(name = 'firstName', type = ^StringTypeReference(list=false), nullable = false),
+    ^Field(name = 'lastName', type = ^StringTypeReference(list=false), nullable = false)
+  ];
+
+  let docCollection = [^Collection(id='101', name='persons', fields = $fields)];
+
+  let alias = ^CollectionAlias(name = 'persons', documentElement = $docCollection);
+
+  let data = ^RootJoinDocumentTreeNode(alias = $alias);
+
+  let selectDocumentQuery = ^SelectDocumentQuery(distinct = false, fields = $fields, data = $data);
+
+  let actualMongoQuery = processSelectDocumentQueryMongoSimplified($selectDocumentQuery);
+  let expectedMongoQuery = '{"aggregate":"persons", "pipeline":[{ "$match":{} }, { "$project": { "firstName": 1 ,"lastName": 1 } }], "cursor": { } }';
+
+  assertEquals($actualMongoQuery, $expectedMongoQuery);
+}
+
+
+function <<test.Test>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::getCorrectMongoQueryWithFirstNameProjectAndFilterOnFirstNameJohnFromSelectDocumentQuery():Boolean[1]
+{
+  let fields = [
+    ^Field(name = 'firstName', type = ^StringTypeReference(list=false), nullable = false),
+    ^Field(name = 'lastName', type = ^StringTypeReference(list=false), nullable = false)
+  ];
+
+  let docCollection = [^Collection(id='101', name='persons', fields = $fields)];
+
+  let alias = ^CollectionAlias(name = 'persons', documentElement = $docCollection);
+
+  let data = ^RootJoinDocumentTreeNode(alias = $alias);
+
+  let filteringOperation = ^DynaFunction(name = 'equal', parameters = [$fields->at(0), ^Literal(value = 'John')]);
+
+  let selectDocumentQuery = ^SelectDocumentQuery(distinct = false, fields = $fields->at(0), data = $data, filteringOperation = $filteringOperation);
+
+  let actualMongoQuery = processSelectDocumentQueryMongoSimplified($selectDocumentQuery);
+  let expectedMongoQuery = '{"aggregate":"persons", "pipeline":[{"$match":{ "firstName": { "$eq": "John" } } }, { "$project": { "firstName": 1 } }], "cursor": { } }';
+  
+  assertEquals($actualMongoQuery, $expectedMongoQuery);
+}
+
+function <<test.Test>> meta::document::store::functions::toDocumentQueryString::tests::MongoQuery::getCorrectMongoQueryWithFirstNameAndLastNameProjectAndFilterOnFirstNameJohnAndLastNameHillFromSelectDocumentQuery():Boolean[1]
+{
+  let fields = [
+    ^Field(name = 'firstName', type = ^StringTypeReference(list=false), nullable = false),
+    ^Field(name = 'lastName', type = ^StringTypeReference(list=false), nullable = false)
+  ];
+
+  let docCollection = [^Collection(id='101', name='persons', fields = $fields)];
+
+  let alias = ^CollectionAlias(name = 'persons', documentElement = $docCollection);
+
+  let data = ^RootJoinDocumentTreeNode(alias = $alias);
+
+  //let filteringOperation = ^DynaFunction(name = 'equal', parameters = [$fields->at(0), ^Literal(value = 'John')]);
+  let filteringOperation = ^DynaFunction(name = 'group', parameters = [
+    ^DynaFunction(
+      name = 'and',
+      parameters = [
+        ^DynaFunction(
+          name = 'equal',
+          parameters = [
+            $fields->at(0),
+            ^Literal(value = 'John')
+          ]
+        ),
+        ^DynaFunction(
+          name = 'equal',
+          parameters = [
+            $fields->at(1),
+            ^Literal(value = 'Hill')
+          ]
+        )
+      ]
+    )
+  ]);
+
+  let selectDocumentQuery = ^SelectDocumentQuery(distinct = false, fields = $fields, data = $data, filteringOperation = $filteringOperation);
+
+  let actualMongoQuery = processSelectDocumentQueryMongoSimplified($selectDocumentQuery);
+  let expectedMongoQuery = '{"aggregate":"persons", "pipeline":[{"$match":{ "$and": [{ "firstName": { "$eq": "John" } }, { "lastName": { "$eq": "Hill" } }] } }, { "$project": { "firstName": 1 ,"lastName": 1 } }], "cursor": { } }';
+  
+  assertEquals($actualMongoQuery, $expectedMongoQuery);
+}
