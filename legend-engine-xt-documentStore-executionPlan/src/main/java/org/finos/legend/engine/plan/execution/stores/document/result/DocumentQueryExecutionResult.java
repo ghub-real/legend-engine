@@ -14,7 +14,6 @@
 
 package org.finos.legend.engine.plan.execution.stores.document.result;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentracing.Span;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.list.mutable.FastList;
@@ -45,10 +44,10 @@ public class DocumentQueryExecutionResult extends Result
 
     private final DocumentResultSet resultSet;
     private final NonRelationalClient client;
-    // private final List<String> temporaryTables;
+
 //  SQL specific stuff
 //    private final Connection connection;
-//    private final Statement statement;
+//    private final List<String> temporaryTables;
 //    private final ResultSetMetaData resultSetMetaData;
     private final String executedMql;
     //private final int fieldCount;
@@ -99,40 +98,12 @@ public class DocumentQueryExecutionResult extends Result
         return this.databaseTimeZone;
     }
 
-    //    public List<String> getTemporaryTables()
-//    {
-//        return temporaryTables;
-//    }
-//
-//    public Connection getConnection()
-//    {
-//        return this.connection;
-//    }
-//
-//    public Statement getStatement()
-//    {
-//        return this.statement;
-//    }
-//
+
     public DocumentResultSet getResultSet()
     {
         return resultSet;
     }
-//
-//    public ResultSetMetaData getResultSetMetaData()
-//    {
-//        return this.resultSetMetaData;
-//    }
-//
-//    public int getColumnCount()
-//    {
-//        return this.columnCount;
-//    }
 
-    public List<DocumentQueryResultField> getDocumentQueryResultFields()
-    {
-        return documentQueryResultFields;
-    }
 
     public Span getTopSpan()
     {
@@ -156,9 +127,12 @@ public class DocumentQueryExecutionResult extends Result
 
     public Object getTransformedValue(int columnIndex)
     {
-        ResultField resultField = this.getResultFields().get(columnIndex - 1);
-        ObjectMapper mapper = new ObjectMapper();
-        return resultField.getTransformedValue(mapper.valueToTree(this.getDocumentQueryResultFields()), calendar);
+        throw new RuntimeException("getTransformedValue by Index not supported");
+    }
+
+    public List<DocumentQueryResultField> getDocumentQueryResultFields()
+    {
+        return documentQueryResultFields;
     }
 
     @Override

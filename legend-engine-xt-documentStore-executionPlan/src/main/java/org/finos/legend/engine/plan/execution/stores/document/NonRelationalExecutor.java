@@ -98,7 +98,6 @@ public class NonRelationalExecutor
 
         Span span = GlobalTracer.get().activeSpan();
 
-        // TODO: goncah we shouldn't need to cast and we should follow similar pattern with relational using DatabaseManager, ConnectionManager, DataSourceKey etc.
         NonRelationalClient nonRelationalClient = getClient(node, profiles, (NonRelationalStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational));
         if (span != null)
         {
@@ -107,32 +106,6 @@ public class NonRelationalExecutor
 
         this.prepareForQueryExecution(node, nonRelationalClient, databaseTimeZone, databaseType, profiles, executionState);
 
-//        DataStoreConnection databaseConnection = (DataStoreConnection) node.connection;
-//        MongoDBDatasourceSpecification datasourceSpecification = (MongoDBDatasourceSpecification) databaseConnection.datasourceSpecification;
-//        List<String> results = Lists.mutable.empty();
-//        LocalMongoDBClient mongoDBClient = null;
-//        String query = node.getQuery();
-//
-//        if (!Objects.equals(query, "") && query != null)
-//        {
-//            try
-//            {
-//                mongoDBClient = new LocalMongoDBClient(datasourceSpecification);
-//                results = mongoDBClient.executeCustomAggregationQueryToDefaultDB(query);
-//            }
-//            catch (Exception e)
-//            {
-//                LOGGER.error(e.toString());
-//            }
-//            finally
-//            {
-//                if (mongoDBClient != null)
-//                {
-//                    mongoDBClient.close();
-//                }
-//            }
-//
-//        }
 
         return new DocumentQueryExecutionResult(executionState.activities, node, databaseType, databaseTimeZone, nonRelationalClient, profiles, tempTableList, executionState.topSpan);
     }
@@ -142,31 +115,6 @@ public class NonRelationalExecutor
         String documentQuery;
 
         documentQuery = node.getQuery(); // returns mongoQuery
-
-//        DatabaseManager databaseManager = DatabaseManager.fromString(databaseTypeName);
-//        for (Map.Entry<String, Result> var : executionState.getResults().entrySet())
-//        {
-//            if (var.getValue() instanceof StreamingResult && sqlQuery.contains("(${" + var.getKey() + "})"))
-//            {
-//                String tableName = databaseManager.relationalDatabaseSupport().processTempTableName(var.getKey());
-//                this.prepareTempTable(connection, (StreamingResult) var.getValue(), tableName, databaseTypeName, databaseTimeZone, tempTableList);
-//                tempTableList.add(tableName);
-//                sqlQuery = sqlQuery.replace("(${" + var.getKey() + "})", tableName);
-//            }
-//            else if (var.getValue() instanceof PreparedTempTableResult && sqlQuery.contains("(${" + var.getKey() + "})"))
-//            {
-//                sqlQuery = sqlQuery.replace("(${" + var.getKey() + "})", ((PreparedTempTableResult) var.getValue()).getTempTableName());
-//            }
-//            else if (var.getValue() instanceof RelationalResult && (sqlQuery.contains("inFilterClause_" + var.getKey() + "})") || sqlQuery.contains("${" + var.getKey() + "}")))
-//                {
-//                    if (((RelationalResult) var.getValue()).columnCount == 1)
-//                    {
-//                        RealizedRelationalResult realizedRelationalResult = (RealizedRelationalResult) var.getValue().realizeInMemory();
-//                        List<Map<String, Object>> rowValueMaps = realizedRelationalResult.getRowValueMaps(false);
-//                        executionState.addResult(var.getKey(), new ConstantResult(rowValueMaps.stream().flatMap(map -> map.values().stream()).collect(Collectors.toList())));
-//                    }
-//                }
-//        }
 
         if (documentQuery == null)
         {

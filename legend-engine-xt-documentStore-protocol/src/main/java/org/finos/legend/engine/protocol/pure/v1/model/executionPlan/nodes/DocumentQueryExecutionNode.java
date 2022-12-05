@@ -15,11 +15,9 @@
 package org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.eclipse.collections.impl.utility.ListIterate;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 
-import java.util.Collections;
 import java.util.List;
 
 public class DocumentQueryExecutionNode extends ExecutionNode
@@ -28,7 +26,21 @@ public class DocumentQueryExecutionNode extends ExecutionNode
     public String onConnectionCloseCommitQuery;
     public String onConnectionCloseRollbackQuery;
     public DatabaseConnection connection;
-    public List<DocumentQueryResultField> resultColumns = Collections.emptyList();
+    public List<DocumentQueryResultField> resultFields;
+
+
+    public DocumentQueryExecutionNode()
+    {
+    }
+
+    public DocumentQueryExecutionNode(String mongoQLQuery, String mongoQLQuery2, String onConnectionCloseCommitQuery, String onConnectionCloseRollbackQuery, DatabaseConnection connection, List<DocumentQueryResultField> resultFields)
+    {
+        this.mongoQLQuery = mongoQLQuery;
+        this.onConnectionCloseCommitQuery = onConnectionCloseCommitQuery;
+        this.onConnectionCloseRollbackQuery = onConnectionCloseRollbackQuery;
+        this.connection = connection;
+        this.resultFields = resultFields;
+    }
 
     public DatabaseConnection getConnection()
     {
@@ -59,9 +71,4 @@ public class DocumentQueryExecutionNode extends ExecutionNode
         return this.connection.timeZone;
     }
 
-    @JsonIgnore
-    public List<DocumentQueryResultField> getSQLResultColumns()
-    {
-        return ListIterate.collect(this.resultColumns, DocumentQueryResultField::new);
-    }
 }

@@ -46,7 +46,7 @@ import org.finos.legend.engine.plan.execution.stores.relational.result.Execution
 import org.finos.legend.engine.plan.execution.stores.relational.result.RelationalResultVisitor;
 import org.finos.legend.engine.plan.execution.stores.relational.result.builder.relation.RelationBuilder;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.RelationalInstantiationExecutionNode;
+import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.NonRelationalInstantiationExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.result.TDSColumn;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.DatabaseConnection;
@@ -54,6 +54,7 @@ import org.slf4j.Logger;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,7 +65,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
 
     public final List<String> noSQLFields;
     //private final List<String> temporaryTables;
-    private final List<DocumentQueryResultField> resultFields;
+    private final List<DocumentQueryResultField> resultFields = Collections.EMPTY_LIST;
     private List<String> fieldListForSerializer;
 
     private DocumentResultSet resultSet;
@@ -138,7 +139,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
 //        }
 //    }
 
-    public NonRelationalResult(DocumentQueryExecutionResult documentQueryExecutionResult, RelationalInstantiationExecutionNode node)
+    public NonRelationalResult(DocumentQueryExecutionResult documentQueryExecutionResult, NonRelationalInstantiationExecutionNode node)
     {
         super(documentQueryExecutionResult.activities);
         this.databaseType = documentQueryExecutionResult.getDatabaseType();
@@ -156,7 +157,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
             //this.fieldCount = documentQueryExecutionResult.getColumnCount();
             this.noSQLFields = documentQueryExecutionResult.getFieldNames();
             this.fieldListForSerializer = this.noSQLFields;
-            this.resultFields = documentQueryExecutionResult.getDocumentQueryResultFields();
+            //this.resultFields = documentQueryExecutionResult.getDocumentQueryResultFields();
             //this.resultDBColumnsMetaData = new SQLResultDBColumnsMetaData(this.resultFields, this.resultSetMetaData);
             //this.buildTransformersAndBuilder(node, documentQueryExecutionResult.getSQLExecutionNode().connection);
         }
@@ -539,11 +540,6 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
         return result;
     }
 
-//    @Override
-//    public ResultSet getResultSet()
-//    {
-//        return this.resultSet;
-//    }
 
     @Override
     public Builder getResultBuilder()
@@ -560,7 +556,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
         }
         catch (SQLException e)
         {
-            return new ErrorResult(-1, "Error realizing the relational result in memory : " + e.getMessage());
+            return new ErrorResult(-1, "Error realizing the non-relational result in memory : " + e.getMessage());
         }
     }
 
@@ -578,7 +574,7 @@ public class NonRelationalResult extends StreamingResult implements INonRelation
 //            case CSV_TRANSFORMED:
 //                return new RelationalResultToCSVSerializerWithTransformersApplied(this, true);
             case DEFAULT:
-                return new NonRelationalResultToPureFormatSerializer(this, "A".getBytes(), "B".getBytes());
+                return new NonRelationalResultToPureFormatSerializer(this, "{".getBytes(), "}".getBytes());
             default:
                 this.close();
                 throw new RuntimeException(format.toString() + " format not currently supported with RelationalResult");

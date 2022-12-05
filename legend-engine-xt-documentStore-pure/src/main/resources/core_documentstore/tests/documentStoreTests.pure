@@ -22,9 +22,9 @@ Class meta::external::store::document::tests::simple::EntityWithAddress
 // Clone of meta::relational::tests::model::simple::
 Class meta::external::store::document::tests::simple::Person extends EntityWithAddress
 {
-    firstName : String[1];
-    lastName : String[1];
-    otherNames : String[*];
+    fName : String[1];
+    lName : String[1];
+    oNames : String[*];
 
     extraInformation : String[0..1];
     manager : Person[0..1];
@@ -40,6 +40,7 @@ Class meta::external::store::document::tests::simple::Firm extends EntityWithAdd
 {
     <<equality.Key>> legalName : String[1];
     nickName : String[0..1];
+    country: String[1];
 }
 
 
@@ -97,9 +98,9 @@ Mapping meta::external::store::document::tests::simple::simpleRelationalMapping
      [TestDbStore]default.personTable.ID
        )
        ~mainTable[TestDbStore]personTable
-       firstName : [TestDbStore]personTable.FIRSTNAME,
+       fName : [TestDbStore]personTable.FIRSTNAME,
        age : [TestDbStore]personTable.AGE,
-       lastName : [TestDbStore]personTable.LASTNAME,
+       lName : [TestDbStore]personTable.LASTNAME,
        firm : [TestDbStore]@Firm_Person,
        address : [TestDbStore]@Address_Person,
        manager : [TestDbStore]@Person_Manager

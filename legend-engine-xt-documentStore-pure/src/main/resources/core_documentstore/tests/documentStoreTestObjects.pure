@@ -104,15 +104,15 @@ function <<access.private>> meta::external::store::document::tests::object::Test
 
   let  personPropMappings = [
       ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
-        property = $personDomainClass.properties->filter(p | $p.name == 'firstName')->toOne(),
+        property = $personDomainClass.properties->filter(p | $p.name == 'fName')->toOne(),
         sourceSetImplementationId = 'person_set', targetSetImplementationId = '',
         documentStoreElement = $allPersonFields->at(0)),
       ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
-        property = $personDomainClass.properties->filter(p | $p.name == 'lastName')->toOne(),
+        property = $personDomainClass.properties->filter(p | $p.name == 'lName')->toOne(),
         sourceSetImplementationId = 'person_set', targetSetImplementationId = '',
         documentStoreElement = $allPersonFields->at(1)),
       ^meta::external::store::document::metamodel::mapping::DocumentPropertyMapping(
-        property = $personDomainClass.properties->filter(p | $p.name == 'otherNames')->toOne(),
+        property = $personDomainClass.properties->filter(p | $p.name == 'oNames')->toOne(),
         sourceSetImplementationId = 'person_set', targetSetImplementationId = '',
         documentStoreElement = $allPersonFields->at(2))
    ];

@@ -39,14 +39,10 @@ import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphFetchResult;
 import org.finos.legend.engine.plan.execution.result.graphFetch.GraphObjectsBatch;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
-import org.finos.legend.engine.plan.execution.stores.document.NonRelationalDatabaseCommandsVisitorBuilder;
-import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnection;
 import org.finos.legend.engine.plan.execution.stores.document.result.DocumentQueryExecutionResult;
-import org.finos.legend.engine.plan.execution.stores.document.result.PreparedTempTableResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.RealizedNonRelationalResult;
 import org.finos.legend.engine.plan.execution.stores.document.result.ResultInterpreterExtension;
 import org.finos.legend.engine.plan.execution.stores.document.result.graphFetch.NonRelationalGraphObjectsBatch;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AggregationAwareExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.AllocationExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ConstantExecutionNode;
@@ -62,7 +58,6 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.PureEx
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.SequenceExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentRootQueryTempTableGraphFetchExecutionNode;
-import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.DocumentTempTableGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GlobalGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.GraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.LocalGraphFetchExecutionNode;
@@ -71,11 +66,9 @@ import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphF
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.InMemoryRootGraphFetchExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.graphFetch.store.inMemory.StoreStreamReadingExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.graph.GraphFetchTree;
 import org.finos.legend.engine.protocol.pure.v1.model.valueSpecification.raw.graph.RootGraphFetchTree;
 import org.finos.legend.engine.shared.core.ObjectMapperFactory;
-import org.finos.legend.engine.shared.core.collectionsExtensions.DoubleStrategyHashMap;
 import org.pac4j.core.profile.CommonProfile;
 
 import java.lang.reflect.InvocationTargetException;
@@ -277,8 +270,8 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
             rootResult = node.executionNodes.get(0).accept(new ExecutionNodeExecutor(this.profiles, this.executionState));
             DocumentQueryExecutionResult documentQueryExecutionResult = (DocumentQueryExecutionResult) rootResult;
             DatabaseConnection databaseConnection = documentQueryExecutionResult.getDocumentQueryExecutionNode().connection;
-            DocumentResultSet documentResultSet = ((DocumentQueryExecutionResult) rootResult).getResultSet();
-            // DocumentResultSet resultSet = ((DocumentResultSet)rootResult).
+            DocumentResultSet documentResultSet = documentQueryExecutionResult.getResultSet();
+
             INonRelationalRootQueryTempTableGraphFetchExecutionNodeSpecifics nodeSpecifics = ExecutionNodeJavaPlatformHelper.getNodeSpecificsInstance(node, this.executionState, this.profiles);
 
             List<Method> primaryKeyGetters = nodeSpecifics.primaryKeyGetters();
@@ -351,49 +344,49 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
 
                         relationalGraphObjectsBatch.setObjectsForNodeIndex(node.nodeIndex, resultObjects);
 
-                        if (!instancesToDeepFetchAndCache.isEmpty())
-                        {
-                            RealizedNonRelationalResult realizedNonRelationalResult = RealizedNonRelationalResult.emptyRealizedRelationalResult(node.columns);
-                            DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> rootMap = new DoubleStrategyHashMap<>(NonRelationalGraphFetchUtils.objectDocumentQueryResultDoubleHashStrategyWithEmptySecondStrategy(primaryKeyGetters));
-                            for (Pair<IGraphInstance<? extends IReferencedObject>, ExecutionCache<GraphFetchCacheKey, Object>> instanceAndCache : instancesToDeepFetchAndCache)
-                            {
-                                IGraphInstance<? extends IReferencedObject> rootGraphInstance = instanceAndCache.getOne();
-                                Object rootObject = rootGraphInstance.getValue();
-                                rootMap.put(rootObject, rootObject);
-                                relationalGraphObjectsBatch.addObjectMemoryUtilization(rootGraphInstance.instanceSize());
-                                if (!isLeaf)
-                                {
-                                    NonRelationalExecutionNodeExecutor.this.addKeyRowToRealizedNonRelationalResult(rootObject, primaryKeyGetters, realizedNonRelationalResult);
-                                }
-                            }
-
-                            /* Execute store local children */
-                            if (!isLeaf)
-                            {
-                                ExecutionState newState = new ExecutionState(executionState);
-                                newState.graphObjectsBatch = relationalGraphObjectsBatch;
-                                NonRelationalExecutionNodeExecutor.this.executeTempTableNodeChildren(node, realizedNonRelationalResult, databaseConnection, documentQueryExecutionResult.getDatabaseType(), documentQueryExecutionResult.getDatabaseTimeZone(), rootMap, primaryKeyGetters, newState);
-                            }
-                        }
-
-                        instancesToDeepFetchAndCache.stream().filter(x -> x.getTwo() != null).forEach(x ->
-                        {
-                            Object object = x.getOne().getValue();
-                            x.getTwo().put(new NonRelationalGraphFetchUtils.NonRelationalObjectGraphFetchCacheKey(object, primaryKeyGetters), object);
-                        });
+//                        if (!instancesToDeepFetchAndCache.isEmpty())
+//                        {
+//                            RealizedNonRelationalResult realizedNonRelationalResult = RealizedNonRelationalResult.emptyRealizedRelationalResult(node.columns);
+//                            DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> rootMap = new DoubleStrategyHashMap<>(NonRelationalGraphFetchUtils.objectDocumentQueryResultDoubleHashStrategyWithEmptySecondStrategy(primaryKeyGetters));
+//                            for (Pair<IGraphInstance<? extends IReferencedObject>, ExecutionCache<GraphFetchCacheKey, Object>> instanceAndCache : instancesToDeepFetchAndCache)
+//                            {
+//                                IGraphInstance<? extends IReferencedObject> rootGraphInstance = instanceAndCache.getOne();
+//                                Object rootObject = rootGraphInstance.getValue();
+//                                rootMap.put(rootObject, rootObject);
+//                                relationalGraphObjectsBatch.addObjectMemoryUtilization(rootGraphInstance.instanceSize());
+//                                if (!isLeaf)
+//                                {
+//                                    NonRelationalExecutionNodeExecutor.this.addKeyRowToRealizedNonRelationalResult(rootObject, primaryKeyGetters, realizedNonRelationalResult);
+//                                }
+//                            }
+//
+//                            /* Execute store local children */
+//                            if (!isLeaf)
+//                            {
+//                                ExecutionState newState = new ExecutionState(executionState);
+//                                newState.graphObjectsBatch = relationalGraphObjectsBatch;
+//                                NonRelationalExecutionNodeExecutor.this.executeTempTableNodeChildren(node, realizedNonRelationalResult, databaseConnection, documentQueryExecutionResult.getDatabaseType(), documentQueryExecutionResult.getDatabaseTimeZone(), rootMap, primaryKeyGetters, newState);
+//                            }
+//                        }
+//
+//                        instancesToDeepFetchAndCache.stream().filter(x -> x.getTwo() != null).forEach(x ->
+//                        {
+//                            Object object = x.getOne().getValue();
+//                            x.getTwo().put(new NonRelationalGraphFetchUtils.NonRelationalObjectGraphFetchCacheKey(object, primaryKeyGetters), object);
+//                        });
 
                         action.accept(relationalGraphObjectsBatch);
 
                         return !resultObjects.isEmpty();
                     }
-                    catch (/*SQLException |*/ InvocationTargetException | IllegalAccessException e)
+                    catch (Exception e)
                     {
                         throw new RuntimeException(e);
                     }
                     finally
                     {
-                        nonRelationalStoreExecutionState.getBlockConnectionContext().unlockAllBlockConnections();
-                        nonRelationalStoreExecutionState.getBlockConnectionContext().closeAllBlockConnectionsAsync();
+                        //nonRelationalStoreExecutionState.getBlockConnectionContext().unlockAllBlockConnections();
+                        //nonRelationalStoreExecutionState.getBlockConnectionContext().closeAllBlockConnectionsAsync();
                         //nonRelationalStoreExecutionState.setBlockConnectionContext(oldBlockConnectionContext);
                         nonRelationalStoreExecutionState.setRetainConnection(oldRetainConnectionFlag);
                     }
@@ -434,7 +427,7 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
     private boolean checkForCachingAndPopulateCachingHelpers(List<Pair<String, String>> allInstanceSetImplementations, boolean nodeSupportsCaching, GraphFetchTree nodeSubTree, DocumentQueryExecutionResult documentQueryExecutionResult, Function<Integer, List<String>> pkColumnsFunction, NonRelationalExecutionNodeExecutor.NonRelationalMultiSetExecutionCacheWrapper multiSetCaches)
     {
         boolean cachingEnabledForNode = (this.executionState.graphFetchCaches != null) && nodeSupportsCaching && NonRelationalGraphFetchUtils.subTreeValidForCaching(nodeSubTree);
-        List<DocumentQueryResultField> documentQueryResultFields = documentQueryExecutionResult.getDocumentQueryResultFields();
+        //List<DocumentQueryResultField> documentQueryResultFields = documentQueryExecutionResult.getDocumentQueryResultFields();
 
         if (cachingEnabledForNode)
         {
@@ -462,26 +455,26 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
         return cachingEnabledForNode;
     }
 
-    private void executeTempTableNodeChildren(DocumentTempTableGraphFetchExecutionNode node, RealizedNonRelationalResult realizedNonRelationalResult, org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection databaseConnection, String databaseType, String databaseTimeZone, DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> nodeObjectsMap, List<Method> nodePrimaryKeyGetters, ExecutionState state)
-    {
-        NonRelationalGraphObjectsBatch nonRelationalGraphObjectsBatch = (NonRelationalGraphObjectsBatch) state.graphObjectsBatch;
-
-        if (realizedNonRelationalResult.resultSetRows.isEmpty())
-        {
-            node.children.forEach(x -> this.recursivelyPopulateEmptyResultsInGraphObjectsBatch(x, nonRelationalGraphObjectsBatch));
-        }
-        else
-        {
-            String tempTableName = DatabaseManager.fromString(databaseType).relationalDatabaseSupport().processTempTableName(node.tempTableName);
-            NonRelationalExecutionNodeExecutor.this.createTempTableFromRealizedRelationalResultInBlockConnection(realizedNonRelationalResult, tempTableName, databaseConnection, databaseType, databaseTimeZone);
-            state.addResult(node.tempTableName, new PreparedTempTableResult(tempTableName));
-
-            nonRelationalGraphObjectsBatch.setNodeObjectsHashMap(node.nodeIndex, nodeObjectsMap);
-            nonRelationalGraphObjectsBatch.setNodePrimaryKeyGetters(node.nodeIndex, nodePrimaryKeyGetters);
-
-            node.children.forEach(x -> x.accept(new ExecutionNodeExecutor(this.profiles, state)));
-        }
-    }
+//    private void executeTempTableNodeChildren(DocumentTempTableGraphFetchExecutionNode node, RealizedNonRelationalResult realizedNonRelationalResult, org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection databaseConnection, String databaseType, String databaseTimeZone, DoubleStrategyHashMap<Object, Object, DocumentQueryExecutionResult> nodeObjectsMap, List<Method> nodePrimaryKeyGetters, ExecutionState state)
+//    {
+//        NonRelationalGraphObjectsBatch nonRelationalGraphObjectsBatch = (NonRelationalGraphObjectsBatch) state.graphObjectsBatch;
+//
+//        if (realizedNonRelationalResult.resultSetRows.isEmpty())
+//        {
+//            node.children.forEach(x -> this.recursivelyPopulateEmptyResultsInGraphObjectsBatch(x, nonRelationalGraphObjectsBatch));
+//        }
+//        else
+//        {
+//            String tempTableName = DatabaseManager.fromString(databaseType).relationalDatabaseSupport().processTempTableName(node.tempTableName);
+//            NonRelationalExecutionNodeExecutor.this.createTempTableFromRealizedRelationalResultInBlockConnection(realizedNonRelationalResult, tempTableName, databaseConnection, databaseType, databaseTimeZone);
+//            state.addResult(node.tempTableName, new PreparedTempTableResult(tempTableName));
+//
+//            nonRelationalGraphObjectsBatch.setNodeObjectsHashMap(node.nodeIndex, nodeObjectsMap);
+//            nonRelationalGraphObjectsBatch.setNodePrimaryKeyGetters(node.nodeIndex, nodePrimaryKeyGetters);
+//
+//            node.children.forEach(x -> x.accept(new ExecutionNodeExecutor(this.profiles, state)));
+//        }
+//    }
 
     private void recursivelyPopulateEmptyResultsInGraphObjectsBatch(DocumentGraphFetchExecutionNode node, NonRelationalGraphObjectsBatch nonRelationalGraphObjectsBatch)
     {
@@ -492,20 +485,20 @@ public class NonRelationalExecutionNodeExecutor implements ExecutionNodeVisitor<
         }
     }
 
-    private void createTempTableFromRealizedRelationalResultInBlockConnection(RealizedNonRelationalResult realizedNonRelationalResult, String tempTableName, org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection databaseConnection, String databaseType, String databaseTimeZone)
-    {
-        // this isn't valid anymore
-        try (Scope ignored = GlobalTracer.get().buildSpan("create temp table").withTag("tempTableName", tempTableName).withTag("databaseType", databaseType).startActive(true))
-        {
-            NonRelationalStoreExecutionState nonRelationalStoreExecutionState = (NonRelationalStoreExecutionState) this.executionState.getStoreExecutionState(StoreType.NonRelational);
-            DatabaseManager databaseManager = DatabaseManager.fromString(databaseType);
-            BlockConnection blockConnection = nonRelationalStoreExecutionState.getBlockConnectionContext().getBlockConnection(nonRelationalStoreExecutionState, databaseConnection, this.profiles);
-            databaseManager.relationalDatabaseSupport().accept(NonRelationalDatabaseCommandsVisitorBuilder.getStreamResultToTempTableVisitor(nonRelationalStoreExecutionState.getNonRelationalExecutor().getNonRelationalExecutionConfiguration(), blockConnection, realizedNonRelationalResult, tempTableName, databaseTimeZone));
-            blockConnection.addCommitQuery(databaseManager.relationalDatabaseSupport().dropTempTable(tempTableName));
-            blockConnection.addRollbackQuery(databaseManager.relationalDatabaseSupport().dropTempTable(tempTableName));
-            blockConnection.close();
-        }
-    }
+//    private void createTempTableFromRealizedRelationalResultInBlockConnection(RealizedNonRelationalResult realizedNonRelationalResult, String tempTableName, org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.DatabaseConnection databaseConnection, String databaseType, String databaseTimeZone)
+//    {
+//        // this isn't valid anymore
+//        try (Scope ignored = GlobalTracer.get().buildSpan("create temp table").withTag("tempTableName", tempTableName).withTag("databaseType", databaseType).startActive(true))
+//        {
+//            NonRelationalStoreExecutionState nonRelationalStoreExecutionState = (NonRelationalStoreExecutionState) this.executionState.getStoreExecutionState(StoreType.NonRelational);
+//            DatabaseManager databaseManager = DatabaseManager.fromString(databaseType);
+//            BlockConnection blockConnection = nonRelationalStoreExecutionState.getBlockConnectionContext().getBlockConnection(nonRelationalStoreExecutionState, databaseConnection, this.profiles);
+//            databaseManager.relationalDatabaseSupport().accept(NonRelationalDatabaseCommandsVisitorBuilder.getStreamResultToTempTableVisitor(nonRelationalStoreExecutionState.getNonRelationalExecutor().getNonRelationalExecutionConfiguration(), blockConnection, realizedNonRelationalResult, tempTableName, databaseTimeZone));
+//            blockConnection.addCommitQuery(databaseManager.relationalDatabaseSupport().dropTempTable(tempTableName));
+//            blockConnection.addRollbackQuery(databaseManager.relationalDatabaseSupport().dropTempTable(tempTableName));
+//            blockConnection.close();
+//        }
+//    }
 
     private void addKeyRowToRealizedNonRelationalResult(Object obj, List<Method> keyGetters, RealizedNonRelationalResult realizedNonRelationalResult) throws InvocationTargetException, IllegalAccessException
     {

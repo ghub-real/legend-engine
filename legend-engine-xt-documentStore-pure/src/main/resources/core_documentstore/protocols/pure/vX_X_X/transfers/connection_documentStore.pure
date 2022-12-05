@@ -36,18 +36,10 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
   //                                     | $otherConnection.queryPostProcessorsWithParameter->transformPostProcessors($extensions));
 
 
-
- //println('meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::document::transformDatabaseConnection');
-
- //println('otherConnection:');
- //println($otherConnection);
    let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('documentStore')->cast(@meta::protocols::pure::vX_X_X::extension::store::document::NonRelationalModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f |
-   //println('f:');
-   //println($f);
    $f->eval($_type, $element, $type);
    )->concatenate([
      test:meta::protocols::pure::vX_X_X::metamodel::store::document::connection::TestDatabaseConnection[1]|
-     //println('test called:');
          ^DocumentStoreConnection(
            _type = 'DocumentStoreConnection',
            type = $type,
@@ -72,9 +64,6 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
       documentStore($type, $element, $documentStore.timeZone, $documentStore.quoteIdentifiers, $processors, $documentStore.datasourceSpecification, $documentStore.authenticationStrategy, $extensions);,
       dbCon:meta::external::store::document::metamodel::runtime::DatabaseConnection[1]|
 
-      //println('dbCon called:');
-      //println($dbCon);
-
          ^meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection(
                   _type = $_type,
                   timeZone = $dbCon.timeZone,
@@ -84,7 +73,6 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
                   type = $type);
     ])->toOneMany());
 
-    //println('alloy connection:');
     //println(meta::json::toJSON($alloyConnection));
 
     $alloyConnection;

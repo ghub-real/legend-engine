@@ -93,12 +93,7 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let rootTree     = $clusteredTree->byPassClusteringInfo()->cast(@RoutedRootGraphFetchTree<Any>);
    let setImpls     = $rootTree.sets->cast(@RootDocumentInstanceSetImplementation);
    let store        = $sq.store->cast(@DocumentStore);
-   
-   
-  //  let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@meta::external::store::document::runtime::connections::TestDocumentStoreConnection)->map(x | ^$x(element = $store));
-  // println('$runtime->connectionByElement($store)->toOne()');
-  // println($runtime->connectionByElement($store)->toOne());
-  
+
    let dbConnection = $runtime->connectionByElement($store)->toOne()->cast(@DatabaseConnection)->map(x | ^$x(element = $store));
    let oneRuntime   = ^Runtime(connections = [$dbConnection]);
    let batchSize    = if($fe.func == graphFetch_T_MANY__RootGraphFetchTree_1__Integer_1__T_MANY_, | $fe->instanceValueAtParameter(2)->cast(@Integer), | 1000);
@@ -112,9 +107,9 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
    let pureToDocumentQueryState      = createPureToDocumentQueryState($simplePrimitiveProperties, $sq.inScopeVars, $mapping, $exeCtx);
    let selectDocumentQuery    = $lhsFe->toSelectDocumentQuery($mapping, $sq.inScopeVars, $debug, $pureToDocumentQueryState, $extensions);
 
-   
+
    let documentNode       = $selectDocumentQuery->meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode($dbConnection, $extensions);
-   
+
    // TODO
    //let postProcessorResult = $selectDocumentQuery->toOne()->cast(@SelectSQLQuery)->postProcessSQLQuery($store, $ext, $mapping, $oneRuntime, $exeCtx, $extensions);
    //let postProcessedQuery  = $postProcessorResult.query->cast(@SelectSQLQuery);
@@ -139,8 +134,6 @@ function meta::external::store::document::graphFetch::executionPlan::planRootGra
       checked = $checked
    );
 
-println('documentRootQueryTempTableGraphFetchExecutionNode:');
-println($documentRootQueryTempTableGraphFetchExecutionNode);
    $documentRootQueryTempTableGraphFetchExecutionNode;
 }
 
@@ -166,11 +159,11 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
       e: EmbeddedDocumentInstanceSetImplementation[1] | $e.setMappingOwner,
       r: RootDocumentInstanceSetImplementation[1] | $r
    ]);
-   
+
    // assert($r.resolvePrimaryKey()->isNotEmpty(), | 'Primary Key definition is must in graph fetch flow');
    // assert($r->meta::relational::functions::pureToSqlQuery::getGroupBy()->isEmpty(), | 'Store group by not allowed in graph fetch flow');
    // assert($r->meta::relational::functions::pureToSqlQuery::getDistinct() != true,  | 'Store distinct not allowed in graph fetch flow');
-   
+
    $simplePrimitiveProperties->forAll({prop |
       assert($setImpl.propertyMappingsByPropertyName($prop.name->toOne())->isNotEmpty(),    //$prop->meta::pure::milestoning::hasGeneratedMilestoningPropertyStereotype() ||
              | 'Property "' + $prop.name->toOne() + '" is not mapped in the set: "' + $setImpl.id + '"')
@@ -236,11 +229,16 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
 function <<access.private>> meta::external::store::document::graphFetch::executionPlan::buildDocumentQueryExecutionNode(query: SelectDocumentQuery[1], dbConnection: DatabaseConnection[1], extensions:Extension[*]):DocumentQueryExecutionNode[1]
 {
    let sql = $query->documentQueryToString($dbConnection.type, $dbConnection.timeZone, $dbConnection.quoteIdentifiers, $extensions);
-   
+
+
+ //  let results = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne()));
+
    ^DocumentQueryExecutionNode
     (
        documentQuery         = $sql,
-       resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne())), // not passing in meta::relational::translation::TranslationContext
+       //resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name, dataType = $c->inferDocumentStoreType()->toOne())), // not passing in meta::relational::translation::TranslationContext
+       resultFields    = $query.fields->cast(@Alias)->map(c | ^DocumentQueryResultField(label = $c.name)), // not passing in meta::relational::translation::TranslationContext
+
        resultType       = ^ResultType(type = Any),
        connection       = $dbConnection->meta::external::store::document::mapping::functions::updateConnection($extensions)->cast(@DatabaseConnection),
        supportFunctions = documentStorePlanSupportFunctions($dbConnection)
@@ -261,7 +259,7 @@ function <<access.private>> meta::external::store::document::graphFetch::executi
    let currentNode   = ^RootJoinDocumentTreeNode(alias=^CollectionAlias(name = 'root', documentElement = $mainCollection));
    let base = ^SelectDocumentQuery(data = $currentNode)->applyTypeFilter($srcSetImpl, '_gftm', $pureToDocumentQueryState, $debug, $extensions);
    //let base          = ^$basePreFilter(select = $basePreFilter.select->pushFilters($extensions));
-   
+
    let res = if ($isQualified,
                 {|
                    let qualifier    = $propTree.property->cast(@QualifiedProperty<Any>);

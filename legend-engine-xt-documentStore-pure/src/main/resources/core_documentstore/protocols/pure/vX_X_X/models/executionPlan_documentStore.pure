@@ -19,7 +19,7 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::DocumentQueryExec
    mongoQLQuery : String[1];
    onConnectionCloseCommitQuery : String[0..1];
    onConnectionCloseRollbackQuery : String[0..1];
-   //resultColumns : meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLResultColumn[*];
+   resultFields : meta::external::store::document::metamodel::mapping::DocumentQueryResultField[*];
    connection : meta::protocols::pure::vX_X_X::metamodel::store::document::connection::DatabaseConnection[1];
 }
 

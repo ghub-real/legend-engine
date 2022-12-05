@@ -40,7 +40,7 @@ public class DocumentResultSetImpl implements DocumentResultSet
     {
         try
         {
-            return Optional.of(mapper.readTree(results.get(currentRow)));
+            return Optional.of(mapper.readTree(results.get(currentRow)).get(jsonPath));
         }
         catch (Exception e)
         {
@@ -51,7 +51,7 @@ public class DocumentResultSetImpl implements DocumentResultSet
     @Override
     public boolean next()
     {
-        if (currentRow < size)
+        if (currentRow < size - 1)
         {
             currentRow++;
             return true;

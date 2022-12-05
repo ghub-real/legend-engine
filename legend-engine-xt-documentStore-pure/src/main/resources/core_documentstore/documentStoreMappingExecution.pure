@@ -116,8 +116,8 @@ function meta::external::store::document::mapping::executeQuery(sql:String[1], q
   let personArray = $res.documents->map(x |
     let value = $x.value->cast(@meta::json::JSONObject).keyValuePairs.value->cast(@JSONString).value;
       ^meta::external::store::document::tests::simple::Person(
-        firstName=$value->at(0),
-        lastName=$value->at(1)
+        fName=$value->at(0),
+        lName=$value->at(1)
       );
     );
 

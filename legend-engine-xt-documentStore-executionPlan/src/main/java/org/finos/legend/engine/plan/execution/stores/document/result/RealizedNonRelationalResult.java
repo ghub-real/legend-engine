@@ -14,28 +14,25 @@
 
 package org.finos.legend.engine.plan.execution.stores.document.result;
 
-import org.eclipse.collections.api.block.function.Function;
-import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.factory.Lists;
 import org.eclipse.collections.impl.factory.Maps;
+import org.finos.legend.engine.plan.dependencies.store.document.DocumentResultSet;
 import org.finos.legend.engine.plan.execution.result.ExecutionActivity;
 import org.finos.legend.engine.plan.execution.result.ResultVisitor;
 import org.finos.legend.engine.plan.execution.result.StreamingResult;
 import org.finos.legend.engine.plan.execution.result.builder.Builder;
 import org.finos.legend.engine.plan.execution.result.serialization.SerializationFormat;
 import org.finos.legend.engine.plan.execution.result.serialization.Serializer;
-import org.finos.legend.engine.plan.execution.stores.relational.result.RelationalResult;
 import org.finos.legend.engine.plan.execution.stores.relational.result.RelationalResultVisitor;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.result.DocumentQueryResultField;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.result.SQLResultColumn;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 public class RealizedNonRelationalResult extends StreamingResult
 {
+    private DocumentResultSet documentResultSet;
     public Builder builder;
     public List<ExecutionActivity> activities;
     public List<DocumentQueryResultField> fields;
@@ -54,7 +51,7 @@ public class RealizedNonRelationalResult extends StreamingResult
 
         this.transformedRows = Lists.mutable.empty();
         this.resultSetRows = Lists.mutable.empty();
-        //ResultSet resultSet = nonRelationalResult.resultSet;
+        this.documentResultSet = nonRelationalResult.getDocumentResultSet();
         int SUPPORTED_RESULT_ROWS = getRowLimit();
         int rowCount = 0;
         try

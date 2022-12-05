@@ -1297,9 +1297,6 @@ function meta::external::store::document::functions::pureToDocumentStoreQuery::p
   let filterFunction = $expression->instanceValuesAtParameter(1, $vars, $state.inScopeVars)->at(0)->cast(@FunctionDefinition<Any>);
   let filterFunctionExpression = $filterFunction.expressionSequence->at(0);
 
-  println('filterFunctionExpression');
-  //println($filterFunctionExpression);
-  
   let inScopeVarsWithPlaceholdersState = $filterFunction->addPlaceHoldersForLambdaOpenVariables($vars, $state);
 
   let rightSide = processValueSpecification($filterFunctionExpression, $currentPropertyMapping, $rootSelect, $vars, ^$inScopeVarsWithPlaceholdersState(inFilter=true), $context, $extensions)->toOne()->cast(@SelectDocumentQuery);

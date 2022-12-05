@@ -20,7 +20,6 @@ import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.stores.StoreExecutionState;
 import org.finos.legend.engine.plan.execution.stores.StoreState;
 import org.finos.legend.engine.plan.execution.stores.document.NonRelationalExecutor;
-import org.finos.legend.engine.plan.execution.stores.document.blockConnection.BlockConnectionContext;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.ExecutionNodeVisitor;
 import org.pac4j.core.profile.CommonProfile;
 
@@ -28,7 +27,7 @@ public class NonRelationalStoreExecutionState implements StoreExecutionState
 {
     private final NonRelationalStoreState state;
     private boolean retainConnection;
-    private BlockConnectionContext blockConnectionContext;
+    //private BlockConnectionContext blockConnectionContext;
     private RuntimeContext runtimeContext;
 
     private NonRelationalStoreExecutionState(NonRelationalStoreState storeState, boolean retainConnection, RuntimeContext runtimeContext)
@@ -85,23 +84,14 @@ public class NonRelationalStoreExecutionState implements StoreExecutionState
         return this.state.getNonRelationalExecutor();
     }
 
-     public boolean retainConnection()
-     {
-         return this.retainConnection;
-     }
+    public boolean retainConnection()
+    {
+        return this.retainConnection;
+    }
 
-        public void setRetainConnection(boolean retainConnection)
-        {
-            this.retainConnection = retainConnection;
-        }
+    public void setRetainConnection(boolean retainConnection)
+    {
+        this.retainConnection = retainConnection;
+    }
 
-        public BlockConnectionContext getBlockConnectionContext()
-        {
-            return this.blockConnectionContext;
-        }
-
-        public void setBlockConnectionContext(BlockConnectionContext blockConnectionContext)
-        {
-            this.blockConnectionContext = blockConnectionContext;
-        }
 }

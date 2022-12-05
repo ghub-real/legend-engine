@@ -25,7 +25,7 @@ import java.util.List;
 
 public class LocalMongoDbClient implements NonRelationalClient
 {
-    private static final String DEFAULT_DATABASE_NAME = "mongo_db";
+    private static final String DEFAULT_DATABASE_NAME = "my_database";
 
     MongoClient client;
     private final String clientUri;
@@ -70,7 +70,7 @@ public class LocalMongoDbClient implements NonRelationalClient
             docs.forEach(System.out::println);
 
 
-            docs.forEach(doc -> res.add(doc.toString()));
+            docs.forEach(doc -> res.add(doc.toJson()));
         }
         catch (Exception e)
         {
