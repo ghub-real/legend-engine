@@ -15,7 +15,7 @@
 // Press F9 to execute the 'go' function...
 // Press F10 to run the full test suite
 ###Pure
-import meta::relational::metamodel::execute::*;
+//import meta::relational::metamodel::execute::*;
 import meta::pure::graphFetch::execution::*;
 import meta::relational::runtime::*;
 
@@ -23,15 +23,15 @@ import meta::relational::runtime::*;
 
 function poc::tests::createTableAndFillDb(connection : meta::relational::runtime::DatabaseConnection[1]) : Boolean[1]
 {
-   executeInDb('Drop table if exists PersonTable;', $connection);
-   executeInDb('Create Table PersonTable(id INT, firstName VARCHAR(200), lastName VARCHAR(200), age INT, addressId INT, firmId INT, managerId INT);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (1, \'Peter\', \'Smith\',23, 1,1,2);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (2, \'John\', \'Johnson\',22, 2,1,4);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (3, \'John\', \'Hill\',12, 3,1,2);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (4, \'Anthony\', \'Allen\',22, 4,1,null);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (5, \'Fabrice\', \'Roberts\',34, 5,2,null);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (6, \'Oliver\', \'Hill\',32, 6,3,null);', $connection);
-   executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (7, \'David\', \'Harris\',35, 7,4,null);', $connection);
+   meta::relational::metamodel::execute::executeInDb('Drop table if exists PersonTable;', $connection);
+   meta::relational::metamodel::execute::executeInDb('Create Table PersonTable(id INT, firstName VARCHAR(200), lastName VARCHAR(200), age INT, addressId INT, firmId INT, managerId INT);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (1, \'Peter\', \'Smith\',23, 1,1,2);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (2, \'John\', \'Johnson\',22, 2,1,4);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (3, \'John\', \'Hill\',12, 3,1,2);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (4, \'Anthony\', \'Allen\',22, 4,1,null);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (5, \'Fabrice\', \'Roberts\',34, 5,2,null);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (6, \'Oliver\', \'Hill\',32, 6,3,null);', $connection);
+   meta::relational::metamodel::execute::executeInDb('insert into PersonTable (id, firstName, lastName, age, addressId, firmId, managerId) values (7, \'David\', \'Harris\',35, 7,4,null);', $connection);
    true;
 }
 
@@ -39,20 +39,35 @@ function poc::tests::createTableAndFillDb(connection : meta::relational::runtime
 function go():Any[*]
 {
     println('ok',3);
-    let myDb = meta::external::store::document::tests::simple::TestDbStore;
+    //let myDb = meta::external::store::document::tests::simple::TestDbStore;
 
-    let myRunTime = meta::external::store::document::tests::simple::testRuntime($myDb);
-    let connection = $myRunTime.connectionByElement($myDb)->cast(@TestDatabaseConnection);
-    poc::tests::createTableAndFillDb($connection);
+    //let myRunTime = meta::external::store::document::tests::simple::testRuntime($myDb);
+    //let connection = $myRunTime.connectionByElement($myDb)->cast(@TestDatabaseConnection);
+    //poc::tests::createTableAndFillDb($connection);
 
-    let tree = #{
+    let personTree = #{
       meta::external::store::document::tests::simple::Person {
-         firstName,
-         lastName
+         fName,
+         lName
       }
     }#;
 
-    let query = {|meta::external::store::document::tests::simple::Person.all()->graphFetch($tree)->serialize($tree)};
+    let firmTree = #{
+      meta::external::store::document::tests::simple::Firm {
+         legalName,
+         nickName
+      }
+    }#;
+
+
+   let personQuery = {|meta::external::store::document::tests::simple::Person.all()
+    //->filter(a | ($a.firstName == 'Hugo') && ($a.lastName == 'Goncalves'))
+      ->graphFetch($personTree)->serialize($personTree)};
+
+
+    let firmQuery = {|meta::external::store::document::tests::simple::Firm.all()
+      ->graphFetch($firmTree)->serialize($firmTree)};
+ 
 
     let testDocumentStoreSetup = meta::external::store::document::tests::object::getTestSetup();
     let documentStoreExtensions = [meta::external::store::document::extension::documentStoreExtensions()];
@@ -69,17 +84,37 @@ function go():Any[*]
     // print($storeDefinition);
 
 // document store execution plan
-    //let executionPlan = meta::pure::executionPlan::executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
+// let executionPlan = meta::pure::executionPlan::executionPlan($query, $testDocumentStoreSetup.mapping, $testRuntime, $executionContext, $documentStoreExtensions, $debugContext);
+// println($executionPlan);
 
 // document store execute
-    let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+    let resultPersons = execute($personQuery, 
+    $testDocumentStoreSetup.mapping, 
+    $testRuntime, 
+    $documentStoreExtensions).values;
 
-    let mapping = meta::external::store::document::tests::simple::simpleRelationalMapping;
+    println($resultPersons);
+
+    let resultFirms = execute($firmQuery, 
+    $testDocumentStoreSetup.mapping, 
+    $testRuntime, 
+    $documentStoreExtensions).values;
+
+    println($resultFirms);
+    
+    // let result = execute($query, 
+    //    $testDocumentStoreSetup.mapping, 
+    //    $testRuntime, 
+    //    $documentStoreExtensions, $debugContext).values;
+
+
+
+    //let mapping = meta::external::store::document::tests::simple::simpleRelationalMapping;
 
 // relational execute
     //let result = execute($query, $mapping, $myRunTime, meta::relational::extension::relationalExtensions()).values;
 
-    //println($result);
+    
 
 }
 
