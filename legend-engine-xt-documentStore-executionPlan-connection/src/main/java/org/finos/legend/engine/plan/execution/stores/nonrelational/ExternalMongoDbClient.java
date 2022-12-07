@@ -12,18 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.nonrelational.client;
+package org.finos.legend.engine.plan.execution.stores.nonrelational;
 
-import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
-import java.util.List;
-
-public interface NonRelationalClient
+public class ExternalMongoDbClient extends MongoDbClient
 {
-    MongoClient getMongoDBClient();
-    // NonRelationalClient buildNonRelationalClient(Identity identity, String connectionUri);
 
-    List<String> executeNativeQuery(String mongoQuery);
+    public ExternalMongoDbClient()
+    {
+        this("mongodb://" + DEFAULT_MONGO_HOSTNAME + ":" + DEFAULT_MONGO_PORT);
+    }
 
-    void shutDown();
+    public ExternalMongoDbClient(String uri)
+    {
+        this.mongoClient = MongoClients.create(uri);
+    }
+
+    @Override
+    public void shutDown()
+    {
+        this.mongoClient.close();
+    }
 }

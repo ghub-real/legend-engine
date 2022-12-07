@@ -1,8 +1,8 @@
 [
   {
     "id": 1,
-    "firstName": "Peter",
-    "lastName": "Smith",
+    "fName": "Peter",
+    "lName": "Smith",
     "age": 23,
     "addressId": 1,
     "firmId": 1,
@@ -10,8 +10,8 @@
   },
   {
     "id": 2,
-    "firstName": "John",
-    "lastName": "Johnson",
+    "fName": "John",
+    "lName": "Johnson",
     "age": 22,
     "addressId": 2,
     "firmId": 1,
@@ -19,8 +19,8 @@
   },
   {
     "id": 3,
-    "firstName": "John",
-    "lastName": "Hill",
+    "fName": "John",
+    "lName": "Hill",
     "age": 12,
     "addressId": 3,
     "firmId": 1,
@@ -28,8 +28,8 @@
   },
   {
     "id": 4,
-    "firstName": "Anthony",
-    "lastName": "Allen",
+    "fName": "Anthony",
+    "lName": "Allen",
     "age": 23,
     "addressId": 4,
     "firmId": 1,
@@ -37,8 +37,8 @@
   },
   {
     "id": 5,
-    "firstName": "Fabrice",
-    "lastName": "Roberts",
+    "fName": "Fabrice",
+    "lName": "Roberts",
     "age": 34,
     "addressId": 5,
     "firmId": 2,
@@ -46,8 +46,8 @@
   },
   {
     "id": 6,
-    "firstName": "Oliver",
-    "lastName": "Hill",
+    "fName": "Oliver",
+    "lName": "Hill",
     "age": 32,
     "addressId": 6,
     "firmId": 3,
@@ -55,8 +55,8 @@
   },
   {
     "id": 7,
-    "firstName": "Anthony",
-    "lastName": "Allen",
+    "fName": "Anthony",
+    "lName": "Allen",
     "age": 35,
     "addressId": 7,
     "firmId": 4,

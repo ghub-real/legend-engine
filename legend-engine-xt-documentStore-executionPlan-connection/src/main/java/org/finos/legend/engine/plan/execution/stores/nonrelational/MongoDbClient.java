@@ -15,7 +15,6 @@
 package org.finos.legend.engine.plan.execution.stores.nonrelational;
 
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
@@ -23,42 +22,23 @@ import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRel
 import java.util.ArrayList;
 import java.util.List;
 
-public class LocalMongoDbClient implements NonRelationalClient
+public abstract class MongoDbClient implements NonRelationalClient
 {
+    public MongoClient mongoClient;
+
+    protected static final String DEFAULT_MONGO_HOSTNAME = "localhost";
+    protected static final int DEFAULT_MONGO_PORT = 27017;
     private static final String DEFAULT_DATABASE_NAME = "my_database";
-
-    MongoClient client;
-    private final String clientUri;
-
-    public LocalMongoDbClient()
-    {
-        this("mongodb://localhost:27017");
-    }
-
-    public LocalMongoDbClient(String uri)
-    {
-        // handle custom config etc
-        clientUri = uri;
-        client = MongoClients.create(clientUri);
-    }
 
     @Override
     public MongoClient getMongoDBClient()
     {
-        return client;
+        return this.mongoClient;
     }
-
-
-    private MongoDatabase getDefaultDB()
-    {
-        return this.client.getDatabase(DEFAULT_DATABASE_NAME);
-    }
-
 
     private List<String> executeNativeQueryWithCursor(MongoDatabase database, String query)
     {
         List<String> res = new ArrayList<>();
-
         try
         {
             Document bsonCmd = Document.parse(query);
@@ -80,6 +60,10 @@ public class LocalMongoDbClient implements NonRelationalClient
         return res;
     }
 
+    private MongoDatabase getDefaultDB()
+    {
+        return this.mongoClient.getDatabase(DEFAULT_DATABASE_NAME);
+    }
 
     public List<String> executeNativeQuery(String mongoQuery)
     {
@@ -89,6 +73,4 @@ public class LocalMongoDbClient implements NonRelationalClient
 
         return results;
     }
-
-
 }

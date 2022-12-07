@@ -46,18 +46,33 @@ import java.util.Objects;
 public class MongoDbResource
 {
     private static final String DEFAULT_DATABASE_NAME = "my_database";
-    private final LocalMongoDbClient mongoDbClient;
+    private final MongoDbClient mongoDbClient;
     private final ObjectMapper mapper = new ObjectMapper();
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("MongoDbResource");
 
 
-    public MongoDbResource(LocalMongoDbClient mongoDbClient)
+    public MongoDbResource(MongoDbClient mongoDbClient)
     {
         this.mongoDbClient = mongoDbClient;
     }
 
     // MongoDB POC Helper APIs
+
+    // re-creates collections persons and firms with sample data
+    public void populateData()
+    {
+        try
+        {
+            this.recreatePersonsCollection();
+            this.recreateFirmsCollection();
+        }
+        catch (JsonProcessingException e)
+        {
+            LOGGER.error("Failed to populate data against MongoDb", e);
+            throw new RuntimeException(e);
+        }
+    }
 
     @POST
     @Path("/defaultdb/collections")
@@ -112,8 +127,30 @@ public class MongoDbResource
 
 
     @POST
-    @Path("/defaultdb/collections/persons/recreate")
-    @ApiOperation(value = "Empty and recreate all items for persons collection")
+    @Path("/defaultdb/collections/firm/recreate")
+    @ApiOperation(value = "Empty and recreate all items for firm collection")
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response recreateFirmsCollection() throws JsonProcessingException
+    {
+
+        ArrayNode personsJson;
+        try
+        {
+            personsJson = (ArrayNode) mapper.readTree(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("firms.json")));
+        }
+        catch (IOException e)
+        {
+            LOGGER.error("Failed to parse input file contents", e);
+            throw new RuntimeException(e);
+        }
+
+        this.dropCollection("firm");
+        return this.insertCollectionItemAsJson("firm", personsJson);
+    }
+
+    @POST
+    @Path("/defaultdb/collections/person/recreate")
+    @ApiOperation(value = "Empty and recreate all items for person collection")
     @Consumes({MediaType.APPLICATION_JSON})
     public Response recreatePersonsCollection() throws JsonProcessingException
     {
@@ -129,8 +166,8 @@ public class MongoDbResource
             throw new RuntimeException(e);
         }
 
-        this.dropCollection("persons");
-        return this.insertCollectionItemAsJson("persons", personsJson);
+        this.dropCollection("person");
+        return this.insertCollectionItemAsJson("person", personsJson);
     }
 
     @GET
@@ -217,7 +254,7 @@ public class MongoDbResource
 
     private MongoDatabase getDefaultDB()
     {
-        return this.mongoDbClient.getMongoDBClient().getDatabase(DEFAULT_DATABASE_NAME);
+        return this.mongoDbClient.mongoClient.getDatabase(DEFAULT_DATABASE_NAME);
     }
 
     private List<String> executeCustomAggregationQueryWithCursor(MongoDatabase database, String query)

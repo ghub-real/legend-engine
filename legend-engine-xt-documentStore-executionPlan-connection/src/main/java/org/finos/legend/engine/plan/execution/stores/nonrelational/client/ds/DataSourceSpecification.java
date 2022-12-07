@@ -16,7 +16,7 @@ package org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds;
 
 import org.finos.legend.engine.authentication.credential.CredentialSupplier;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.authentication.AuthenticationStrategy;
-import org.finos.legend.engine.plan.execution.stores.nonrelational.LocalMongoDbClient;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.ExternalMongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ConnectionKey;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.ds.state.IdentityState;
@@ -62,7 +62,7 @@ public abstract class DataSourceSpecification
     {
         // TODO: Move this to connection manager to abstract this bit of reference to implementation.
         // TODO: Integrate Identity in connection
-        return new LocalMongoDbClient(getConnectionURI(null, -1, null, new Properties()));
+        return new ExternalMongoDbClient(getConnectionURI(null, -1, null, new Properties()));
     }
 
 

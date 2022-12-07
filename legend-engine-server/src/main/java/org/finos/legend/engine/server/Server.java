@@ -66,7 +66,8 @@ import org.finos.legend.engine.plan.execution.service.api.ServiceModelingApi;
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelational;
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
-import org.finos.legend.engine.plan.execution.stores.nonrelational.LocalMongoDbClient;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.InMemoryMongoDbClient;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbResource;
 import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
 import org.finos.legend.engine.plan.execution.stores.relational.api.RelationalExecutorInformation;
@@ -123,6 +124,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
     private Environment environment;
 
     private org.h2.tools.Server h2Server;
+    private MongoDbClient mongoDbClient;
 
     public static void main(String[] args) throws Exception
     {
@@ -229,9 +231,21 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new ExecutePlanStrategic(planExecutor));
         environment.jersey().register(new ExecutePlanLegacy(planExecutor));
 
-        // goncah MongoDB
-        LocalMongoDbClient mongoDbClient = new LocalMongoDbClient();
-        environment.jersey().register(new MongoDbResource(mongoDbClient));
+
+        // MongoDB
+
+        if (serverConfiguration.nonrelationalexecution.temporarytestdb != null && serverConfiguration.nonrelationalexecution.temporarytestdb.port > 0 )
+        {
+            // MongoDB In-Memory
+            this.mongoDbClient = new InMemoryMongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            MongoDbResource mongoDbResource = new MongoDbResource(this.mongoDbClient);
+            mongoDbResource.populateData();
+            environment.jersey().register(mongoDbResource);
+            // MongoDB External
+//            this.mongoDbClient = new ExternalMongoDbClient();
+//            environment.jersey().register(new MongoDbResource(this.mongoDbClient));
+        }
+
 
         // GraphQL
         environment.jersey().register(new GraphQLGrammar());
@@ -261,7 +275,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new Testable(modelManager));
 
         // localh2server on 9092
-        // this.setupLocalH2Db();
+        this.setupLocalH2Db();
 
         enableCors(environment);
     }
@@ -276,6 +290,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     public void shutDown() throws Exception
     {
+        this.mongoDbClient.shutDown();
         this.environment.getApplicationContext().getServer().stop();
         CollectorRegistry.defaultRegistry.clear();
     }
