@@ -48,6 +48,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import static org.finos.legend.pure.generated.core_relational_relational_extensions_extension.Root_meta_relational_extension_relationalExtensions__Extension_MANY_;
+import static org.finos.legend.pure.generated.core_documentstore_documentQueryToString_dbExtension.Root_meta_external_store_document_extension_documentStoreExtensions__Extension_MANY_;
 
 public class TestMetaDataServer
 {
@@ -58,11 +59,11 @@ public class TestMetaDataServer
 
     public static void main(String[] args) throws Exception
     {
-        TestMetaDataServer testMetaDataServer = new TestMetaDataServer(Integer.parseInt(args[0]), true);
+        TestMetaDataServer testMetaDataServer = new TestMetaDataServer(Integer.parseInt(args[0]), true, true);
         testMetaDataServer.join();
     }
 
-    public TestMetaDataServer(int port, boolean messageFromPureJAR) throws Exception
+    public TestMetaDataServer(int port, boolean messageFromPureJAR, boolean relational) throws Exception
     {
         this.server = new Server(port);
         CompiledExecutionSupport executionSupport = new CompiledExecutionSupport(
@@ -203,7 +204,15 @@ public class TestMetaDataServer
         AbstractHandler mappingHandle = registerService(
                 "/alloy/pureModelFromMapping",
                 messageFromPureJAR ?
-                        (_package, version) -> PureFunctions.alloy_metadataServer_pureModelFromMapping(_package, version, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(executionSupport), executionSupport) :
+                        (_package, version) ->
+                        {
+                            if (relational)
+                            {
+                                return PureFunctions.alloy_metadataServer_pureModelFromMapping(_package, version, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(executionSupport), executionSupport);
+                            }
+                            return PureFunctions.alloy_metadataServer_pureModelFromMapping(_package, version, Root_meta_external_store_document_extension_documentStoreExtensions__Extension_MANY_(executionSupport), executionSupport);
+                        }
+                        :
                         (_package, version) ->
                         {
                             String key = "" + _package + version;
@@ -217,7 +226,17 @@ public class TestMetaDataServer
         AbstractHandler storeHandle = registerService(
                 "/alloy/pureModelFromStore",
                 messageFromPureJAR ?
-                        (_package, version) -> PureFunctions.alloy_metadataServer_pureModelFromStore(_package, version, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(executionSupport), executionSupport) :
+                        (_package, version) ->
+                        {
+                            if (relational)
+                            {
+                                return PureFunctions.alloy_metadataServer_pureModelFromStore(_package, version, Root_meta_relational_extension_relationalExtensions__Extension_MANY_(executionSupport), executionSupport);
+                            }
+                            return PureFunctions.alloy_metadataServer_pureModelFromStore(_package, version, Root_meta_external_store_document_extension_documentStoreExtensions__Extension_MANY_(executionSupport), executionSupport);
+                            //return PureFunctions.alloy_metadataServer_pureModelFromStore(_package, version, Root_meta_external_store_document_extension_documentStoreExtensions__Extension_1_(executionSupport), executionSupport);
+
+                        }
+                        :
                         (_package, version) ->
                         {
                             String key = "" + _package + version;

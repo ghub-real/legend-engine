@@ -1,0 +1,53 @@
+import meta::external::store::document::tests::simple::*;
+import meta::pure::graphFetch::execution::*;
+import meta::pure::executionPlan::profiles::*;
+import meta::external::store::document::metamodel::execute::*;
+import meta::external::store::document::runtime::connections::*;
+
+/*
+function meta::document::store::tests::createTablesAndFillDb() : Boolean[1]
+{
+  let connection = meta::external::store::document::tests::object::TestLocalMongoRuntime().connections->cast(@DocumentStoreConnection)->toOne();
+
+  meta::external::store::document::metamodel::execute::executeInDb('use testDB;', $connection, 10, 100);
+  meta::external::store::document::metamodel::execute::executeInDb('db.testCollection.drop();', $connection, 10, 100);
+  meta::external::store::document::metamodel::execute::executeInDb('db.createCollection("testCollections");', $connection, 10, 100);
+  meta::external::store::document::metamodel::execute::executeInDb('db.testCollections.insert({ fName: "Theo", lastName: "Malatestas" });', $connection, 10, 100);
+  
+  true;
+}
+
+function <<test.BeforePackage>> meta::document::store::graphFetch::tests::simple::setup() : Boolean[1]
+{
+   meta::document::store::tests::createTablesAndFillDb();
+}
+*/
+
+function <<test.Test, test.AlloyOnly>> {serverVersion.start='vX_X_X'} meta::document::store::graphFetch::tests::simple::testMappingForProperty(): Boolean[1]
+{
+   let tree = #{
+      Person {
+         fName,
+         lName
+      }
+   }#;
+   let query = {|Person.all()->graphFetch($tree)->serialize($tree)};
+
+   let testRuntime = meta::external::store::document::tests::object::TestLocalMongoRuntime();
+
+   let testDocumentStoreSetup = meta::external::store::document::tests::object::getTestSetup();
+
+   let documentStoreExtensions = meta::external::store::document::extension::documentStoreExtensions();
+
+   let result = execute($query, $testDocumentStoreSetup.mapping, $testRuntime, $documentStoreExtensions).values;
+
+
+   assertJsonStringsEqual(
+      '[{"fName":"Peter","lName":"Smith"'+
+      '{"fName":"John","lName":"Johnson"'+
+      '{"fName":"David","lName":"Harris"}]',
+      $result
+   );
+
+   assertEquals(true, true);
+}

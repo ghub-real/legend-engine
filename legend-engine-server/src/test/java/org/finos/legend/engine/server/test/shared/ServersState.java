@@ -14,6 +14,7 @@
 
 package org.finos.legend.engine.server.test.shared;
 
+import de.bwaldvogel.mongo.MongoServer;
 import org.finos.legend.engine.server.Server;
 
 public class ServersState
@@ -21,12 +22,14 @@ public class ServersState
     private final Server server;
     private final TestMetaDataServer metadataServer;
     private final org.h2.tools.Server H2Server;
+    private final MongoServer mongoServer;
 
-    public ServersState(Server server, TestMetaDataServer metadataServer, org.h2.tools.Server h2Server)
+    public ServersState(Server server, TestMetaDataServer metadataServer, org.h2.tools.Server h2Server, MongoServer mongoServer)
     {
         this.server = server;
         this.metadataServer = metadataServer;
         this.H2Server = h2Server;
+        this.mongoServer = mongoServer;
     }
 
     public void shutDown()
@@ -39,6 +42,11 @@ public class ServersState
             {
                 this.H2Server.shutdown();
                 this.H2Server.stop();
+            }
+
+            if (this.mongoServer != null)
+            {
+                this.mongoServer.shutdown();
             }
         }
         catch (Exception e)

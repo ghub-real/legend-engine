@@ -23,7 +23,7 @@ Mapping meta::external::store::document::tests::object::MyDocStoreMapping
 import meta::external::store::document::metamodel::mapping::*;
 import meta::external::store::document::metamodel::*;
 import meta::pure::functions::collection::*;
-function <<access.private>> meta::external::store::document::tests::object::TestMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
+function meta::external::store::document::tests::object::TestMongoStore(): meta::external::store::document::metamodel::DocumentStore[1]
 {
   let mongoStore = ^meta::external::store::document::metamodel::DocumentStore(
         package  = meta::external::store::document::tests::object,
@@ -229,7 +229,7 @@ function <<access.private>> meta::external::store::document::tests::object::loca
     ^meta::external::store::document::runtime::connections::DocumentStoreConnection(
         element = $dataStore,
         type = meta::external::store::document::metamodel::runtime::DatabaseType.Mongo,
-        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='localhost',port=27017,databaseName='myCollection'),
+        datasourceSpecification = ^meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification(host='localhost',port=27018,databaseName='myCollection'),
         authenticationStrategy = ^meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy(),
         timeZone = 'GMT'
     );

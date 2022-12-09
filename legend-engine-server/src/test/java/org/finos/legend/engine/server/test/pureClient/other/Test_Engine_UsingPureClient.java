@@ -28,6 +28,8 @@ public class Test_Engine_UsingPureClient extends TestSuite
     public static Test suite()
     {
         return wrapSuite(
+                true,
+                false,
                 () -> PureWithEngineHelper.initClientVersionIfNotAlreadySet("vX_X_X"),
                 () ->
                 {

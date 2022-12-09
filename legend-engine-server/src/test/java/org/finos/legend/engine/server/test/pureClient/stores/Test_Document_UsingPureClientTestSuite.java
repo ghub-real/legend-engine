@@ -1,4 +1,4 @@
-// Copyright 2020 Goldman Sachs
+// Copyright 2021 Goldman Sachs
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.server.test.pureClient.other;
+package org.finos.legend.engine.server.test.pureClient.stores;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.finos.legend.engine.server.test.shared.PureTestHelper;
 import org.finos.legend.engine.server.test.shared.PureWithEngineHelper;
+import org.finos.legend.pure.m3.execution.test.TestCollection;
 import org.finos.legend.pure.runtime.java.compiled.execution.CompiledExecutionSupport;
 
-public class Test_LoadMappings_UsingPureClient extends TestSuite
+import static org.finos.legend.engine.server.test.shared.PureTestHelper.wrapSuite;
+import static org.finos.legend.engine.server.test.shared.PureTestHelper.getClassLoaderExecutionSupport;
+import static org.finos.legend.engine.server.test.shared.PureTestHelper.satisfiesConditions;
+
+public class Test_Document_UsingPureClientTestSuite extends TestSuite
 {
-    public static Test suite()
+    public static Test suite() throws Exception
     {
-        return PureTestHelper.wrapSuite(
-                true,
+        return wrapSuite(
                 false,
+                true,
                 () -> PureWithEngineHelper.initClientVersionIfNotAlreadySet("vX_X_X"),
                 () ->
                 {
-                    CompiledExecutionSupport executionSupport = PureTestHelper.getClassLoaderExecutionSupport();
+                    CompiledExecutionSupport executionSupport = getClassLoaderExecutionSupport();
                     TestSuite suite = new TestSuite();
-                    // NOTE: temporarily ignore these tests until we bring extensions back into Legend
-                    // suite.addTest(PureTestHelper.buildSuite(TestCollection.collectTests("meta::alloy::test::mapping", executionSupport.getProcessorSupport(), ci -> PureTestHelper.satisfiesConditions(ci, executionSupport.getProcessorSupport())), executionSupport));
+                    suite.addTest(PureTestHelper.buildSuite(TestCollection.collectTests("meta::document::store::graphFetch::tests::simple", executionSupport.getProcessorSupport(), ci -> satisfiesConditions(ci, executionSupport.getProcessorSupport())), executionSupport));
                     return suite;
                 }
         );

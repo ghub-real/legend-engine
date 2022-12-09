@@ -26,6 +26,8 @@ public class Test_ExternalFormat_UsingPureClient
     public static Test suite()
     {
         return PureTestHelper.wrapSuite(
+                true,
+                false,
                 () -> PureWithEngineHelper.initClientVersionIfNotAlreadySet("vX_X_X"),
                 () ->
                 {

@@ -14,12 +14,20 @@
 
 package org.finos.legend.engine.server.test.shared;
 
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import de.bwaldvogel.mongo.MongoServer;
+import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.opentracing.noop.NoopTracerFactory;
 import io.opentracing.util.GlobalTracer;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bson.Document;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.block.function.Function0;
 import org.eclipse.collections.api.list.ListIterable;
@@ -60,20 +68,23 @@ import org.junit.Ignore;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.concurrent.TimeUnit;
 
 public class PureTestHelper
 {
     private static final ThreadLocal<ServersState> state = new ThreadLocal<>();
 
+
     @Ignore
-    public static TestSetup wrapSuite(Function0<Boolean> init, Function0<TestSuite> suiteBuilder)
+    public static TestSetup wrapSuite(boolean withH2, boolean withMongo, Function0<Boolean> init, Function0<TestSuite> suiteBuilder)
     {
-        return wrapSuite(init, suiteBuilder, true, "org/finos/legend/engine/server/test/userTestConfig.json");
+        return wrapSuite(init, suiteBuilder, withH2, withMongo, "org/finos/legend/engine/server/test/userTestConfig.json");
     }
 
     @Ignore
-    public static TestSetup wrapSuite(Function0<Boolean> init, Function0<TestSuite> suiteBuilder, boolean withH2, String serverConfigFilePath)
+    public static TestSetup wrapSuite(Function0<Boolean> init, Function0<TestSuite> suiteBuilder, boolean withH2, boolean withMongo, String serverConfigFilePath)
     {
         boolean shouldCleanUp = init.value();
         TestSuite suite = suiteBuilder.value();
@@ -90,7 +101,7 @@ public class PureTestHelper
             {
                 super.setUp();
                 shouldCleanUp = init.value();
-                state.set(initEnvironment(withH2, serverConfigFilePath));
+                state.set(initEnvironment(withH2, withMongo, serverConfigFilePath));
             }
 
             @Override
@@ -108,12 +119,35 @@ public class PureTestHelper
         };
     }
 
-    private static ServersState initEnvironment(boolean withH2, String serverConfigFilePath) throws Exception
+    private static ServersState initEnvironment(boolean withH2, boolean withMongo, String serverConfigFilePath) throws Exception
     {
         int metadataServerPort = DynamicPortGenerator.generatePort();
         int relationalDBPort = DynamicPortGenerator.generatePort();
 
         org.h2.tools.Server h2Server = null;
+        MongoServer mongoServer = null;
+
+        if (withMongo)
+        {
+
+            mongoServer = new MongoServer(new MemoryBackend());
+            mongoServer.bind("localhost", 27018);
+            MongoClient mongoClient = MongoClients.create("mongodb://localhost:27018");
+            MongoCollection collection = mongoClient.getDatabase("myCollection").getCollection("persons");
+            Document peter = new Document();
+            peter.append("fName", "Peter");
+            peter.append("lName", "Smith");
+            Document john = new Document();
+            peter.append("fName", "John");
+            peter.append("lName", "Johnson");
+            Document david = new Document();
+            peter.append("fName", "David");
+            peter.append("lName", "Harris");
+
+            collection.insertOne(peter);
+            collection.insertOne(john);
+            collection.insertOne(david);
+        }
 
         if (withH2)
         {
@@ -123,7 +157,8 @@ public class PureTestHelper
         }
 
         // Start metadata server
-        TestMetaDataServer metadataServer = new TestMetaDataServer(metadataServerPort, true);
+        boolean relational = withMongo ? false : true;
+        TestMetaDataServer metadataServer = new TestMetaDataServer(metadataServerPort, true, relational);
         System.out.println("Metadata server started on port:" + metadataServerPort);
 
         // Set drop wizard vars for metadata server and h2
@@ -143,7 +178,7 @@ public class PureTestHelper
         }
 
         Server server = PureWithEngineHelper.initEngineServer(serverConfigFilePath, () -> new Server<>());
-        return new ServersState(server, metadataServer, h2Server);
+        return new ServersState(server, metadataServer, h2Server, mongoServer);
     }
 
     private static boolean hasTestStereotypeWithValue(CoreInstance node, String value, ProcessorSupport processorSupport)

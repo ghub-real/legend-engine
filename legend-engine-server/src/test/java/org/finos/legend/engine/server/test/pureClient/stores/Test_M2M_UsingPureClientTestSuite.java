@@ -30,6 +30,8 @@ public class Test_M2M_UsingPureClientTestSuite extends TestSuite
     public static Test suite() throws Exception
     {
         return wrapSuite(
+                true,
+                false,
                 () -> PureWithEngineHelper.initClientVersionIfNotAlreadySet("vX_X_X"),
                 () ->
                 {
