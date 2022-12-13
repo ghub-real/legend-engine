@@ -67,8 +67,8 @@ import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelation
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.InMemoryMongoDbClient;
-import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbResource;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
 import org.finos.legend.engine.plan.execution.stores.relational.api.RelationalExecutorInformation;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.api.schema.SchemaExplorationApi;
@@ -124,7 +124,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
     private Environment environment;
 
     private org.h2.tools.Server h2Server;
-    private MongoDbClient mongoDbClient;
+    private NonRelationalClient nonRelationalClient;
 
     public static void main(String[] args) throws Exception
     {
@@ -234,16 +234,16 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         // MongoDB
 
-        if (serverConfiguration.nonrelationalexecution.temporarytestdb != null && serverConfiguration.nonrelationalexecution.temporarytestdb.port > 0 )
+        if (serverConfiguration.nonrelationalexecution.temporarytestdb != null && serverConfiguration.nonrelationalexecution.temporarytestdb.port > 0)
         {
             // MongoDB In-Memory
-            this.mongoDbClient = new InMemoryMongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
-            MongoDbResource mongoDbResource = new MongoDbResource(this.mongoDbClient);
+            this.nonRelationalClient = new InMemoryMongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            MongoDbResource mongoDbResource = new MongoDbResource(this.nonRelationalClient);
             mongoDbResource.populateData();
             environment.jersey().register(mongoDbResource);
             // MongoDB External
-//            this.mongoDbClient = new ExternalMongoDbClient();
-//            environment.jersey().register(new MongoDbResource(this.mongoDbClient));
+//            this.nonRelationalClient = new ExternalMongoDbClient();
+//            environment.jersey().register(new MongoDbResource(this.nonRelationalClient));
         }
 
 
@@ -290,7 +290,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     public void shutDown() throws Exception
     {
-        this.mongoDbClient.shutDown();
+        this.nonRelationalClient.shutDown();
         this.environment.getApplicationContext().getServer().stop();
         CollectorRegistry.defaultRegistry.clear();
     }

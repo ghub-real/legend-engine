@@ -24,6 +24,7 @@ import com.mongodb.client.MongoDatabase;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.bson.Document;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.slf4j.Logger;
 
 import javax.ws.rs.Consumes;
@@ -46,15 +47,15 @@ import java.util.Objects;
 public class MongoDbResource
 {
     private static final String DEFAULT_DATABASE_NAME = "my_database";
-    private final MongoDbClient mongoDbClient;
+    private final NonRelationalClient nonRelationalClient;
     private final ObjectMapper mapper = new ObjectMapper();
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger("MongoDbResource");
 
 
-    public MongoDbResource(MongoDbClient mongoDbClient)
+    public MongoDbResource(NonRelationalClient mongoDbClient)
     {
-        this.mongoDbClient = mongoDbClient;
+        this.nonRelationalClient = mongoDbClient;
     }
 
     // MongoDB POC Helper APIs
@@ -254,7 +255,7 @@ public class MongoDbResource
 
     private MongoDatabase getDefaultDB()
     {
-        return this.mongoDbClient.mongoClient.getDatabase(DEFAULT_DATABASE_NAME);
+        return this.nonRelationalClient.getMongoDBClient().getDatabase(DEFAULT_DATABASE_NAME);
     }
 
     private List<String> executeCustomAggregationQueryWithCursor(MongoDatabase database, String query)

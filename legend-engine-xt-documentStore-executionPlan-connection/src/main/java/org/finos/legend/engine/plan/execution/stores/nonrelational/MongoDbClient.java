@@ -24,7 +24,7 @@ import java.util.List;
 
 public abstract class MongoDbClient implements NonRelationalClient
 {
-    public MongoClient mongoClient;
+    protected MongoClient mongoClient;
 
     protected static final String DEFAULT_MONGO_HOSTNAME = "localhost";
     protected static final int DEFAULT_MONGO_PORT = 27017;
