@@ -15,20 +15,44 @@
 package org.finos.legend.engine.plan.execution.stores.nonrelational;
 
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class MongoDbClient implements NonRelationalClient
+public class MongoDbClient implements NonRelationalClient
 {
-    protected MongoClient mongoClient;
 
-    protected static final String DEFAULT_MONGO_HOSTNAME = "localhost";
-    protected static final int DEFAULT_MONGO_PORT = 27017;
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(MongoDbClient.class);
+    private final MongoClient mongoClient;
+    private static final String DEFAULT_MONGO_HOSTNAME = "localhost";
+    private static final int DEFAULT_MONGO_PORT = 27017;
     private static final String DEFAULT_DATABASE_NAME = "my_database";
+    private static final String CONNECTION_STRING_TEMPLATE = "mongodb://%s:%s";
+
+    public MongoDbClient()
+    {
+        this("mongodb://" + DEFAULT_MONGO_HOSTNAME + ":" + DEFAULT_MONGO_PORT);
+    }
+
+    public MongoDbClient(int port)
+    {
+        this(String.format(CONNECTION_STRING_TEMPLATE, DEFAULT_MONGO_HOSTNAME, port));
+    }
+
+    public MongoDbClient(String hostname, int port)
+    {
+        this(String.format(CONNECTION_STRING_TEMPLATE, hostname, port));
+    }
+
+    public MongoDbClient(String connectionString)
+    {
+        this.mongoClient = MongoClients.create(connectionString);
+    }
 
     @Override
     public MongoClient getMongoDBClient()
@@ -54,7 +78,7 @@ public abstract class MongoDbClient implements NonRelationalClient
         }
         catch (Exception e)
         {
-            System.out.println(e.toString());
+            LOGGER.error("Failed to execute Mongo native query {}", e);
         }
 
         return res;
@@ -67,10 +91,15 @@ public abstract class MongoDbClient implements NonRelationalClient
 
     public List<String> executeNativeQuery(String mongoQuery)
     {
-
         MongoDatabase database = this.getDefaultDB();
         List<String> results = executeNativeQueryWithCursor(database, mongoQuery);
 
         return results;
+    }
+
+    @Override
+    public void shutDown()
+    {
+        this.mongoClient.close();
     }
 }

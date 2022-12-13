@@ -66,7 +66,8 @@ import org.finos.legend.engine.plan.execution.service.api.ServiceModelingApi;
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelational;
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
-import org.finos.legend.engine.plan.execution.stores.nonrelational.InMemoryMongoDbClient;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.AlloyMongoServer;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbResource;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
@@ -236,16 +237,12 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         if (serverConfiguration.nonrelationalexecution.temporarytestdb != null && serverConfiguration.nonrelationalexecution.temporarytestdb.port > 0)
         {
-            // MongoDB In-Memory
-            this.nonRelationalClient = new InMemoryMongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            AlloyMongoServer.startServer(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            this.nonRelationalClient = new MongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
             MongoDbResource mongoDbResource = new MongoDbResource(this.nonRelationalClient);
             mongoDbResource.populateData();
             environment.jersey().register(mongoDbResource);
-            // MongoDB External
-//            this.nonRelationalClient = new ExternalMongoDbClient();
-//            environment.jersey().register(new MongoDbResource(this.nonRelationalClient));
         }
-
 
         // GraphQL
         environment.jersey().register(new GraphQLGrammar());
