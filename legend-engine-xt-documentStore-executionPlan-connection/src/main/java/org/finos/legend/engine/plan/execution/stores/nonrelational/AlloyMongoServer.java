@@ -29,7 +29,7 @@ public class AlloyMongoServer
         LOGGER.debug("Starting setup of connection for local Mongo database server on port: " + port + " and address: " + DEFAULT_MONGO_HOSTNAME);
         MongoServer mongoServer = new MongoServer(new MemoryBackend());
         mongoServer.bind(DEFAULT_MONGO_HOSTNAME, port);
-        System.out.println("Completed setup for local Mongo database server on port: " + port + " and address: " + DEFAULT_MONGO_HOSTNAME);
+        LOGGER.debug("Completed setup for local Mongo database server on port: {}, and address: {} ", DEFAULT_MONGO_PORT, DEFAULT_MONGO_HOSTNAME);
 
         return mongoServer;
     }

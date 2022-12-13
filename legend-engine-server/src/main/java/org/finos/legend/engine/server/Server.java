@@ -15,6 +15,7 @@
 package org.finos.legend.engine.server;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import de.bwaldvogel.mongo.MongoServer;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -125,6 +126,8 @@ public class Server<T extends ServerConfiguration> extends Application<T>
     private Environment environment;
 
     private org.h2.tools.Server h2Server;
+
+    private MongoServer mongoServer;
     private NonRelationalClient nonRelationalClient;
 
     public static void main(String[] args) throws Exception
@@ -237,7 +240,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
         if (serverConfiguration.nonrelationalexecution.temporarytestdb != null && serverConfiguration.nonrelationalexecution.temporarytestdb.port > 0)
         {
-            AlloyMongoServer.startServer(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            this.mongoServer = AlloyMongoServer.startServer(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
             this.nonRelationalClient = new MongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
             MongoDbResource mongoDbResource = new MongoDbResource(this.nonRelationalClient);
             mongoDbResource.populateData();
@@ -287,6 +290,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     public void shutDown() throws Exception
     {
+        this.mongoServer.shutdown();
         this.nonRelationalClient.shutDown();
         this.environment.getApplicationContext().getServer().stop();
         CollectorRegistry.defaultRegistry.clear();
