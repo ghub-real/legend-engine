@@ -27,8 +27,8 @@ import java.util.Collections;
 
 public class DocumentStoreGrammarParserExtension implements IDocumentStoreGrammarParserExtension
 {
-    public static final String NAME = "DocumentStore";
-    public static final String SERVICE_STORE_MAPPING_ELEMENT_TYPE = "DocumentStore";
+    public static final String NAME = "NonRelational";
+    public static final String SERVICE_STORE_MAPPING_ELEMENT_TYPE = "NonRelationalMapping";
     public static final String SERVICE_STORE_CONNECTION_TYPE = "DocumentStoreConnection";
 
     @Override

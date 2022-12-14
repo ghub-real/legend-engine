@@ -11,8 +11,8 @@ options
 
 unquotedIdentifier:                         VALID_STRING
                                             | DOCUMENTSTORE | INCLUDE
-                                            | COLLECTION | DOCUMENTFRAGMENT
-                                            | SCOPE | ENUMERATION_MAPPING | BINDING
+                                            | COLLECTION | COLLECTIONFRAGMENT
+                                            | SCOPE | ENUMERATION_MAPPING
 ;
 
 identifier:                                 unquotedIdentifier | STRING
@@ -42,29 +42,29 @@ include: INCLUDE qualifiedName
 collection:
     COLLECTION collectionIdentifier
     PAREN_OPEN
-        fieldDefinitions
+        propertyDefinitions
     PAREN_CLOSE
 ;
 
 collectionfragment:
-    DOCUMENTFRAGMENT collectionIdentifier
+    COLLECTIONFRAGMENT collectionIdentifier
     PAREN_OPEN
-        fieldDefinitions
+        propertyDefinitions
     PAREN_CLOSE
 ;
 
-fieldDefinitions: fieldDefinition (COMMA fieldDefinition)*
+propertyDefinitions: propertyDefinition (COMMA propertyDefinition)*
 ;
 
-fieldDefinition:
-    fieldIdentifier
+propertyDefinition:
+    propertyIdentifier
     typeReferenceDefinition (PRIMARY_KEY | NOT_NULL)?
 ;
 
 collectionIdentifier: identifier
 ;
 
-fieldIdentifier: identifier
+propertyIdentifier: identifier
 ;
 
 typeReferenceDefinition: type | listType
@@ -78,9 +78,12 @@ complexType: (collectionfragment | collectionFragmentPointer)
 listType: ( BRACKET_OPEN type BRACKET_CLOSE )
 ;
 
-collectionFragmentPointer: DOCUMENTFRAGMENT qualifiedName
+collectionFragmentPointer: COLLECTIONFRAGMENT qualifiedName
 ;
 
-qualifiedName: packagePath? identifier
-;
+//qualifiedName: (packagePath PATH_SEPARATOR)? identifier
+//;
+
+//packagePath:                                    identifier (PATH_SEPARATOR identifier)*
+//;
 

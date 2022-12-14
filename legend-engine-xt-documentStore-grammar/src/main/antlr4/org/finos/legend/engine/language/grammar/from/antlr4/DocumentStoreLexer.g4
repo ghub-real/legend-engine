@@ -21,25 +21,20 @@ DOC_LTE : 'lte';
 JOIN : 'Join' ;
 MAINCOLLECTIONCMD : '~mainCollection';
 COLLECTION : 'Collection' ;
-DOCUMENTFRAGMENT : 'DocumentFragment';
+COLLECTIONFRAGMENT : 'CollectionFragment';
 
 PRIMARY_KEY : 'PRIMARY KEY';
 NOT_NULL: 'NOT NULL';
 PRIMARY_KEY_CMD : '~primaryKey';
 PARTIAL_KEY : 'PARTIAL KEY';
 PARTIAL_KEY_CMD : '~partialKey';
-BINDING: 'Binding';
 SCOPE: 'scope';
 ENUMERATION_MAPPING: 'EnumerationMapping';
 
-INTEGER: ('+' | '-')? (Digit)+;
-FLOAT: ('+' | '-')? (Float)+;
-QUOTED_STRING:   ('"' ( EscSeq | ~["\r\n] )*  '"' ) ;
-
-
-
-//mode ISLAND_BLOCK;
-//INNER_CURLY_BRACKET_OPEN : '{' -> pushMode (ISLAND_BLOCK);
-//CONTENT: (~[{}])+;
-//INNER_CURLY_BRACKET_CLOSE: '}' -> popMode;
-
+//QUOTED_STRING:   ('"' ( EscSeq | ~["\r\n] )*  '"' ) ;
+//STRING:   ('\'' ( EscSeq | ~['\r\n] )*  '\'' ) ;
+INTEGER: (Digit)+;
+FLOAT : ('+' | '-')? (Digit)* '.' (Digit)+ ( ('e' | 'E') ('+' | '-')? (Digit)+)? ('f' | 'F')?;
+VALID_STRING: (Letter | Digit | '_' ) (Letter | Digit | '_' | '$')*;
+//fragment Digit:                         [0-9];
+//fragment Letter:                        [A-Za-z];

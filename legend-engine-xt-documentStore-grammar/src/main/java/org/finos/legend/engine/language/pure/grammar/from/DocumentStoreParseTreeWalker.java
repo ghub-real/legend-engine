@@ -79,16 +79,16 @@ public class DocumentStoreParseTreeWalker
         collection.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
         collection.name = ctx.collectionIdentifier().identifier().getText();
         List<String> primaryKeys = new ArrayList<>();
-        collection.fields = ListIterate.collect(ctx.fieldDefinitions().fieldDefinition(), fieldDefinitionContext -> this.visitFieldDefinition(fieldDefinitionContext, primaryKeys));
+        collection.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitFieldDefinition(fieldDefinitionContext, primaryKeys));
         collection.primaryKey = primaryKeys;
         return collection;
     }
 
-    private Field visitFieldDefinition(DocumentStoreParser.FieldDefinitionContext ctx, List<String> primaryKeys)
+    private Field visitFieldDefinition(DocumentStoreParser.PropertyDefinitionContext ctx, List<String> primaryKeys)
     {
         Field field = new Field();
         field.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
-        field.name = ctx.fieldIdentifier().identifier().getText();
+        field.name = ctx.propertyIdentifier().identifier().getText();
         boolean nullable = true;
         if (ctx.PRIMARY_KEY() != null)
         {
@@ -160,6 +160,11 @@ public class DocumentStoreParseTreeWalker
                 case "String":
                 {
                     typeReference = new StringTypeReference();
+                    break;
+                }
+                case "ObjectId":
+                {
+                    typeReference = new ObjectTypeReference();
                     break;
                 }
                 default:
