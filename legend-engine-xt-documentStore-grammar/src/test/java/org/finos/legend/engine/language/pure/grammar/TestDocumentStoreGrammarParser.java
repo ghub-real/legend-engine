@@ -36,6 +36,11 @@ public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGramma
             "personName String, \n" +
             "_id ObjectId \n" +
             ") \n" +
+            "Collection Firm\n" +
+            "( \n" +
+            "firmName String, \n" +
+            "_id ObjectId PRIMARY KEY\n" +
+            ") \n" +
             ") \n" +
             "###Mapping";
 
