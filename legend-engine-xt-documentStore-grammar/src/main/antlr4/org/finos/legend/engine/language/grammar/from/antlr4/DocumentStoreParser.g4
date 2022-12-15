@@ -10,9 +10,11 @@ options
 // IDENTIFIER
 
 unquotedIdentifier:                         VALID_STRING
-                                            | DOCUMENTSTORE | INCLUDE
-                                            | COLLECTION | COLLECTIONFRAGMENT
-                                            | SCOPE | ENUMERATION_MAPPING
+                                            | DOCUMENTSTORE
+                                            | INCLUDE | JOIN | COLLECTION | COLLECTIONFRAGMENT
+                                            | FILTER | ENUMERATION_MAPPING
+                                            | OBJECT | ARRAY
+                                            | AND | OR | CONSTRAINT | PROCESSING_MILESTONING
 ;
 
 identifier:                                 unquotedIdentifier | STRING

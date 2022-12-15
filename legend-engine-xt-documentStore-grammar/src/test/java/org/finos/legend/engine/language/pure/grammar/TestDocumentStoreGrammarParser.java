@@ -15,6 +15,7 @@
 package org.finos.legend.engine.language.pure.grammar;
 
 import org.antlr.v4.runtime.Vocabulary;
+import org.eclipse.collections.impl.list.mutable.ListAdapter;
 import org.finos.legend.engine.language.grammar.from.antlr4.DocumentStoreParser;
 import org.finos.legend.engine.language.pure.grammar.test.TestGrammarParser;
 
@@ -44,7 +45,7 @@ public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGramma
             ") \n" +
             "###Mapping";
 
-        @Override
+    @Override
     public Vocabulary getParserGrammarVocabulary()
     {
         return DocumentStoreParser.VOCABULARY;
@@ -53,6 +54,26 @@ public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGramma
     @Override
     public String getParserGrammarIdentifierInclusionTestCode(List<String> keywords)
     {
-        return TEST_DOCUMENT_MODEL;
+        return "###Pure\n" +
+                "Class Person \n" +
+                "{ \n" +
+                "   name: String[1]; \n" +
+                "   city: String[1]; \n" +
+                "} \n" +
+                "###NonRelational \n" +
+                "DocumentStore " + ListAdapter.adapt(keywords).makeString("::") + "::db \n" +
+                "( \n" +
+                "Collection Person\n" +
+                "( \n" +
+                "personName String, \n" +
+                "_id ObjectId \n" +
+                ") \n" +
+                "Collection Firm\n" +
+                "( \n" +
+                "firmName String, \n" +
+                "_id ObjectId PRIMARY KEY\n" +
+                ") \n" +
+                ") \n" +
+                "###Mapping";
     }
 }
