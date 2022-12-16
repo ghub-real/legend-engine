@@ -13,20 +13,20 @@ options
 identifier:                             VALID_STRING | STRING
                                         | STORE
                                         | TYPE | NONRELATIONAL_DATASOURCE_SPEC | NONRELATIONAL_AUTH_STRATEGY
-                                        | DB_TIMEZONE | QUOTE_IDENTIFIERS
+                                        | DB_TIMEZONE | QUOTE_IDENTIFIERS | BASE_URL
 ;
 
 // -------------------------------------- DEFINITION -------------------------------------
 
-definition:                             (
-                                            connectionStore
-                                            | dbType
-                                            | dbConnectionTimezone
-                                            | dbQuoteIdentifiers
-                                            | nonRelationalDBAuth
-                                            | nonRelationalDBDatasourceSpec
-                                        )*
-                                        EOF
+definition:                                 (
+                                                     connectionStore
+                                                     | dbType
+                                                     | dbConnectionTimezone
+                                                     | dbQuoteIdentifiers
+                                                     | nonRelationalDBAuth
+                                                     | nonRelationalDBDatasourceSpec
+                                                     | baseUrl
+                                                 )*
 ;
 connectionStore:                        STORE COLON qualifiedName SEMI_COLON
 ;
@@ -54,4 +54,7 @@ specificationValueBody:       BRACE_OPEN (specificationValue)*
 ;
 
 specificationValue:           SPECIFICATION_BRACE_OPEN | SPECIFICATION_CONTENT | SPECIFICATION_BRACE_CLOSE
+;
+
+baseUrl:                       BASE_URL COLON identifier SEMI_COLON
 ;
