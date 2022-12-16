@@ -74,6 +74,22 @@ public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGramma
                 "_id ObjectId PRIMARY KEY\n" +
                 ") \n" +
                 ") \n" +
-                "###Mapping";
+                "###Mapping \n" +
+                "Mapping mapping::document \n" +
+                "( \n" +
+                "Person: Pure \n" +
+                "{ \n" +
+                "~src Person \n" +
+                "name: $src.name \n" +
+                "} \n" +
+                ") \n" +
+                "###Runtime \n" +
+                "Runtime runtime::document \n" +
+                "{ \n" +
+                "mappings: \n" +
+                "[ \n" +
+                "mapping::document \n" +
+                "]; \n" +
+                "}";
     }
 }
