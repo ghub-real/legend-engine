@@ -51,5 +51,11 @@ DocumentStoreConnection simple::connection::documentStoreConnection
 {
     store: 'meta::external::store::document::tests::object::TestMongoStore';
     type: 'Mongo';
-    baseUrl: 'http://localhost:27017';
+    specification: Static
+    {
+        name: 'my_mongo';
+        host: 'localhost';
+        port: 27017;
+    };
+    auth: Test;
 }

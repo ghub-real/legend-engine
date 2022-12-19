@@ -42,7 +42,7 @@ Class meta::external::store::document::extension::DocumentStoreExtension extends
    documentQueryToString_isBooleanOperation : meta::pure::metamodel::function::Function<{Nil[1] -> Boolean[1]}>[*];
 }
 
-function meta::external::store::document::extension::documentStoreExtensions()  : meta::pure::extension::Extension[1]
+function meta::external::store::document::extension::documentStoreExtensions() : meta::pure::extension::Extension[*]
 {
    [documentStoreExtension('documentStore')]
 }

@@ -12,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.protocol.pure.v1.model.packagableElement.store.document.connection;
+package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.postprocessor;
 
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.Connection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.connection.ConnectionVisitor;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
 
-public class DocumentStoreConnection extends Connection
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "_type")
+public abstract class PostProcessor
 {
-    public String baseUrl;
-
-    @Override
-    public <T> T accept(ConnectionVisitor<T> connectionVisitor)
-    {
-        return connectionVisitor.visit(this);
-    }
+    public SourceInformation sourceInformation;
 }

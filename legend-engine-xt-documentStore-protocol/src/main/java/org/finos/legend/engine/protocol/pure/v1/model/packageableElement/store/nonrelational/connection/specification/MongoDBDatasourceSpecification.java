@@ -21,7 +21,9 @@ public class MongoDBDatasourceSpecification extends DatasourceSpecification
     public String databaseName;
     public String clusterID;
 
-
+    public MongoDBDatasourceSpecification()
+    {
+    }
 
     @Override
     public <T> T accept(DatasourceSpecificationVisitor<T> datasourceSpecificationVisitor)

@@ -27,8 +27,12 @@ import org.finos.legend.engine.language.pure.grammar.from.extension.PureGrammarP
 import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
 import org.finos.legend.engine.protocol.pure.v1.model.context.EngineErrorType;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.postprocessor.PostProcessor;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.DatasourceSpecification;
 import org.finos.legend.engine.shared.core.operational.errorManagement.EngineException;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_authentication_AuthenticationStrategy;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_connections_PostProcessor;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_connections_specification_DatasourceSpecification;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.Column;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.Milestoning;
 import org.finos.legend.pure.m3.coreinstance.meta.relational.runtime.PostProcessorWithParameter;
@@ -43,32 +47,32 @@ public interface IDocumentStoreCompilerExtension extends CompilerExtension
     {
         return ListIterate.selectInstancesOf(context.getCompilerExtensions().getExtensions(), IDocumentStoreCompilerExtension.class);
     }
-/*
-    static Root_meta_pure_alloy_connections_alloy_specification_DatasourceSpecification process(DatasourceSpecification datasourceSpecification, List<Function2<DatasourceSpecification, CompileContext, Root_meta_pure_alloy_connections_alloy_specification_DatasourceSpecification>> processors, CompileContext context)
+
+    static Root_meta_external_store_document_runtime_connections_specification_DatasourceSpecification process(DatasourceSpecification datasourceSpecification, List<Function2<DatasourceSpecification, CompileContext, Root_meta_external_store_document_runtime_connections_specification_DatasourceSpecification>> processors, CompileContext context)
     {
         return process(datasourceSpecification, processors, context, "Data Source Specification", datasourceSpecification.sourceInformation);
     }
 
-    static Root_meta_pure_alloy_connections_alloy_authentication_AuthenticationStrategy process(AuthenticationStrategy authenticationStrategy, List<Function2<AuthenticationStrategy, CompileContext, Root_meta_pure_alloy_connections_alloy_authentication_AuthenticationStrategy>> processors, CompileContext context)
+    static Root_meta_external_store_document_runtime_authentication_AuthenticationStrategy process(AuthenticationStrategy authenticationStrategy, List<Function2<AuthenticationStrategy, CompileContext, Root_meta_external_store_document_runtime_authentication_AuthenticationStrategy>> processors, CompileContext context)
     {
         return process(authenticationStrategy, processors, context, "Authentication Strategy", authenticationStrategy.sourceInformation);
     }
 
-    static Pair<Root_meta_pure_alloy_connections_PostProcessor, PostProcessorWithParameter> process(PostProcessor postProcessor, List<Function2<PostProcessor, CompileContext, Pair<Root_meta_pure_alloy_connections_PostProcessor, PostProcessorWithParameter>>> processors, CompileContext context)
+    static Pair<Root_meta_external_store_document_runtime_connections_PostProcessor, PostProcessorWithParameter> process(PostProcessor postProcessor, List<Function2<PostProcessor, CompileContext, Pair<Root_meta_external_store_document_runtime_connections_PostProcessor, PostProcessorWithParameter>>> processors, CompileContext context)
     {
         return process(postProcessor, processors, context, "Post Processor", postProcessor.sourceInformation);
     }
+//
+//    static PostProcessorWithParameter process(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.legacy.PostProcessorWithParameter postProcessorWithParameter, List<Function2<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.legacy.PostProcessorWithParameter, CompileContext, PostProcessorWithParameter>> processors, CompileContext context)
+//    {
+//        return process(postProcessorWithParameter, processors, context, "Post Processor With Parameter", null);
+//    }
+//
+//    static org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.Milestoning process(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.Milestoning milestoning, List<Function3<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.Milestoning, CompileContext, Multimap<String, Column>, Milestoning>> processors, Multimap<String, Column> columnMap, CompileContext context)
+//    {
+//        return process(milestoning, processors, context, columnMap, "Milestoning", milestoning.sourceInformation);
+//    }
 
-    static PostProcessorWithParameter process(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.legacy.PostProcessorWithParameter postProcessorWithParameter, List<Function2<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.legacy.PostProcessorWithParameter, CompileContext, PostProcessorWithParameter>> processors, CompileContext context)
-    {
-        return process(postProcessorWithParameter, processors, context, "Post Processor With Parameter", null);
-    }
-
-    static org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.Milestoning process(org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.Milestoning milestoning, List<Function3<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.Milestoning, CompileContext, Multimap<String, Column>, Milestoning>> processors, Multimap<String, Column> columnMap, CompileContext context)
-    {
-        return process(milestoning, processors, context, columnMap, "Milestoning", milestoning.sourceInformation);
-    }
-*/
 
     static <T, U> U process(T item, List<Function2<T, CompileContext, U>> processors, CompileContext context, String type, SourceInformation srcInfo)
     {
@@ -92,31 +96,30 @@ public interface IDocumentStoreCompilerExtension extends CompilerExtension
     {
         return Lists.immutable.with();
     }
-/*
-    default List<Function2<PostProcessor, CompileContext, Pair<Root_meta_pure_alloy_connections_PostProcessor, PostProcessorWithParameter>>> getExtraConnectionPostProcessor()
+
+    default List<Function2<PostProcessor, CompileContext, Pair<Root_meta_external_store_document_runtime_connections_PostProcessor, PostProcessorWithParameter>>> getExtraConnectionPostProcessor()
+    {
+        return FastList.newList();
+    }
+//
+//    default List<Function2<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.legacy.PostProcessorWithParameter, CompileContext, PostProcessorWithParameter>> getExtraLegacyPostProcessors()
+//    {
+//        return FastList.newList();
+//    }
+//
+
+    default List<Function2<AuthenticationStrategy, CompileContext, Root_meta_external_store_document_runtime_authentication_AuthenticationStrategy>> getExtraAuthenticationStrategyProcessors()
     {
         return FastList.newList();
     }
 
-    default List<Function2<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.legacy.PostProcessorWithParameter, CompileContext, PostProcessorWithParameter>> getExtraLegacyPostProcessors()
+    default List<Function2<DatasourceSpecification, CompileContext, Root_meta_external_store_document_runtime_connections_specification_DatasourceSpecification>> getExtraDataSourceSpecificationProcessors()
     {
         return FastList.newList();
     }
-
-    default List<Function2<AuthenticationStrategy, CompileContext, Root_meta_pure_alloy_connections_alloy_authentication_AuthenticationStrategy>> getExtraAuthenticationStrategyProcessors()
-    {
-        return FastList.newList();
-    }
-
-    default List<Function2<DatasourceSpecification, CompileContext, Root_meta_pure_alloy_connections_alloy_specification_DatasourceSpecification>> getExtraDataSourceSpecificationProcessors()
-    {
-        return FastList.newList();
-    }
-
-    default List<Function3<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.Milestoning, CompileContext, Multimap<String, Column>, org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.Milestoning>> getExtraMilestoningProcessors()
-    {
-        return FastList.newList();
-    }
-
- */
+//
+//    default List<Function3<org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.model.milestoning.Milestoning, CompileContext, Multimap<String, Column>, org.finos.legend.pure.m3.coreinstance.meta.relational.metamodel.relation.Milestoning>> getExtraMilestoningProcessors()
+//    {
+//        return FastList.newList();
+//    }
 }
