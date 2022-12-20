@@ -45,7 +45,7 @@ import java.util.function.Function;
 public class DocumentStoreGrammarParserExtension implements IDocumentStoreGrammarParserExtension
 {
     public static final String NAME = "NonRelational";
-    public static final String DOCUMENT_STORE_MAPPING_ELEMENT_TYPE = "NonRelationalMapping";
+    public static final String DOCUMENT_STORE_MAPPING_ELEMENT_TYPE = "NonRelational";
     public static final String DOCUMENT_STORE_CONNECTION_TYPE = "DocumentStoreConnection";
 
     @Override
@@ -113,6 +113,7 @@ public class DocumentStoreGrammarParserExtension implements IDocumentStoreGramma
             switch (code.getType())
             {
                 case "MongoDB":
+                    return parseDataSourceSpecification(code, p -> walker.visitMongoDBDatasourceSpecification(code, p.localMongoDatasourceSpecification()));
                 case "Static":
                     return parseDataSourceSpecification(code, p -> walker.visitStaticDatasourceSpecification(code, p.staticDatasourceSpecification()));
                 default:
@@ -131,6 +132,7 @@ public class DocumentStoreGrammarParserExtension implements IDocumentStoreGramma
             switch (code.getType())
             {
                 case "DefaultMongo":
+                    return parseAuthenticationStrategy(code, p -> walker.visitDefaultMongoAuthenticationStrategy(code, p.defaultMongoAuth()));
                 case "Test":
                     return parseAuthenticationStrategy(code, p -> walker.visitTestDatabaseAuthenticationStrategy(code, p.testDBAuth()));
                 default:

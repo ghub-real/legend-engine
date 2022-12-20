@@ -47,7 +47,7 @@ public class DatasourceSpecificationBuilder implements DatasourceSpecificationVi
         else if (datasourceSpecification instanceof StaticDatasourceSpecification)
         {
             StaticDatasourceSpecification staticDatasourceSpecification = (StaticDatasourceSpecification) datasourceSpecification;
-            Root_meta_external_store_document_runtime_connections_StaticDatasourceSpecification _static = new Root_meta_external_store_document_runtime_connections_StaticDatasourceSpecification_Impl("", null, context.pureModel.getClass("meta::pure::alloy::connections::alloy::specification::StaticDatasourceSpecification"));
+            Root_meta_external_store_document_runtime_connections_StaticDatasourceSpecification _static = new Root_meta_external_store_document_runtime_connections_StaticDatasourceSpecification_Impl("", null, context.pureModel.getClass("meta::external::store::document::runtime::connections::StaticDatasourceSpecification"));
             _static._host(staticDatasourceSpecification.host);
             _static._port(staticDatasourceSpecification.port);
             _static._databaseName(staticDatasourceSpecification.databaseName);

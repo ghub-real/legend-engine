@@ -199,7 +199,7 @@ public class TestPersistenceContextCompilationFromGrammar extends TestCompilatio
                 "  }\n" +
                 "}\n" +
                 "\n" +
-                "###NonRelational\n" +
+                "###Relational\n" +
                 "Database test::Database\n" +
                 "(\n" +
                 "  Table personTable\n" +

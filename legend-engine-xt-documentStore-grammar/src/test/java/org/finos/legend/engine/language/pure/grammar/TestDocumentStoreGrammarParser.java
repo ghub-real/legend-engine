@@ -90,6 +90,19 @@ public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGramma
                 "[ \n" +
                 "mapping::document \n" +
                 "]; \n" +
+                "} \n" +
+                "###Connection \n" +
+                "DocumentStoreConnection connection::document \n" +
+                "{ \n" +
+                "store: store::documentStore; \n" +
+                "type: 'Mongo'; \n" +
+                "specification: MongoDB \n" +
+                "{ \n" +
+                "name: 'my_mongo'; \n" +
+                "host: 'host'; \n" +
+                "port: 27017; \n" +
+                "}; \n" +
+                "auth: DefaultMongo; \n" +
                 "}";
     }
 }

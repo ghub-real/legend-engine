@@ -32,3 +32,7 @@ Class meta::external::store::document::runtime::authentication::UserNamePassword
 Class meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy extends meta::external::store::document::runtime::authentication::AuthenticationStrategy
 {
 }
+
+Class meta::external::store::document::runtime::authentication::DefaultMongoAuthenticationStrategy extends meta::external::store::document::runtime::authentication::AuthenticationStrategy
+{
+}

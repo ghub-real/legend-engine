@@ -16,8 +16,10 @@ package org.finos.legend.engine.language.pure.compiler.toPureGraph;
 
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.AuthenticationStrategyVisitor;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.DefaultMongoAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
 import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_authentication_AuthenticationStrategy;
+import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_authentication_DefaultMongoAuthenticationStrategy_Impl;
 import org.finos.legend.pure.generated.Root_meta_external_store_document_runtime_authentication_TestDatabaseAuthenticationStrategy_Impl;
 
 public class AuthenticationStrategyBuilder implements AuthenticationStrategyVisitor<Root_meta_external_store_document_runtime_authentication_AuthenticationStrategy>
@@ -34,7 +36,11 @@ public class AuthenticationStrategyBuilder implements AuthenticationStrategyVisi
     {
         if (authenticationStrategy instanceof TestDatabaseAuthenticationStrategy)
         {
-            return new Root_meta_external_store_document_runtime_authentication_TestDatabaseAuthenticationStrategy_Impl("", null, context.pureModel.getClass("meta::pure::alloy::connections::alloy::authentication::TestDatabaseAuthenticationStrategy"));
+            return new Root_meta_external_store_document_runtime_authentication_TestDatabaseAuthenticationStrategy_Impl("", null, context.pureModel.getClass("meta::external::store::document::runtime::authentication::TestDatabaseAuthenticationStrategy"));
+        }
+        if (authenticationStrategy instanceof DefaultMongoAuthenticationStrategy)
+        {
+            return new Root_meta_external_store_document_runtime_authentication_DefaultMongoAuthenticationStrategy_Impl("", null, context.pureModel.getClass("meta::external::store::document::runtime::authentication::DefaultMongoAuthenticationStrategy"));
         }
         return null;
     }

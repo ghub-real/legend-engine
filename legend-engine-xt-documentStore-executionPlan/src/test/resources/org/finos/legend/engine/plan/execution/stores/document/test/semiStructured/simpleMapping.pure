@@ -28,12 +28,21 @@ DocumentStore simple::store::MongoDB(
 )
 
 ###Pure
-function mongo::semiStructured(): TabularDataSet[1]
+function mongo::semiStructured(): String[1]
 {
-    simple::model::Person.all()->project([
-        col(x | $x.firstName, 'First Name')
-
-    ])
+    simple::model::Person.all()->meta::pure::graphFetch::execution::graphFetch(
+        #{
+            simple::model::Person {
+                firstName
+            }
+        }#
+    )->meta::pure::graphFetch::execution::serialize(
+        #{
+            simple::model::Person {
+                firstName
+            }
+        }#
+    )
 }
 
 ###Mapping
@@ -49,13 +58,29 @@ Mapping simple::mapping::document
 ###Connection
 DocumentStoreConnection simple::connection::documentStoreConnection
 {
-    store: 'meta::external::store::document::tests::object::TestMongoStore';
+    store: simple::store::MongoDB;
     type: 'Mongo';
-    specification: Static
+    specification: MongoDB
     {
         name: 'my_mongo';
         host: 'localhost';
         port: 27017;
     };
-    auth: Test;
+    auth: DefaultMongo;
+}
+
+###Runtime
+Runtime simple::runtime::document
+{
+    mappings:
+    [
+        simple::mapping::document
+    ];
+    connections:
+    [
+        simple::store::MongoDB:
+        [
+            connection_1: simple::connection::documentStoreConnection
+        ]
+    ];
 }

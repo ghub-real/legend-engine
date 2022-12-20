@@ -16,26 +16,26 @@ package org.finos.legend.engine.language.pure.grammar.from.datasource;
 
 import org.finos.legend.engine.language.pure.grammar.from.PureGrammarParserUtility;
 import org.finos.legend.engine.language.pure.grammar.from.antlr4.connection.datasource.DataSourceSpecificationParserGrammar;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.MongoDBDatasourceSpecification;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification.StaticDatasourceSpecification;
 
 public class DataSourceSpecificationParseTreeWalker
 {
-//    public MongoDBDatasourceSpecification visitLocalH2DatasourceSpecification(DataSourceSpecificationSourceCode code, DataSourceSpecificationParserGrammar.LocalH2DatasourceSpecificationContext dbSpecCtx)
-//    {
-//        MongoDBDatasourceSpecification dsSpec = new MongoDBDatasourceSpecification();
-//        dsSpec.sourceInformation = code.getSourceInformation();
-//        // testDataSetupCsv
-//        DataSourceSpecificationParserGrammar.LocalH2DSPTestDataSetupCSVContext testDataSetupCSVCtx = PureGrammarParserUtility.validateAndExtractOptionalField(dbSpecCtx.localH2DSPTestDataSetupCSV(), "testDataSetupCsv", dsSpec.sourceInformation);
-//        if (testDataSetupCSVCtx != null)
-//        {
-//            dsSpec.testDataSetupCsv = PureGrammarParserUtility.fromGrammarString(testDataSetupCSVCtx.STRING().getText(), true);
-//        }
-//        if (dbSpecCtx.localH2DSPTestDataSetupSQLS() != null && !dbSpecCtx.localH2DSPTestDataSetupSQLS().isEmpty())
-//        {
-//            dsSpec.testDataSetupSqls = ListIterate.collect(dbSpecCtx.localH2DSPTestDataSetupSQLS().get(0).sqlsArray().STRING(), ctx -> PureGrammarParserUtility.fromGrammarString(ctx.getText(), true));
-//        }
-//        return dsSpec;
-//    }
+    public MongoDBDatasourceSpecification visitMongoDBDatasourceSpecification(DataSourceSpecificationSourceCode code, DataSourceSpecificationParserGrammar.LocalMongoDatasourceSpecificationContext dbSpecCtx)
+    {
+        MongoDBDatasourceSpecification dsSpec = new MongoDBDatasourceSpecification();
+        dsSpec.sourceInformation = code.getSourceInformation();
+        // host
+        DataSourceSpecificationParserGrammar.DbHostContext hostCtx = PureGrammarParserUtility.validateAndExtractRequiredField(dbSpecCtx.dbHost(), "host", dsSpec.sourceInformation);
+        dsSpec.host = PureGrammarParserUtility.fromGrammarString(hostCtx.STRING().getText(), true);
+        // port
+        DataSourceSpecificationParserGrammar.DbPortContext portCtx = PureGrammarParserUtility.validateAndExtractRequiredField(dbSpecCtx.dbPort(), "port", dsSpec.sourceInformation);
+        dsSpec.port = Integer.parseInt(portCtx.INTEGER().getText());
+        // database name
+        DataSourceSpecificationParserGrammar.DbNameContext nameCtx = PureGrammarParserUtility.validateAndExtractRequiredField(dbSpecCtx.dbName(), "name", dsSpec.sourceInformation);
+        dsSpec.databaseName = PureGrammarParserUtility.fromGrammarString(nameCtx.STRING().getText(), true);
+        return dsSpec;
+    }
 
     public StaticDatasourceSpecification visitStaticDatasourceSpecification(DataSourceSpecificationSourceCode code, DataSourceSpecificationParserGrammar.StaticDatasourceSpecificationContext dbSpecCtx)
     {

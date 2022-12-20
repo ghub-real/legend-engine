@@ -15,10 +15,18 @@
 package org.finos.legend.engine.language.pure.grammar.from.authentication;
 
 import org.finos.legend.engine.language.pure.grammar.from.antlr4.connection.authentication.AuthenticationStrategyParserGrammar;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.DefaultMongoAuthenticationStrategy;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.authentication.TestDatabaseAuthenticationStrategy;
 
 public class AuthenticationStrategyParseTreeWalker
 {
+    public DefaultMongoAuthenticationStrategy visitDefaultMongoAuthenticationStrategy(AuthenticationStrategySourceCode code, AuthenticationStrategyParserGrammar.DefaultMongoAuthContext authCtx)
+    {
+        DefaultMongoAuthenticationStrategy authStrategy = new DefaultMongoAuthenticationStrategy();
+        authStrategy.sourceInformation = code.getSourceInformation();
+        return authStrategy;
+    }
+
     public TestDatabaseAuthenticationStrategy visitTestDatabaseAuthenticationStrategy(AuthenticationStrategySourceCode code, AuthenticationStrategyParserGrammar.TestDBAuthContext authCtx)
     {
         TestDatabaseAuthenticationStrategy authStrategy = new TestDatabaseAuthenticationStrategy();
