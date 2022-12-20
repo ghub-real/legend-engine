@@ -38,11 +38,12 @@ public class DatasourceSpecificationBuilder implements DatasourceSpecificationVi
     {
         if (datasourceSpecification instanceof MongoDBDatasourceSpecification)
         {
-            MongoDBDatasourceSpecification localH2DatasourceSpecification = (MongoDBDatasourceSpecification) datasourceSpecification;
-            Root_meta_external_store_document_runtime_connections_MongoDBDatasourceSpecification local = new Root_meta_external_store_document_runtime_connections_MongoDBDatasourceSpecification_Impl("", null, context.pureModel.getClass("meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification"));
-//            local._testDataSetupCsv(localH2DatasourceSpecification.testDataSetupCsv);
-//            local._testDataSetupSqls(localH2DatasourceSpecification.testDataSetupSqls == null ? FastList.newList() : FastList.newList(localH2DatasourceSpecification.testDataSetupSqls));
-            return local;
+            MongoDBDatasourceSpecification mongoDBDatasourceSpecification = (MongoDBDatasourceSpecification) datasourceSpecification;
+            Root_meta_external_store_document_runtime_connections_MongoDBDatasourceSpecification _local = new Root_meta_external_store_document_runtime_connections_MongoDBDatasourceSpecification_Impl("", null, context.pureModel.getClass("meta::external::store::document::runtime::connections::MongoDBDatasourceSpecification"));
+            _local._host(mongoDBDatasourceSpecification.host);
+            _local._databaseName(mongoDBDatasourceSpecification.databaseName);
+            _local._port(mongoDBDatasourceSpecification.port);
+            return _local;
         }
         else if (datasourceSpecification instanceof StaticDatasourceSpecification)
         {

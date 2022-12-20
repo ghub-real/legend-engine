@@ -5,7 +5,6 @@ import CoreLexerGrammar;
 // -------------------------------------- KEYWORD --------------------------------------
 
 STORE:                                  'store';
-BASE_URL:                               'baseUrl';
 TYPE:                                   'type';
 NONRELATIONAL_DATASOURCE_SPEC:          'specification';
 NONRELATIONAL_AUTH_STRATEGY:            'auth';

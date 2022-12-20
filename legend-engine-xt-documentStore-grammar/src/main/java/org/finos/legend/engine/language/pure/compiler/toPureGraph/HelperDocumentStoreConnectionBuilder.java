@@ -23,24 +23,6 @@ import java.util.List;
 
 public class HelperDocumentStoreConnectionBuilder
 {
-    public static void addTestDataSetUp(org.finos.legend.pure.m3.coreinstance.meta.relational.runtime.TestDatabaseConnection test, String testDataSetupCsv, List<String> testDataSetupSqls)
-    {
-        if (testDataSetupCsv != null)
-        {
-            test._testDataSetupCsv(testDataSetupCsv);
-        }
-
-        if (testDataSetupSqls != null)
-        {
-            test._testDataSetupSqls(FastList.newList(testDataSetupSqls));
-        }
-    }
-
-    public static void addDocumentStoreConnectionProperties(Root_meta_external_store_document_runtime_connections_DocumentStoreConnection pureConnection, String element, String connectionType, String timeZone, Boolean quoteIdentifiers, CompileContext context)
-    {
-        addDocumentStoreConnectionProperties(pureConnection, element, null, connectionType, timeZone, quoteIdentifiers, context);
-    }
-
     public static void addDocumentStoreConnectionProperties(Root_meta_external_store_document_runtime_connections_DocumentStoreConnection pureConnection, String element, SourceInformation elementSourceInformation, String connectionType, String timeZone, Boolean quoteIdentifiers, CompileContext context)
     {
         Root_meta_external_store_document_runtime_connections_DocumentStoreConnection connection = pureConnection._type(context.pureModel.getEnumValue("meta::external::store::document::metamodel::runtime::DatabaseType", connectionType));
