@@ -20,6 +20,7 @@ import org.finos.legend.engine.protocol.pure.v1.model.context.EngineErrorType;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.section.DefaultCodeSection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.Collection;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.Collectionfragment;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.DocumentStore;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.Field;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.BooleanTypeReference;
@@ -28,6 +29,7 @@ import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.n
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.DoubleTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.IntegerTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.LongTypeReference;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.ObjectIdTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.ObjectTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.StringTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.TypeReference;
@@ -79,12 +81,24 @@ public class DocumentStoreParseTreeWalker
         collection.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
         collection.name = ctx.collectionIdentifier().identifier().getText();
         List<String> primaryKeys = new ArrayList<>();
-        collection.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitFieldDefinition(fieldDefinitionContext, primaryKeys));
+        collection.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitPropertyDefinition(fieldDefinitionContext, primaryKeys));
         collection.primaryKey = primaryKeys;
+        System.out.println(collection);
         return collection;
     }
 
-    private Field visitFieldDefinition(DocumentStoreParser.PropertyDefinitionContext ctx, List<String> primaryKeys)
+    private Collectionfragment visitCollectionfragment(DocumentStoreParser.CollectionfragmentContext ctx)
+    {
+        Collectionfragment collectionfragment = new Collectionfragment();
+        collectionfragment.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
+        collectionfragment.name = ctx.collectionIdentifier().identifier().getText();
+        List<String> primaryKeys = new ArrayList<>();
+        collectionfragment.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitPropertyDefinition(fieldDefinitionContext, primaryKeys));
+        System.out.println(collectionfragment);
+        return collectionfragment;
+    }
+
+    private Field visitPropertyDefinition(DocumentStoreParser.PropertyDefinitionContext ctx, List<String> primaryKeys)
     {
         Field field = new Field();
         field.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
@@ -103,9 +117,33 @@ public class DocumentStoreParseTreeWalker
             }
         }
         field.nullable = nullable;
-        field.type = this.visitTypeReference(ctx.typeReferenceDefinition());
-
+        if (ctx.arrayDefinition() != null)
+        {
+            field.type = this.visitArray(ctx.arrayDefinition());
+        }
+        else if (ctx.typeReferenceDefinition() != null)
+        {
+            field.type = this.visitTypeReference(ctx.typeReferenceDefinition());
+        }
         return field;
+    }
+
+    private TypeReference visitArray(DocumentStoreParser.ArrayDefinitionContext ctx)
+    {
+        TypeReference typeReference;
+        DocumentStoreParser.ElementsArrayContext typeCtx = ctx.elementsArray();
+        if (typeCtx.primitiveType() != null)
+        {
+            typeReference = this.createTypeReferenceFromType(typeCtx.primitiveType());
+        }
+        else
+        {
+            typeReference = new ObjectTypeReference();
+        }
+        typeReference.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
+        typeReference.list = true;
+
+        return typeReference;
     }
 
     private TypeReference visitTypeReference(DocumentStoreParser.TypeReferenceDefinitionContext ctx)
@@ -115,68 +153,76 @@ public class DocumentStoreParseTreeWalker
 
         if (typeCtx.complexType() != null)
         {
-            ObjectTypeReference objTypeReference = new ObjectTypeReference();
-            objTypeReference.type = PureGrammarParserUtility.fromQualifiedName(typeCtx.complexType().collectionFragmentPointer().qualifiedName().packagePath() == null ? Collections.emptyList() :
-                            typeCtx.complexType().collectionFragmentPointer().qualifiedName().packagePath().identifier(),
-                    typeCtx.complexType().collectionFragmentPointer().qualifiedName().identifier());
+            DocumentStoreParser.ComplexTypeContext complexTypeCtx = typeCtx.complexType();
+            if (complexTypeCtx.collectionfragmentPointer() != null)
+            {
+                ObjectTypeReference objTypeReference = new ObjectTypeReference();
+                objTypeReference.type = ObjectTypeReference.COMPLEXTYPE.COLLECTION_FRAGMENT_POINTER;
+                // Might need two pass if it is pointer
+                typeReference = objTypeReference;
+            }
+            else
+            {
+                // complexTypeCtx.collectionfragment() != null scenario
+                ObjectTypeReference objTypeReference = new ObjectTypeReference();
+                objTypeReference.fragment = this.visitCollectionfragment(complexTypeCtx.collectionfragment());
+                objTypeReference.type = ObjectTypeReference.COMPLEXTYPE.COLLECTION_FRAGMENT;
+                typeReference = objTypeReference;
+            }
 
-            typeReference = objTypeReference;
         }
         else
         {
-            String type = PureGrammarParserUtility.fromIdentifier(typeCtx.primitiveType().identifier());
-            switch (type)
-            {
-                case "Boolean":
-                {
-                    typeReference = new BooleanTypeReference();
-                    break;
-                }
-                case "Date":
-                {
-                    typeReference = new DateTypeReference();
-                    break;
-                }
-                case "Decimal":
-                {
-                    typeReference = new DecimalTypeReference();
-                    break;
-                }
-                case "Double":
-                {
-                    typeReference = new DoubleTypeReference();
-                    break;
-                }
-                case "Integer":
-                {
-                    typeReference = new IntegerTypeReference();
-                    break;
-                }
-                case "Long":
-                {
-                    typeReference = new LongTypeReference();
-                    break;
-                }
-                case "String":
-                {
-                    typeReference = new StringTypeReference();
-                    break;
-                }
-                case "ObjectId":
-                {
-                    typeReference = new ObjectTypeReference();
-                    break;
-                }
-                default:
-                {
-                    throw new EngineException("Unsupported Parameter Value Type - " + type + ". Supported types are - Boolean, Date, Decimal, Double, Integer, Long, ObjectType, String", this.walkerSourceInformation.getSourceInformation(typeCtx), EngineErrorType.PARSER);
-                }
-            }
+            typeReference = this.createTypeReferenceFromType(typeCtx.primitiveType());
         }
-
         typeReference.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
         typeReference.list = ctx.listType() != null;
 
         return typeReference;
     }
+
+    private TypeReference createTypeReferenceFromType(DocumentStoreParser.PrimitiveTypeContext typeCtx)
+    {
+        String type = PureGrammarParserUtility.fromIdentifier(typeCtx.identifier());
+        switch (type)
+        {
+            case "Boolean":
+            {
+                return new BooleanTypeReference();
+            }
+            case "Date":
+            {
+                return new DateTypeReference();
+            }
+            case "Decimal":
+            {
+                return new DecimalTypeReference();
+            }
+            case "Double":
+            {
+                return new DoubleTypeReference();
+            }
+            case "Integer":
+            {
+                return new IntegerTypeReference();
+            }
+            case "Long":
+            {
+                return new LongTypeReference();
+            }
+            case "String":
+            {
+                return new StringTypeReference();
+            }
+            case "ObjectId":
+            {
+                return new ObjectIdTypeReference();
+            }
+            default:
+            {
+                throw new EngineException("Unsupported Parameter Value Type - " + type + ". Supported types are - Boolean, Date, Decimal, Double, Integer, Long, ObjectType, String", this.walkerSourceInformation.getSourceInformation(typeCtx), EngineErrorType.PARSER);
+            }
+        }
+    }
+
 }
