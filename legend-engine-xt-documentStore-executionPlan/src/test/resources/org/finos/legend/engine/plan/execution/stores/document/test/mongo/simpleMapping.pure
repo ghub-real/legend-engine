@@ -28,7 +28,7 @@ DocumentStore simple::store::MongoDB(
 )
 
 ###Pure
-function mongo::semiStructured(): String[1]
+function mongo::document::test(): String[1]
 {
     simple::model::Person.all()->meta::pure::graphFetch::execution::graphFetch(
         #{

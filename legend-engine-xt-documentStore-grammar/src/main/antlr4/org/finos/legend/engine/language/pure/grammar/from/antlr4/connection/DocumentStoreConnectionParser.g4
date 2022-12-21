@@ -26,6 +26,7 @@ definition:                                 (
                                                      | nonRelationalDBAuth
                                                      | nonRelationalDBDatasourceSpec
                                                  )*
+                                                 EOF
 ;
 connectionStore:                        STORE COLON qualifiedName SEMI_COLON
 ;

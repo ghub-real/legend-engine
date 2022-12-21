@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.plan.execution.stores.document.test.semiStructured;
+package org.finos.legend.engine.plan.execution.stores.document.test.document;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestSemiStructuredMapping extends AbstractTestSemiStructured
+public class TestDocumentMapping extends AbstractTestDocument
 {
 
     private static final String documentMapping = "simple::mapping::document";
     private static final String documentRuntime = "simple::runtime::document";
 
     @Test
-    public void testSingleMapping()
+    public void testDocumentMapping()
     {
-        String actualMongoPlan = this.buildExecutionPlanString("mongo::semiStructured", documentMapping, documentRuntime);
+        String actualMongoPlan = this.buildExecutionPlanString("mongo::document::test", documentMapping, documentRuntime);
         String expectedMongoPlan = "";
 
         Assert.assertEquals(true, true);
@@ -34,6 +34,6 @@ public class TestSemiStructuredMapping extends AbstractTestSemiStructured
 
     public String modelResourcePath()
     {
-        return "/org/finos/legend/engine/plan/execution/stores/document/test/semiStructured/simpleMapping.pure";
+        return "/org/finos/legend/engine/plan/execution/stores/document/test/mongo/simpleMapping.pure";
     }
 }

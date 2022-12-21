@@ -89,3 +89,22 @@ collectionFragmentPointer: COLLECTIONFRAGMENT qualifiedName
 //packagePath:                                    identifier (PATH_SEPARATOR identifier)*
 //;
 
+//// -------------------------------------- DOCUMENT STORE MAPPING --------------------------------------
+//
+//mapping:                                    mappingPrimaryKey?
+//                                            mappingMainCollection?
+//;
+//
+//mappingPrimaryKey:                          PRIMARY_KEY_CMD
+//                                                PAREN_OPEN
+//                                                    (operation (COMMA operation)*)?
+//                                                PAREN_CLOSE
+//;
+//
+//mappingMainCollection:                     MAINCOLLECTION_CMD databasePointer mappingScopeInfo
+//;
+//
+//// -------------------------------------- BUILDING BLOCK --------------------------------------
+//
+//databasePointer:                            BRACKET_OPEN qualifiedName BRACKET_CLOSE
+//;
