@@ -23,14 +23,14 @@ public class TestDocumentMapping extends AbstractTestDocument
     private static final String documentMapping = "simple::mapping::document";
     private static final String documentRuntime = "simple::runtime::document";
 
-    @Test
-    public void testDocumentMapping()
-    {
-        String actualMongoPlan = this.buildExecutionPlanString("mongo::document::test", documentMapping, documentRuntime);
-        String expectedMongoPlan = "";
-
-        Assert.assertEquals(true, true);
-    }
+//    @Test
+//    public void testDocumentMapping()
+//    {
+//        String actualMongoPlan = this.buildExecutionPlanString("mongo::document::test", documentMapping, documentRuntime);
+//        String expectedMongoPlan = "";
+//
+//        Assert.assertEquals(true, true);
+//    }
 
     public String modelResourcePath()
     {
