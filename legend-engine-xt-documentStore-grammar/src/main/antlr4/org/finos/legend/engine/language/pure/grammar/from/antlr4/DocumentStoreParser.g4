@@ -60,7 +60,7 @@ propertyDefinitions: propertyDefinition (COMMA propertyDefinition)*
 
 propertyDefinition:
     propertyIdentifier
-    typeReferenceDefinition (PRIMARY_KEY | NOT_NULL)?
+    (typeReferenceDefinition (PRIMARY_KEY | NOT_NULL)? | arrayDefinition)
 ;
 
 collectionIdentifier: identifier
@@ -75,12 +75,26 @@ type: ( primitiveType | complexType)
 ;
 primitiveType: identifier
 ;
-complexType: (collectionfragment | collectionFragmentPointer)
+complexType: (collectionfragment | collectionfragmentPointer )
 ;
 listType: ( BRACKET_OPEN type BRACKET_CLOSE )
 ;
 
-collectionFragmentPointer: COLLECTIONFRAGMENT qualifiedName
+elementsArray:  PAREN_OPEN
+                    (primitiveType | collectionfragment | collectionfragmentPointer)?
+                PAREN_CLOSE
+;
+
+arrayDefinition: ARRAY elementsArray
+;
+
+objectDefinition: OBJECT
+                    BRACE_OPEN
+                    propertyDefinitions
+                    BRACE_CLOSE
+;
+
+collectionfragmentPointer: COLLECTIONFRAGMENT qualifiedName
 ;
 
 //qualifiedName: (packagePath PATH_SEPARATOR)? identifier

@@ -23,28 +23,6 @@ import java.util.List;
 
 public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGrammarParserTestSuite
 {
-    private static final String TEST_DOCUMENT_MODEL = "###Pure\n" +
-            "Class Person \n" +
-            "{ \n" +
-            "   name: String[1]; \n" +
-            "   city: String[1]; \n" +
-            "} \n" +
-            "###NonRelational \n" +
-            "DocumentStore database::mongo::db \n" +
-            "( \n" +
-            "Collection Person\n" +
-            "( \n" +
-            "personName String, \n" +
-            "_id ObjectId \n" +
-            ") \n" +
-            "Collection Firm\n" +
-            "( \n" +
-            "firmName String, \n" +
-            "_id ObjectId PRIMARY KEY\n" +
-            ") \n" +
-            ") \n" +
-            "###Mapping";
-
     @Override
     public Vocabulary getParserGrammarVocabulary()
     {
@@ -66,7 +44,16 @@ public class TestDocumentStoreGrammarParser extends TestGrammarParser.TestGramma
                 "Collection Person\n" +
                 "( \n" +
                 "personName String, \n" +
-                "_id ObjectId \n" +
+                "_id ObjectId, \n" +
+                "otherNames [String], \n" +
+                "altIds Array(String),  \n" +
+                "singleObject CollectionFragment PersonSingleObject ( \n" +
+                "prop1 String, \n" +
+                "prop2 [String], \n" +
+                "nestedObject CollectionFragment PersonNestedObject ( \n" +
+                "prop3 Integer" +
+                ")" +
+                ") \n" +
                 ") \n" +
                 "Collection Firm\n" +
                 "( \n" +
