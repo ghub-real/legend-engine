@@ -18,15 +18,15 @@ identifier:                             VALID_STRING | STRING
 
 // -------------------------------------- DEFINITION -------------------------------------
 
-definition:                             (
-                                            connectionStore
-                                            | dbType
-                                            | dbConnectionTimezone
-                                            | dbQuoteIdentifiers
-                                            | nonRelationalDBAuth
-                                            | nonRelationalDBDatasourceSpec
-                                        )*
-                                        EOF
+definition:                                 (
+                                                     connectionStore
+                                                     | dbType
+                                                     | dbConnectionTimezone
+                                                     | dbQuoteIdentifiers
+                                                     | nonRelationalDBAuth
+                                                     | nonRelationalDBDatasourceSpec
+                                                 )*
+                                                 EOF
 ;
 connectionStore:                        STORE COLON qualifiedName SEMI_COLON
 ;

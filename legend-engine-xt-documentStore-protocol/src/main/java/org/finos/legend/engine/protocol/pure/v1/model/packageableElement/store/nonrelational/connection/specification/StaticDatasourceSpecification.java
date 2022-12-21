@@ -12,24 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.relational.connection.specification;
+package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.connection.specification;
 
-import java.util.List;
-
-public class LocalMongoDatasourceSpecification extends DatasourceSpecification
+public class StaticDatasourceSpecification extends DatasourceSpecification
 {
-    public String testDataSetupCsv;
-    public List<String> testDataSetupSqls;
-
-    public LocalMongoDatasourceSpecification()
-    {
-    }
-
-    public LocalMongoDatasourceSpecification(String testDataSetupCsv, List<String> testDataSetupSqls)
-    {
-        this.testDataSetupCsv = testDataSetupCsv;
-        this.testDataSetupSqls = testDataSetupSqls;
-    }
+    public String host;
+    public int port;
+    public String databaseName;
 
     @Override
     public <T> T accept(DatasourceSpecificationVisitor<T> datasourceSpecificationVisitor)
