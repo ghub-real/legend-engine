@@ -2,47 +2,86 @@
 
 
 ## Domain Model
+
+```
 ###Pure
 
+Class demo::domain::Person
+{
+    firstName: String[1];
+    lastName: String[1];
+    otherNames: String[*];
+    govtIdentities: GovernmentIdentity[*];
+}
 
->`Class demo::domain::Person` \
-`{` \
-    `firstName: String[1];`\
-    `lastName: String[1];`\
-    `otherNames: String[*];`\
-`}`
+Class demo::domain::Firm
+{
+    EntityId: Integer[1];
+    LegalName: String[1];
+    address: demo::domain::Address[0..1];
+    employees: foo::domain::Employee[*];
+}
 
-`Class demo::domain::Firm
-`{
-`id: Integer[1];
-`legalName: String[1];
-`employees: foo::domain::Person[*];
-`}
+Class demo::domain::Address
+{   
+    city: String[1];
+    country: String[1];
+}
 
+Class demo::domain::Employee extends demo::domain::Person
+{   
+    department: String[1];
+    email: String[1];
+}
+
+Class demo::domain::GovernmentIdentity
+{
+    type: String[1];
+    value: String[1];
+    issuerCountry: String[1];
+}
+```
 
 ## Store Model
+Document Store models define the physical document layout.  The collectionfragment construct allows for reuse of same node in different parts of the document.
+Below is defintion of a single collection, with object nodes defined as collectionfragments.
+```
+###DocumentStore
 
->`###DocumentStore` \
-`Database demo::database::Mongo` \
-`(` \
-    `&nbsp;&nbsp;&nbsp;&nbsp;Document Firm` \
-    `&nbsp;&nbsp;&nbsp;&nbsp;(`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;_id: objectId;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;firmId: long;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;location: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;address : object (`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;    city: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;    country: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;)`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;employee: employeeNode;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;govIdentifier: array( object  ( type: string, value: string: country: string ) )`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;)`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;DocumentFragment employeeNode`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;(`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;_id: objectId;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;dept: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;name: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;email: string;`\
-    `&nbsp;&nbsp;&nbsp;&nbsp;)`\
-`)`\
+DocumentStore demo::database::Mongo 
+(
+    Collection Firm
+    (
+        _id ObjectId,
+        firmId Long,
+        legalName String,
+        location String,
+        address Collectionfragment AddressNode,
+        employees Array( Collectionfragment EmployeeNode )
+    )
+    
+    Collectionfragment AddressNode
+    (
+        city String,
+        country String
+    )
+    
+    Collectionfragment EmployeeNode
+    (
+        _id ObjectId,
+        dept String,
+        email String
+        fName String,
+        lName String,
+        oNames Array( String ),
+        govtIds Array( Collectionfragment GovtIdentifier )
+    )
+    
+    Collectionfragment GovtIdentifier
+    (
+        type String, 
+        value String,
+        country String
+    )
+)
+```
