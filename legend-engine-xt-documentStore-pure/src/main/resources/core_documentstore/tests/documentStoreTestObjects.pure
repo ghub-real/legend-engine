@@ -35,7 +35,7 @@ function <<access.private>> meta::external::store::document::tests::object::Test
    let docCollection = [
            ^meta::external::store::document::metamodel::Collection(
              id='101',
-             name='persons',
+             name='person',
              fields = $allPersonFields
            ),
            ^meta::external::store::document::metamodel::Collection(
@@ -130,8 +130,8 @@ function <<access.private>> meta::external::store::document::tests::object::Test
 
 
    let personCollectionAlias = ^meta::external::store::document::metamodel::CollectionAlias(
-                name = 'persons',
-                documentElement = $mongoStore.collections->filter(p | $p.name == 'persons')->toOne(),
+                name = 'person',
+                documentElement = $mongoStore.collections->filter(p | $p.name == 'person')->toOne(),
                 documentStore=$mongoStore
                 );
 

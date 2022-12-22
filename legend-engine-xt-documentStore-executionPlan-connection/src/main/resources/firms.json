@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "legalName": "Corp A",
+    "nickName": "A"
+  },
+  {
+    "id": 2,
+    "legalName": "Corp B",
+    "nickName": "B"
+  },
+  {
+    "id": 3,
+    "legalName": "Corp C",
+    "nickName": "C"
+  }
+]

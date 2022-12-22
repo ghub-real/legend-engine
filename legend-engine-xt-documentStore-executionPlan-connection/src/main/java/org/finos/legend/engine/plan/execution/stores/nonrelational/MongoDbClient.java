@@ -19,46 +19,50 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LocalMongoDbClient implements NonRelationalClient
+public class MongoDbClient implements NonRelationalClient
 {
+
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(MongoDbClient.class);
+    private final MongoClient mongoClient;
+    private static final String DEFAULT_MONGO_HOSTNAME = "localhost";
+    private static final int DEFAULT_MONGO_PORT = 27017;
     private static final String DEFAULT_DATABASE_NAME = "my_database";
+    private static final String CONNECTION_STRING_TEMPLATE = "mongodb://%s:%s";
 
-    MongoClient client;
-    private final String clientUri;
-
-    public LocalMongoDbClient()
+    public MongoDbClient()
     {
-        this("mongodb://localhost:27017");
+        this("mongodb://" + DEFAULT_MONGO_HOSTNAME + ":" + DEFAULT_MONGO_PORT);
     }
 
-    public LocalMongoDbClient(String uri)
+    public MongoDbClient(int port)
     {
-        // handle custom config etc
-        clientUri = uri;
-        client = MongoClients.create(clientUri);
+        this(String.format(CONNECTION_STRING_TEMPLATE, DEFAULT_MONGO_HOSTNAME, port));
+    }
+
+    public MongoDbClient(String hostname, int port)
+    {
+        this(String.format(CONNECTION_STRING_TEMPLATE, hostname, port));
+    }
+
+    public MongoDbClient(String connectionString)
+    {
+        this.mongoClient = MongoClients.create(connectionString);
     }
 
     @Override
     public MongoClient getMongoDBClient()
     {
-        return client;
+        return this.mongoClient;
     }
-
-
-    private MongoDatabase getDefaultDB()
-    {
-        return this.client.getDatabase(DEFAULT_DATABASE_NAME);
-    }
-
 
     private List<String> executeNativeQueryWithCursor(MongoDatabase database, String query)
     {
         List<String> res = new ArrayList<>();
-
         try
         {
             Document bsonCmd = Document.parse(query);
@@ -74,21 +78,28 @@ public class LocalMongoDbClient implements NonRelationalClient
         }
         catch (Exception e)
         {
-            System.out.println(e.toString());
+            LOGGER.error("Failed to execute Mongo native query {}", e);
         }
 
         return res;
     }
 
+    private MongoDatabase getDefaultDB()
+    {
+        return this.mongoClient.getDatabase(DEFAULT_DATABASE_NAME);
+    }
 
     public List<String> executeNativeQuery(String mongoQuery)
     {
-
         MongoDatabase database = this.getDefaultDB();
         List<String> results = executeNativeQueryWithCursor(database, mongoQuery);
 
         return results;
     }
 
-
+    @Override
+    public void shutDown()
+    {
+        this.mongoClient.close();
+    }
 }

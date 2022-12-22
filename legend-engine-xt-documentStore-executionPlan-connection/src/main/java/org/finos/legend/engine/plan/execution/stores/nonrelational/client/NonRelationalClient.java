@@ -24,4 +24,6 @@ public interface NonRelationalClient
     // NonRelationalClient buildNonRelationalClient(Identity identity, String connectionUri);
 
     List<String> executeNativeQuery(String mongoQuery);
+
+    void shutDown();
 }

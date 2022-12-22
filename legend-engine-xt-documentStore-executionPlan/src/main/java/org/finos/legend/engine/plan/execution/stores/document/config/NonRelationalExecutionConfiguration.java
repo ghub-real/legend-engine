@@ -72,7 +72,7 @@ public class NonRelationalExecutionConfiguration implements StoreExecutorConfigu
         public List<OAuthProfile> oauthProfiles = Lists.mutable.empty();
         private Class<? extends DatabaseAuthenticationFlowProvider> flowProviderClass;
         private DatabaseAuthenticationFlowProviderConfiguration flowProviderConfiguration;
-        private TemporaryTestDbConfiguration temporaryTestDbConfiguration;
+        private TemporaryTestDbConfiguration temporaryTestDbConfiguration = null;
 
         public Builder withTempPath(String tempPath)
         {

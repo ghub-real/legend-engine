@@ -40,7 +40,7 @@ public class DocumentResultSetImpl implements DocumentResultSet
     {
         try
         {
-            return Optional.of(mapper.readTree(results.get(currentRow)).get(jsonPath));
+            return Optional.ofNullable(mapper.readTree(results.get(currentRow)).get(jsonPath));
         }
         catch (Exception e)
         {

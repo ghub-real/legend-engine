@@ -15,6 +15,7 @@
 package org.finos.legend.engine.server;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import de.bwaldvogel.mongo.MongoServer;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -66,8 +67,10 @@ import org.finos.legend.engine.plan.execution.service.api.ServiceModelingApi;
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelational;
 import org.finos.legend.engine.plan.execution.stores.document.plugin.NonRelationalStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
-import org.finos.legend.engine.plan.execution.stores.nonrelational.LocalMongoDbClient;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.AlloyMongoServer;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbClient;
 import org.finos.legend.engine.plan.execution.stores.nonrelational.MongoDbResource;
+import org.finos.legend.engine.plan.execution.stores.nonrelational.client.NonRelationalClient;
 import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
 import org.finos.legend.engine.plan.execution.stores.relational.api.RelationalExecutorInformation;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.api.schema.SchemaExplorationApi;
@@ -123,6 +126,9 @@ public class Server<T extends ServerConfiguration> extends Application<T>
     private Environment environment;
 
     private org.h2.tools.Server h2Server;
+
+    private MongoServer mongoServer;
+    private NonRelationalClient nonRelationalClient;
 
     public static void main(String[] args) throws Exception
     {
@@ -229,9 +235,17 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new ExecutePlanStrategic(planExecutor));
         environment.jersey().register(new ExecutePlanLegacy(planExecutor));
 
-        // goncah MongoDB
-        LocalMongoDbClient mongoDbClient = new LocalMongoDbClient();
-        environment.jersey().register(new MongoDbResource(mongoDbClient));
+
+        // MongoDB
+
+        if (serverConfiguration.nonrelationalexecution.temporarytestdb != null && serverConfiguration.nonrelationalexecution.temporarytestdb.port > 0)
+        {
+            this.mongoServer = AlloyMongoServer.startServer(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            this.nonRelationalClient = new MongoDbClient(serverConfiguration.nonrelationalexecution.temporarytestdb.port);
+            MongoDbResource mongoDbResource = new MongoDbResource(this.nonRelationalClient);
+            mongoDbResource.populateData();
+            environment.jersey().register(mongoDbResource);
+        }
 
         // GraphQL
         environment.jersey().register(new GraphQLGrammar());
@@ -261,7 +275,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new Testable(modelManager));
 
         // localh2server on 9092
-        // this.setupLocalH2Db();
+        this.setupLocalH2Db();
 
         enableCors(environment);
     }
@@ -276,6 +290,8 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     public void shutDown() throws Exception
     {
+        this.mongoServer.shutdown();
+        this.nonRelationalClient.shutDown();
         this.environment.getApplicationContext().getServer().stop();
         CollectorRegistry.defaultRegistry.clear();
     }
