@@ -107,9 +107,13 @@ Class meta::external::store::document::metamodel::ObjectIdTypeReference extends 
 {
 }
 
-Class meta::external::store::document::metamodel::ObjectTypeReference extends meta::external::store::document::metamodel::CoreDataType
+Class {doc.doc = 'Used to map the re-usable document fragments'} meta::external::store::document::metamodel::FragmentTypeReference extends meta::external::store::document::metamodel::CoreDataType
 {
-   type    : Class<Any>[1];
+   fragment : meta::external::store::document::metamodel::CollectionFragment[1];
+}
+
+Class {doc.doc = 'This type is treated as a json-blob & can be queried only as a JSONElement'} meta::external::store::document::metamodel::ObjectTypeReference extends meta::external::store::document::metamodel::CoreDataType
+{
 }
 
 
