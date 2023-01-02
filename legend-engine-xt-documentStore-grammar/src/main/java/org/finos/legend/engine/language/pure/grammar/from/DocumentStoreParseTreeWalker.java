@@ -20,10 +20,11 @@ import org.finos.legend.engine.protocol.pure.v1.model.context.EngineErrorType;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.PackageableElement;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.section.DefaultCodeSection;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.Collection;
-import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.Collectionfragment;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.CollectionFragment;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.DocumentStore;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.Field;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.BooleanTypeReference;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.CollectionFragmentReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.DateTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.DecimalTypeReference;
 import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype.DoubleTypeReference;
@@ -38,7 +39,10 @@ import org.finos.legend.engine.shared.core.operational.errorManagement.EngineExc
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DocumentStoreParseTreeWalker
 {
@@ -71,34 +75,36 @@ public class DocumentStoreParseTreeWalker
         documentStore.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
         documentStore.includedStores = ListIterate.collect(ctx.include(), includeContext -> PureGrammarParserUtility.fromQualifiedName(includeContext.qualifiedName().packagePath() == null ? Collections.emptyList() : includeContext.qualifiedName().packagePath().identifier(), includeContext.qualifiedName().identifier()));
         // No need for schemas here
-        List<Collection> tables = ListIterate.collect(ctx.collection(), this::visitCollection);
+        Map<String, CollectionFragment> fragments = ctx.collectionFragment().stream().map(frag -> this.visitCollectionfragment(frag, Collections.EMPTY_MAP)).collect(Collectors.toMap(CollectionFragment::getName, Function.identity()));
+
+        List<Collection> collections = ctx.collection().stream().map(col -> this.visitCollection(col, fragments)).collect(Collectors.toList());
         return documentStore;
     }
 
-    private Collection visitCollection(DocumentStoreParser.CollectionContext ctx)
+    private Collection visitCollection(DocumentStoreParser.CollectionContext ctx, Map<String, CollectionFragment> fragments)
     {
         Collection collection = new Collection();
         collection.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
         collection.name = ctx.collectionIdentifier().identifier().getText();
         List<String> primaryKeys = new ArrayList<>();
-        collection.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitPropertyDefinition(fieldDefinitionContext, primaryKeys));
+        collection.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitPropertyDefinition(fieldDefinitionContext, primaryKeys, fragments));
         collection.primaryKey = primaryKeys;
         System.out.println(collection);
         return collection;
     }
 
-    private Collectionfragment visitCollectionfragment(DocumentStoreParser.CollectionfragmentContext ctx)
+    private CollectionFragment visitCollectionfragment(DocumentStoreParser.CollectionFragmentContext ctx, Map<String, CollectionFragment> fragments)
     {
-        Collectionfragment collectionfragment = new Collectionfragment();
+        CollectionFragment collectionfragment = new CollectionFragment();
         collectionfragment.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
-        collectionfragment.name = ctx.collectionIdentifier().identifier().getText();
+        collectionfragment.name = ctx.collectionFragmentIdentifier().identifier().getText();
         List<String> primaryKeys = new ArrayList<>();
-        collectionfragment.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitPropertyDefinition(fieldDefinitionContext, primaryKeys));
+        collectionfragment.fields = ListIterate.collect(ctx.propertyDefinitions().propertyDefinition(), fieldDefinitionContext -> this.visitPropertyDefinition(fieldDefinitionContext, primaryKeys, fragments));
         System.out.println(collectionfragment);
         return collectionfragment;
     }
 
-    private Field visitPropertyDefinition(DocumentStoreParser.PropertyDefinitionContext ctx, List<String> primaryKeys)
+    private Field visitPropertyDefinition(DocumentStoreParser.PropertyDefinitionContext ctx, List<String> primaryKeys, Map<String, CollectionFragment> fragments)
     {
         Field field = new Field();
         field.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
@@ -119,66 +125,72 @@ public class DocumentStoreParseTreeWalker
         field.nullable = nullable;
         if (ctx.arrayDefinition() != null)
         {
-            field.type = this.visitArray(ctx.arrayDefinition());
+            field.type = this.visitArray(ctx.arrayDefinition(), fragments);
         }
         else if (ctx.typeReferenceDefinition() != null)
         {
-            field.type = this.visitTypeReference(ctx.typeReferenceDefinition());
+            field.type = this.visitTypeDefinitionReference(ctx.typeReferenceDefinition(), fragments);
         }
         return field;
     }
 
-    private TypeReference visitArray(DocumentStoreParser.ArrayDefinitionContext ctx)
+    private TypeReference visitArray(DocumentStoreParser.ArrayDefinitionContext ctx, Map<String, CollectionFragment> fragments)
     {
         TypeReference typeReference;
-        DocumentStoreParser.ElementsArrayContext typeCtx = ctx.elementsArray();
+        DocumentStoreParser.TypeContext typeCtx = ctx.elementsArray().type();
+        typeReference = visitTypeReference(typeCtx, fragments);
+        typeReference.list = true;
+        return typeReference;
+    }
+
+    private TypeReference visitTypeDefinitionReference(DocumentStoreParser.TypeReferenceDefinitionContext ctx, Map<String, CollectionFragment> fragments)
+    {
+        TypeReference typeReference;
+        DocumentStoreParser.TypeContext typeCtx = ctx.type() != null ? ctx.type() : ctx.listType().type();
+        typeReference = visitTypeReference(typeCtx, fragments);
+        typeReference.list = ctx.listType() != null;
+        return typeReference;
+    }
+
+    private TypeReference visitTypeReference(DocumentStoreParser.TypeContext typeCtx, Map<String, CollectionFragment> fragments)
+    {
+        TypeReference typeReference;
         if (typeCtx.primitiveType() != null)
         {
             typeReference = this.createTypeReferenceFromType(typeCtx.primitiveType());
         }
         else
         {
-            typeReference = new ObjectTypeReference();
+            typeReference = this.visitComplexTypeReference(typeCtx.complexType(), fragments);
         }
-        typeReference.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
-        typeReference.list = true;
 
+        typeReference.sourceInformation = this.walkerSourceInformation.getSourceInformation(typeCtx);
         return typeReference;
     }
 
-    private TypeReference visitTypeReference(DocumentStoreParser.TypeReferenceDefinitionContext ctx)
+    private TypeReference visitComplexTypeReference(DocumentStoreParser.ComplexTypeContext cplxTypeCtx, Map<String, CollectionFragment> fragments)
     {
-        TypeReference typeReference;
-        DocumentStoreParser.TypeContext typeCtx = ctx.type() != null ? ctx.type() : ctx.listType().type();
-
-        if (typeCtx.complexType() != null)
+        if (cplxTypeCtx.collectionFragment() != null)
         {
-            DocumentStoreParser.ComplexTypeContext complexTypeCtx = typeCtx.complexType();
-            if (complexTypeCtx.collectionfragmentPointer() != null)
-            {
-                ObjectTypeReference objTypeReference = new ObjectTypeReference();
-                objTypeReference.type = ObjectTypeReference.COMPLEXTYPE.COLLECTION_FRAGMENT_POINTER;
-                // Might need two pass if it is pointer
-                typeReference = objTypeReference;
-            }
-            else
-            {
-                // complexTypeCtx.collectionfragment() != null scenario
-                ObjectTypeReference objTypeReference = new ObjectTypeReference();
-                objTypeReference.fragment = this.visitCollectionfragment(complexTypeCtx.collectionfragment());
-                objTypeReference.type = ObjectTypeReference.COMPLEXTYPE.COLLECTION_FRAGMENT;
-                typeReference = objTypeReference;
-            }
-
+            CollectionFragmentReference cfReference = new CollectionFragmentReference();
+            cfReference.fragment = this.visitCollectionfragment(cplxTypeCtx.collectionFragment(), fragments);
+            cfReference.type = CollectionFragmentReference.COMPLEXTYPE.COLLECTION_FRAGMENT;
+            return cfReference;
         }
         else
         {
-            typeReference = this.createTypeReferenceFromType(typeCtx.primitiveType());
+            // Pointer to Fragment
+            CollectionFragmentReference cfReference = new CollectionFragmentReference();
+            String cfName = PureGrammarParserUtility.fromIdentifier(cplxTypeCtx.collectionFragmentPointer().qualifiedName().identifier());
+            String cfPackage = cplxTypeCtx.collectionFragmentPointer().qualifiedName().packagePath() == null ? "" : PureGrammarParserUtility.fromPath(cplxTypeCtx.collectionFragmentPointer().qualifiedName().packagePath().identifier());
+            String pathToFragment = cfPackage + "::" + cfName;
+            cfReference.fragment = fragments.computeIfAbsent(pathToFragment, p ->
+            {
+                throw new EngineException("Collection fragment referenced: " + p + " does not exist in scope", this.walkerSourceInformation.getSourceInformation(cplxTypeCtx), EngineErrorType.PARSER);
+            });
+            cfReference.type = CollectionFragmentReference.COMPLEXTYPE.COLLECTION_FRAGMENT;
+            return cfReference;
         }
-        typeReference.sourceInformation = this.walkerSourceInformation.getSourceInformation(ctx);
-        typeReference.list = ctx.listType() != null;
-
-        return typeReference;
     }
 
     private TypeReference createTypeReferenceFromType(DocumentStoreParser.PrimitiveTypeContext typeCtx)
@@ -218,9 +230,13 @@ public class DocumentStoreParseTreeWalker
             {
                 return new ObjectIdTypeReference();
             }
+            case "Object":
+            {
+                return new ObjectTypeReference();
+            }
             default:
             {
-                throw new EngineException("Unsupported Parameter Value Type - " + type + ". Supported types are - Boolean, Date, Decimal, Double, Integer, Long, ObjectType, String", this.walkerSourceInformation.getSourceInformation(typeCtx), EngineErrorType.PARSER);
+                throw new EngineException("Unsupported Parameter Value Type - " + type + ". Supported types are - Boolean, Date, Decimal, Double, Integer, Long, String, ObjectId, Object", this.walkerSourceInformation.getSourceInformation(typeCtx), EngineErrorType.PARSER);
             }
         }
     }

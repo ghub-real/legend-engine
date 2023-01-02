@@ -32,7 +32,7 @@ documentStore:
         include*
         (
         collection |
-        collectionfragment
+        collectionFragment
         )*
     PAREN_CLOSE
 ;
@@ -48,8 +48,8 @@ collection:
     PAREN_CLOSE
 ;
 
-collectionfragment:
-    COLLECTIONFRAGMENT collectionIdentifier
+collectionFragment:
+    COLLECTIONFRAGMENT collectionFragmentIdentifier
     PAREN_OPEN
         propertyDefinitions
     PAREN_CLOSE
@@ -66,6 +66,9 @@ propertyDefinition:
 collectionIdentifier: identifier
 ;
 
+collectionFragmentIdentifier: identifier
+;
+
 propertyIdentifier: identifier
 ;
 
@@ -75,26 +78,20 @@ type: ( primitiveType | complexType)
 ;
 primitiveType: identifier
 ;
-complexType: (collectionfragment | collectionfragmentPointer )
+complexType: (collectionFragment | collectionFragmentPointer )
 ;
 listType: ( BRACKET_OPEN type BRACKET_CLOSE )
 ;
 
 elementsArray:  PAREN_OPEN
-                    (primitiveType | collectionfragment | collectionfragmentPointer)?
+                    (type)?
                 PAREN_CLOSE
 ;
 
 arrayDefinition: ARRAY elementsArray
 ;
 
-objectDefinition: OBJECT
-                    BRACE_OPEN
-                    propertyDefinitions
-                    BRACE_CLOSE
-;
-
-collectionfragmentPointer: COLLECTIONFRAGMENT qualifiedName
+collectionFragmentPointer: COLLECTIONFRAGMENT qualifiedName
 ;
 
 //qualifiedName: (packagePath PATH_SEPARATOR)? identifier

@@ -12,8 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype;
+package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model;
 
-public class ObjectTypeReference extends TypeReference
+import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
+
+import java.util.Collections;
+import java.util.List;
+
+public class CollectionFragment
 {
+    public String name;
+    public List<Field> fields = Collections.emptyList();
+    public List<String> primaryKey = Collections.emptyList();
+    public SourceInformation sourceInformation;
+
+    public String getName()
+    {
+        return name;
+    }
 }

@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model;
+package org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.datatype;
 
-import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
+import org.finos.legend.engine.protocol.pure.v1.model.packageableElement.store.nonrelational.model.CollectionFragment;
 
-import java.util.Collections;
-import java.util.List;
-
-public class Collectionfragment
+public class CollectionFragmentReference extends TypeReference
 {
-    public String name;
-    public List<Field> fields = Collections.emptyList();
-    public List<String> primaryKey = Collections.emptyList();
-    public SourceInformation sourceInformation;
+    public COMPLEXTYPE type;
+
+    public CollectionFragment fragment;
+
+    public String pathToFragment;
+
+    public enum COMPLEXTYPE
+    {
+        COLLECTION_FRAGMENT, COLLECTION_FRAGMENT_POINTER
+    }
 }
