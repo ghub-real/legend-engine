@@ -275,7 +275,7 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         environment.jersey().register(new Testable(modelManager));
 
         // localh2server on 9092
-        this.setupLocalH2Db();
+        // this.setupLocalH2Db();
 
         enableCors(environment);
     }
