@@ -290,8 +290,11 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     public void shutDown() throws Exception
     {
-        this.mongoServer.shutdown();
-        this.nonRelationalClient.shutDown();
+        if (this.mongoServer != null)
+        {
+            this.mongoServer.shutdown();
+            this.nonRelationalClient.shutDown();
+        }
         this.environment.getApplicationContext().getServer().stop();
         CollectorRegistry.defaultRegistry.clear();
     }

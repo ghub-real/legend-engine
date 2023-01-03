@@ -80,7 +80,7 @@
   "nonrelationalexecution": {
     "tempPath": "/tmp/",
     "temporarytestdb": {
-      "port": 27017
+      "port": 0
     }
   },
   "errorhandlingconfiguration": {
