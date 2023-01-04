@@ -32,6 +32,7 @@ public class PureIDELight extends PureIDEServer
 {
     public static void main(String[] args) throws Exception
     {
+        PureIDELight.enableEngineIntegration();
         new PureIDELight().run(args.length == 0 ? new String[]{"server", "legend-engine-pure-ide-light/src/main/resources/ideLightConfig.json"} : args);
     }
 
@@ -49,6 +50,7 @@ public class PureIDELight extends PureIDEServer
                 .with(this.buildCore("legend-engine-xt-serviceStore-pure", "servicestore"))
                 .with(this.buildCore("legend-engine-xt-text-pure", "text"))
                 .with(this.buildCore("legend-engine-xt-data-space-pure", "data-space"))
+                .with(this.buildCore("legend-engine-xt-documentstore-pure", "documentstore"))
                 .with(this.buildCore("legend-engine-xt-diagram-pure", "diagram"))
                 .with(this.buildCore("legend-engine-xt-flatdata-pure", "external-format-flatdata"))
                 .with(this.buildCore("legend-engine-xt-json-pure", "external-format-json"))
@@ -93,5 +95,24 @@ public class PureIDELight extends PureIDEServer
                 GenericCodeRepository.build(Paths.get(resourceDir + moduleName + ".definition.json")),
                 Paths.get(resourceDir + moduleName)
         );
+    }
+
+    private static void enableEngineIntegration()
+    {
+
+        System.setProperty("alloy.test.server.host", "127.0.0.1");
+        System.setProperty("alloy.test.server.port", "6060");
+        System.setProperty("alloy.test.h2.port", "9092");
+        System.setProperty("alloy.test.clientVersion", "vX_X_X");
+        System.setProperty("alloy.test.serverVersion", "v1");
+        System.setProperty("alloy.test.serializationKind", "json");
+
+        System.setProperty("legend.test.server.host", "127.0.0.1");
+        System.setProperty("legend.test.server.port", "6060");
+        System.setProperty("legend.test.h2.port", "9092");
+        System.setProperty("legend.test.clientVersion", "vX_X_X");
+        System.setProperty("legend.test.serverVersion", "v1");
+        System.setProperty("legend.test.serializationKind", "json");
+
     }
 }

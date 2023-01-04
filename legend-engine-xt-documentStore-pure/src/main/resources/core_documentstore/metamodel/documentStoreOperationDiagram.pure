@@ -15,30 +15,6 @@
 ###Diagram
 Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagram(width=0.0, height=0.0)
 {
-    TypeView cview_6(
-        type=meta::external::store::document::metamodel::JoinDocumentTreeNode,
-        position=(1108.44868, 780.18813),
-        width=158.02344,
-        height=30.00000,
-        stereotypesVisible=true,
-        attributesVisible=true,
-        attributeStereotypesVisible=true,
-        attributeTypesVisible=true,
-        color=#FFFFCC,
-        lineWidth=1.0)
-
-    TypeView cview_2(
-        type=meta::external::store::document::metamodel::DocumentTreeNode,
-        position=(1086.12944, 642.24008),
-        width=215.58838,
-        height=58.00000,
-        stereotypesVisible=true,
-        attributesVisible=true,
-        attributeStereotypesVisible=true,
-        attributeTypesVisible=true,
-        color=#FFFFCC,
-        lineWidth=1.0)
-
     TypeView cview_5(
         type=meta::external::store::document::metamodel::CollectionAlias,
         position=(280.29419, 636.65577),
@@ -80,18 +56,6 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
         position=(626.97094, 430.11962),
         width=113.35156,
         height=30.00000,
-        stereotypesVisible=true,
-        attributesVisible=true,
-        attributeStereotypesVisible=true,
-        attributeTypesVisible=true,
-        color=#FFFFCC,
-        lineWidth=1.0)
-
-    TypeView cview_8(
-        type=meta::external::store::document::metamodel::SelectDocumentQuery,
-        position=(499.00600, 542.11461),
-        width=228.41992,
-        height=72.00000,
         stereotypesVisible=true,
         attributesVisible=true,
         attributeStereotypesVisible=true,
@@ -161,8 +125,68 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
 
     TypeView cview_16(
         type=meta::external::store::document::metamodel::DynaFunction,
-        position=(659.60559, 993.42891),
+        position=(664.60559, 1017.42891),
         width=102.51611,
+        height=44.00000,
+        stereotypesVisible=true,
+        attributesVisible=true,
+        attributeStereotypesVisible=true,
+        attributeTypesVisible=true,
+        color=#FFFFCC,
+        lineWidth=1.0)
+
+    TypeView cview_6(
+        type=meta::external::store::document::metamodel::JoinDocumentTreeNode,
+        position=(1439.44076, 997.96649),
+        width=158.02344,
+        height=30.00000,
+        stereotypesVisible=true,
+        attributesVisible=true,
+        attributeStereotypesVisible=true,
+        attributeTypesVisible=true,
+        color=#FFFFCC,
+        lineWidth=1.0)
+
+    TypeView cview_17(
+        type=meta::external::store::document::metamodel::RootJoinDocumentTreeNode,
+        position=(1319.26592, 944.49414),
+        width=185.34570,
+        height=30.00000,
+        stereotypesVisible=true,
+        attributesVisible=true,
+        attributeStereotypesVisible=true,
+        attributeTypesVisible=true,
+        color=#FFFFCC,
+        lineWidth=1.0)
+
+    TypeView cview_2(
+        type=meta::external::store::document::metamodel::DocumentTreeNode,
+        position=(1374.44870, 641.35090),
+        width=215.58838,
+        height=58.00000,
+        stereotypesVisible=true,
+        attributesVisible=true,
+        attributeStereotypesVisible=true,
+        attributeTypesVisible=true,
+        color=#FFFFCC,
+        lineWidth=1.0)
+
+    TypeView cview_8(
+        type=meta::external::store::document::metamodel::SelectDocumentQuery,
+        position=(496.41912, 553.03264),
+        width=228.41992,
+        height=72.00000,
+        stereotypesVisible=true,
+        attributesVisible=true,
+        attributeStereotypesVisible=true,
+        attributeTypesVisible=true,
+        color=#FFFFCC,
+        lineWidth=1.0)
+
+    TypeView cview_18(
+        type=meta::external::store::document::metamodel::Relation,
+        position=(1209.44121, 347.32000),
+        width=218.64990,
         height=44.00000,
         stereotypesVisible=true,
         attributesVisible=true,
@@ -192,7 +216,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
     GeneralizationView gview_2(
         source=cview_6,
         target=cview_2,
-        points=[(1187.46040,795.18813),(1186.61152,696.01276)],
+        points=[(1564.93461,1006.14058),(1562.92819,697.32528)],
         label='',
         color=#000000,
         lineWidth=-1.0,
@@ -210,7 +234,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
     GeneralizationView gview_4(
         source=cview_8,
         target=cview_7,
-        points=[(682.93589,550.28657),(683.64673,445.11962)],
+        points=[(680.34901,561.20460),(683.64673,445.11962)],
         label='',
         color=#000000,
         lineWidth=-1.0,
@@ -264,7 +288,34 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
     GeneralizationView gview_10(
         source=cview_16,
         target=cview_13,
-        points=[(710.86364,1015.42891),(718.70849,993.42891),(717.65308,736.96453)],
+        points=[(715.86364,1039.42891),(717.65308,736.96453)],
+        label='',
+        color=#000000,
+        lineWidth=-1.0,
+        lineStyle=SIMPLE)
+
+    GeneralizationView gview_11(
+        source=cview_17,
+        target=cview_2,
+        points=[(1411.93878,959.49414),(1445.67340,942.81604),(1447.92819,696.32528)],
+        label='',
+        color=#000000,
+        lineWidth=-1.0,
+        lineStyle=SIMPLE)
+
+    GeneralizationView gview_12(
+        source=cview_8,
+        target=cview_18,
+        points=[(610.62908,589.03264),(611.90031,494.26723),(1270.47551,491.10100),(1270.47551,386.61551)],
+        label='',
+        color=#000000,
+        lineWidth=-1.0,
+        lineStyle=SIMPLE)
+
+    GeneralizationView gview_13(
+        source=cview_17,
+        target=cview_18,
+        points=[(1334.85545,945.98227),(1334.85545,390.83715)],
         label='',
         color=#000000,
         lineWidth=-1.0,
@@ -274,7 +325,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
         property=meta::external::store::document::metamodel::DocumentTreeNode.alias,
         source=cview_2,
         target=cview_5
-,        points=[(1193.92363,671.24008),(444.00952,672.65577)],
+,        points=[(1482.24289,670.35090),(444.00952,672.65577)],
         label='',
         propertyPosition=(0.0,0.0),
         multiplicityPosition=(0.0,0.0),
@@ -288,7 +339,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
         property=meta::external::store::document::metamodel::SelectDocumentQuery.filteringOperation,
         source=cview_8,
         target=cview_1
-,        points=[(613.21596,578.11461),(1169.00600,576.11461),(1170.00600,170.11461),(644.01270,173.91512)],
+,        points=[(724.82907,596.64190),(1172.32247,598.75271),(1170.00600,170.11461),(644.01270,173.91512)],
         label='',
         propertyPosition=(0.0,0.0),
         multiplicityPosition=(0.0,0.0),
@@ -316,7 +367,21 @@ Diagram meta::external::store::document::metamodel::DocumentStoreOperationDiagra
         property=meta::external::store::document::metamodel::DynaFunction.parameters,
         source=cview_16,
         target=cview_1
-,        points=[(710.86364,1015.42891),(219.50005,1027.20200),(223.59245,173.81271),(644.01270,173.91512)],
+,        points=[(715.86364,1039.42891),(223.14908,1040.49183),(223.59245,173.81271),(644.01270,173.91512)],
+        label='',
+        propertyPosition=(0.0,0.0),
+        multiplicityPosition=(0.0,0.0),
+        color=#000000,
+        lineWidth=-1.0,
+        stereotypesVisible=true,
+        nameVisible=true,
+        lineStyle=SIMPLE)
+
+    PropertyView pview_4(
+        property=meta::external::store::document::metamodel::SelectDocumentQuery.data,
+        source=cview_8,
+        target=cview_17
+,        points=[(660.01694,623.30471),(662.60382,963.05692),(1411.93878,959.49414)],
         label='',
         propertyPosition=(0.0,0.0),
         multiplicityPosition=(0.0,0.0),

@@ -198,7 +198,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreModelDiagram(wi
     TypeView cview_17(
         type=meta::external::store::document::metamodel::FragmentTypeReference,
         position=(-26.23252, 766.09327),
-        width=233.79688,
+        width=235.80078,
         height=58.00000,
         stereotypesVisible=true,
         attributesVisible=true,
@@ -333,7 +333,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreModelDiagram(wi
     GeneralizationView gview_11(
         source=cview_17,
         target=cview_9,
-        points=[(90.66592,795.09327),(-18.55507,459.97268)],
+        points=[(91.66787,795.09327),(-18.55507,459.97268)],
         label='',
         color=#000000,
         lineWidth=-1.0,
@@ -422,7 +422,7 @@ Diagram meta::external::store::document::metamodel::DocumentStoreModelDiagram(wi
         property=meta::external::store::document::metamodel::FragmentTypeReference.fragment,
         source=cview_17,
         target=cview_18
-,        points=[(90.66592,795.09327),(678.19868,798.51343)],
+,        points=[(91.66787,795.09327),(678.19868,798.51343)],
         label='',
         propertyPosition=(0.0,0.0),
         multiplicityPosition=(0.0,0.0),
