@@ -244,6 +244,7 @@
         <module>legend-engine-xt-nonrelationalStore-mongodb-pure</module>
         <module>legend-engine-xt-nonrelationalStore-mongodb-grammar</module>
         <module>legend-engine-xt-nonrelationalStore-mongodb-protocol</module>
+        <module>legend-engine-extensions-mongodb-execution</module>
     </modules>
 
     <properties>
