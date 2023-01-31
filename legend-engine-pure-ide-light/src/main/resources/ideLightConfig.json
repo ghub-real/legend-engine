@@ -21,11 +21,15 @@
     "connector": {
       "maxRequestHeaderSize": "32KiB",
       "type": "http",
-      "port": 9200
+      "port": 9010
     },
     "requestLog": {
       "appenders": [
       ]
     }
+  },
+  "sourceLocationConfiguration" : {
+    "coreFilesLocation" : "/Users/theodosiosmalatestas/Documents/legend/legend-pure",
+    "welcomeFileDirectory" : "/Users/theodosiosmalatestas/Documents/legend/legend-pure"
   }
 }

@@ -89,6 +89,7 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::getPlanR
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::executePlan(plan:meta::pure::executionPlan::ExecutionPlan[1], context: ExecutionContext[0..1], host: String[1], port: Integer[1], extensions:meta::pure::extension::Extension[*]) : meta::pure::mapping::Result<Any|*>[1]
 {
+  println('executePlan');
    let planJSON = $plan->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformPlan($extensions)
                        ->meta::json::toJSON(1000, meta::json::config(false, false, true, true));
    let resultType = $planJSON->meta::protocols::pure::vX_X_X::invocation::execution::execute::getPlanReturnType();
@@ -104,6 +105,8 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::executeP
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::executePlan(planJSON:String[1], host: String[1], port: Integer[1]) : String[1]
 {
+  println('planJSON');
+  println($planJSON);
    let resp = meta::pure::functions::io::http::executeHTTPRaw(
       ^URL(host = $host , port = $port, path = 'api/pure/v1/execution/executePlan'),
       HTTPMethod.POST,
@@ -185,7 +188,7 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::legendEx
    // If we have either of the two ExecutionContexts in the conditional - throwing the generated execution plan to the executePlan endpoint does *not* return the same results as hittign execute with function,mapping, and runtime
    // hence we default to old behaviour in the case of AuthContext of VectorBatchQueryContext, otherwise we use the two execution plan endpoints
    let typeAndresultJSON = if(isOptionSet('ExecPlan') && !($context->isNotEmpty() && $extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).invocation_execution_execute1->fold({a,b|$a->eval($context) || $b}, false)),
-      | let planGenerated = if(isOptionSet('PlanLocal'),
+      | let planGenerated = if(true || isOptionSet('PlanLocal'),
                                {|
                                   let basicPlan = if($m.name->isEmpty(),
                                                     |meta::pure::executionPlan::executionPlan($f, if($context->isEmpty(), |^ExecutionContext(), |$context->toOne()), $extensions, noDebug());,
@@ -250,12 +253,14 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::legendBu
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::generatePlan<T|m>(f: FunctionDefinition<{->T[m]}>[1], m: Mapping[1], runtime: Runtime[1], exeCtx: ExecutionContext[0..1], host: String[1], port: Integer[1], version: String[1], serializationKind:String[1], executionMode: String[1], extensions:meta::pure::extension::Extension[*]):String[1]
 {
+   println('generatePlan');
    let resultJSON = buildExecutionInput($f, $m, $runtime, $exeCtx, $version, $serializationKind, $executionMode, $extensions);
    generatePlan($resultJSON, $host, $port);
 }
 
 function meta::protocols::pure::vX_X_X::invocation::execution::execute::alloyExecuteLambda<T|m>(f:FunctionDefinition<{->T[m]}>[1], m:Mapping[1], pureRuntime:Runtime[1], context:ExecutionContext[0..1], host:String[1], port:Integer[1], version:String[1], serializationKind:String[1], executionMode:String[1], extensions:meta::pure::extension::Extension[*]) : String[1]
 {
+   println('alloyExecuteLambda--');
    let payload = buildExecutionInput($f,$m,$pureRuntime,$context,$version, $serializationKind, $executionMode, $extensions);
 
    let resp = executeHTTPRaw(^URL(host = $host , port=$port, path = '/api/pure/'+$version+'/execution/execute'),

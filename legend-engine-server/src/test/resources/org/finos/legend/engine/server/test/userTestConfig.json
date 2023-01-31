@@ -47,7 +47,7 @@
     "connector": {
       "maxRequestHeaderSize": "32KiB",
       "type": "http",
-      "port": 6300
+      "port": 6060
     },
     "requestLog": {
       "appenders": [
@@ -57,15 +57,15 @@
   "metadataserver": {
     "pure": {
       "host": "127.0.0.1",
-      "port": 8080
+      "port": 9010
     },
     "alloy" : {
       "host": "127.0.0.1",
       "port": 8075
     },
-    "sdlc": {
-      "host": "localhost",
-      "port": 6100
+    "sdlc" : {
+      "host": "127.0.0.1",
+      "port": 7070
     }
   },
   "temporarytestdb": {
