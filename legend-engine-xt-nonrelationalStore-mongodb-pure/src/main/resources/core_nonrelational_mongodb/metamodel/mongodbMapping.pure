@@ -1,0 +1,66 @@
+import meta::external::store::mongodb::metamodel::*;
+import meta::external::store::mongodb::metamodel::mapping::*;
+import meta::pure::mapping::*;
+
+Class meta::external::store::mongodb::metamodel::mapping::MongoDbInstanceSetImplementation extends InstanceSetImplementation
+{
+  primaryKey : MongoDbElement[*];
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::MongoDbMappingSpecification
+{
+    userDefinedPrimaryKey : Boolean[1];
+    mainCollectionAlias : CollectionAlias[1];
+
+    mainMongoDbRelation(){$this.mainCollectionAlias.mongoDbRelation}:MongoDbRelation[1];
+
+    mainCollection(){$this.mainCollectionAlias.mongoDbElement->match([c:Collection[1]|$c])}:Collection[1];
+}
+
+
+Class meta::external::store::mongodb::metamodel::mapping::RootMongoDbInstanceSetImplementation extends MongoDbInstanceSetImplementation, MongoDbMappingSpecification
+{
+    resolveUserDefinedPrimaryKey()
+    {
+        if ($this.userDefinedPrimaryKey == true,
+            | true,
+            | let superMapping = $this.superMapping()->cast(@RootMongoDbInstanceSetImplementation);
+              if ($superMapping->isEmpty(),
+                  | false,
+                  | $superMapping->toOne().resolveUserDefinedPrimaryKey()
+              );
+        );
+    }: Boolean[1];
+
+    resolvePrimaryKey()
+    {
+        let superMapping = $this.superMapping()->cast(@RootMongoDbInstanceSetImplementation);
+        if ($superMapping->isEmpty(),
+            | $this.primaryKey,
+            | let thisPrimaryKey = $this.primaryKey;
+              let thisHasUserDefinedPrimaryKey = $this.userDefinedPrimaryKey;
+
+              let superPrimaryKey = $superMapping.resolvePrimaryKey();
+              let superHasUserDefinedPrimaryKey = $superMapping->toOne().resolveUserDefinedPrimaryKey();
+
+              let primaryKeyLogicalOrder = [pair($thisHasUserDefinedPrimaryKey, list($this.primaryKey)),
+                                            pair($superHasUserDefinedPrimaryKey, list($superPrimaryKey)),
+                                            pair(true, list($this.primaryKey))];
+
+              $primaryKeyLogicalOrder->filter(x|$x.first==true)->first().second.values;
+        );
+    }: MongoDbElement[*];
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping extends PropertyMapping
+{
+   mongoDbElement : MongoDbElement[1];
+   transformer: ValueTransformer<Any>[0..1];
+   transform(sourceValue: Any[1])
+   {
+        if($this.transformer->isEmpty(),
+            | $sourceValue ,
+            | $this.transformer->toOne()->cast(@EnumerationMapping<Any> ).toDomainValue($sourceValue)
+        );
+   } : Any[1];
+}

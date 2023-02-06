@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import meta::external::shared::format::binding::*;
 import meta::external::store::mongodb::metamodel::*;
 import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::external::store::mongodb::metamodel::authentication::*;
@@ -157,11 +158,15 @@ Class meta::external::store::mongodb::metamodel::Schema extends ObjectType
     validationAction: SchemaValidationAction[0..1];
 }
 
-Class meta::external::store::mongodb::metamodel::Collection
+Class meta::external::store::mongodb::metamodel::Collection extends NamedMongoDbRelation
 {
   owner: MongoDatabase[1];
   name: String[1];
   schema: Schema[0..1];
+  field(fieldName:String[1])
+  {
+    $this.fields->cast(@Field)->filter(c | $c.name == $fieldName)->first();
+  }: Field[0..1];
 }
 
 Class meta::external::store::mongodb::metamodel::CollectionView
@@ -173,9 +178,9 @@ Class meta::external::store::mongodb::metamodel::CollectionView
   pipeLine: ViewPipeline[1..*];
 } 
 
-Class meta::external::store::mongodb::metamodel::MongoDatabase
+Class meta::external::store::mongodb::metamodel::MongoDatabase extends meta::pure::store::set::SetBasedStore
 {
-  name: String[1];
+  //name: String[1];
   collections: Collection[*];
   views: CollectionView[*];
   authenticationEnabled: Boolean[1];
@@ -394,8 +399,86 @@ Class meta::external::store::mongodb::metamodel::authentication::X509 extends Au
   certificationAuthorityFileVaultRef: String[1];
 }
 
+Class <<typemodifiers.abstract>> meta::external::store::mongodb::metamodel::MongoDbElement
+{
+}
 
+Class meta::external::store::mongodb::metamodel::MongoDbRelation extends MongoDbElement, meta::pure::store::set::SetRelation
+{
+   fields : MongoDbElement[*];
+   primaryKey : Field[*];
+}
 
+Class <<typemodifiers.abstract>> meta::external::store::mongodb::metamodel::NamedMongoDbRelation extends MongoDbRelation
+{
+   name     : String[1];
+   id       : String[0..1];
+}
 
+Class meta::external::store::mongodb::metamodel::Field extends meta::external::store::mongodb::metamodel::MongoDbElement, meta::pure::store::set::SetColumn
+{
+    <<equality.Key>> name : String[1];
+    <<equality.Key>> type : meta::external::store::mongodb::metamodel::TypeReference[1];
+    nullable : Boolean[0..1];
+    owner : MongoDbRelation[0..1];
+}
 
+Class <<typemodifiers.abstract>> meta::external::store::mongodb::metamodel::TypeReference
+{
+  list     : Boolean[1];
+}
 
+Class meta::external::store::mongodb::metamodel::CoreDataType extends meta::external::store::mongodb::metamodel::TypeReference
+{
+}
+
+Class meta::external::store::mongodb::metamodel::StringTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::BooleanTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::IntegerTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::LongTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::DateTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::DoubleTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::DecimalTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::ObjectIdTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+}
+
+Class meta::external::store::mongodb::metamodel::ObjectTypeReference extends meta::external::store::mongodb::metamodel::CoreDataType
+{
+   type    : Class<Any>[1];
+   binding : Binding[1];
+}
+
+Class meta::external::store::mongodb::metamodel::CollectionAlias extends Alias
+{
+   setMappingOwner : meta::pure::mapping::PropertyMappingsImplementation[0..1];
+   mongoDatabase    : MongoDatabase[0..1];
+   mongoDbRelation(){$this.mongoDbElement->cast(@MongoDbRelation)}: MongoDbRelation[1];
+}
+
+Class meta::external::store::mongodb::metamodel::Alias extends MongoDbElement
+{
+   <<equality.Key>> name : String[1];
+   <<equality.Key>> mongoDbElement : MongoDbElement[1];
+}
