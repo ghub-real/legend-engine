@@ -1,4 +1,4 @@
-// Copyright 2020 Goldman Sachs
+// Copyright 2023 Goldman Sachs
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.finos.legend.engine.language.mongodb.schema.grammar.roundtrip;
+package org.finos.legend.engine.persistence.components.relational.snowflake.sqldom.schema;
 
-import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.Operator;
+import org.finos.legend.engine.persistence.components.relational.sqldom.schema.VariableSizeDataType;
 
-public class OperatorUtility
+public class Array extends VariableSizeDataType
 {
 
-    public static String lowerCaseOperatorAndAddDollar(Operator operator)
+    public Array()
     {
-        return "$" + operator.toString().toLowerCase();
+        super("ARRAY");
     }
 }
