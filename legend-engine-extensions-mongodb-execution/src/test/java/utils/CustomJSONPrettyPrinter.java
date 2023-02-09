@@ -14,11 +14,9 @@ package utils;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-
 import java.io.IOException;
 
 public class CustomJSONPrettyPrinter extends DefaultPrettyPrinter
