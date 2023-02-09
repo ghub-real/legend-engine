@@ -21,7 +21,6 @@ import de.bwaldvogel.mongo.MongoServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import utils.CustomJSONPrettyPrinter;
 import utils.InMemoryMongoDbServer;
 import utils.MongoDbClient;
 
@@ -30,7 +29,7 @@ import static utils.TestUtils.resourceAsString;
 
 public class TestInMemoryMongoDb
 {
-    private final ObjectMapper mapper = new ObjectMapper().setDefaultPrettyPrinter(new CustomJSONPrettyPrinter())
+    private final ObjectMapper mapper = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     private MongoDbClient mongoDbClient;
