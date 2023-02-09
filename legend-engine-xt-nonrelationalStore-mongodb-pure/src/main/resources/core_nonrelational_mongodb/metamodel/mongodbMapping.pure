@@ -64,3 +64,29 @@ Class meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping
         );
    } : Any[1];
 }
+
+function meta::external::store::mongodb::metamodel::mapping::functions::dataTypePropertyMappings(impl:MongoDbInstanceSetImplementation[1]):PropertyMapping[*]
+{
+   $impl.allPropertyMappings()->map(pm | $pm.property->genericType().typeArguments->at(1).rawType->toOne()->match([
+                                              d : meta::pure::metamodel::type::DataType[1] | $pm,
+                                              a : Any[1] | []
+                                             ]))
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::EmbeddedMongoDbInstanceSetImplementation extends EmbeddedSetImplementation, MongoDbInstanceSetImplementation
+{
+    setMappingOwner : RootMongoDbInstanceSetImplementation[1];
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::OtherwiseEmbeddedMongoDbInstanceSetImplementation extends EmbeddedMongoDbInstanceSetImplementation,OtherwiseEmbeddedSetImplementation
+{
+
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::SemiStructuredMongoDbInstanceSetImplementation extends RootMongoDbInstanceSetImplementation
+{
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::SemiStructuredMongoDbPropertyMapping extends MongoDbPropertyMapping
+{
+}

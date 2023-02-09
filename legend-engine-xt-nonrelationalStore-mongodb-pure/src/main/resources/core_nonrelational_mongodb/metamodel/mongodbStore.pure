@@ -231,6 +231,22 @@ Class meta::external::store::mongodb::metamodel::aggregation::LiteralValue exten
   value: BaseTypeValue[1];
 }
 
+Class meta::external::store::mongodb::metamodel::FieldName extends meta::external::store::mongodb::metamodel::MongoDbElement
+{
+    <<equality.Key>> name : String[1];
+}
+
+Class meta::external::store::mongodb::metamodel::BinaryOperation extends meta::external::store::mongodb::metamodel::Operation
+{
+    <<equality.Key>> left:MongoDbElement[1];
+    <<equality.Key>> right:MongoDbElement[1];
+}
+
+Class meta::external::store::mongodb::metamodel::LiteralList extends meta::external::store::mongodb::metamodel::MongoDbElement
+{
+   <<equality.Key>> values:Literal[*];
+}
+
 Class meta::external::store::mongodb::metamodel::aggregation::AggregateExpression
 {
   arguments: ArgumentExpression[*];
@@ -481,4 +497,81 @@ Class meta::external::store::mongodb::metamodel::Alias extends MongoDbElement
 {
    <<equality.Key>> name : String[1];
    <<equality.Key>> mongoDbElement : MongoDbElement[1];
+}
+
+//Equivalent of SQLQuery
+Class meta::external::store::mongodb::metamodel::DocumentQuery extends meta::external::store::mongodb::metamodel::MongoDbElement
+{
+}
+
+Class {doc.doc = 'Equivalent of select query'}
+meta::external::store::mongodb::metamodel::SelectDocumentQuery extends meta::external::store::mongodb::metamodel::DocumentQuery, meta::external::store::mongodb::metamodel::MongoDbRelation
+{
+    distinct : Boolean[0..1];
+    data : RootJoinDocumentTreeNode[0..1];
+    filteringOperation : MongoDbElement[*];
+    //leftSideOfFilter : DocumentTreeNode[0..1];
+    //savedFilteringOperation : Pair<DocumentTreeNode, DocumentStoreElement>[*];
+    // orderBy
+    // groupBy
+    // havingOperation
+    // leftSideOfFilter
+    //
+}
+
+Class meta::external::store::mongodb::metamodel::DocumentTreeNode extends meta::pure::functions::collection::TreeNode
+{
+  alias : CollectionAlias[1];
+  children()
+  {
+    $this.childrenData->cast(@JoinDocumentTreeNode)
+  }:JoinDocumentTreeNode[*];
+}
+
+Class meta::external::store::mongodb::metamodel::RootJoinDocumentTreeNode extends DocumentTreeNode, MongoDbRelation
+{
+}
+
+Class meta::external::store::mongodb::metamodel::JoinDocumentTreeNode extends DocumentTreeNode
+{
+// Not supporting
+}
+
+Class meta::external::store::mongodb::metamodel::Function extends MongoDbElement
+{
+}
+
+Class meta::external::store::mongodb::metamodel::Operation extends meta::external::store::mongodb::metamodel::Function
+{
+}
+
+Class meta::external::store::mongodb::metamodel::DynaFunction extends Operation
+{
+    <<equality.Key>> name : String[1];
+    <<equality.Key>> parameters : MongoDbElement[*];
+}
+
+Class meta::external::store::mongodb::metamodel::DocumentMappingSpecification
+{
+    userDefinedPrimaryKey : Boolean[1];
+    mainCollectionAlias : CollectionAlias[1];
+
+    mainDocumentRelation(){$this.mainCollectionAlias.mongoDbRelation}:MongoDbRelation[1];
+
+    mainCollection(){$this.mainCollectionAlias.mongoDbElement->match([c:Collection[1]|$c])}:Collection[1];
+}
+
+Class meta::external::store::mongodb::metamodel::Literal extends meta::external::store::mongodb::metamodel::MongoDbElement
+{
+   <<equality.Key>> value:Any[1];
+}
+
+Class meta::external::store::mongodb::metamodel::DocumentNull
+{
+   //Used to make sure that any two Document field Null instances are equal
+   <<equality.Key>> key:Nil[0];
+   toString()
+   {
+      'DocumentNull'
+   }:String[1];
 }
