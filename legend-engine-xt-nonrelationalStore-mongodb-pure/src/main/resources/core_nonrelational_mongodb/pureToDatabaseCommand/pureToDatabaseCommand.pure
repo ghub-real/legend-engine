@@ -4,7 +4,6 @@ import meta::pure::metamodel::path::*;
 import meta::external::store::mongodb::metamodel::mapping::functions::*;
 import meta::external::store::mongodb::metamodel::mapping::*;
 import meta::pure::router::metamodel::*;
-//import meta::relational::mapping::*;
 import meta::external::store::mongodb::metamodel::runtime::*;
 import meta::external::store::mongodb::metamodel::*;
 import meta::pure::router::store::metamodel::*;
@@ -22,13 +21,6 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::PureFunc
 
 Class meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbExecutionContext extends ExecutionContext
 {
-   addDriverTablePkForProject : Boolean[0..1];
-   insertDriverTablePkInTempTable : String[0..1];
-   useTempTableAsDriver : String[0..1];
-   preserveJoinOrder:Boolean[0..1];
-   importDataFlow : Boolean[0..1];
-   importDataFlowAddFks : Boolean[0..1];
-   importDataFlowImplementationCount : Integer[0..1];
 }
 
 Class meta::external::store::mongodb::functions::pureToDatabaseCommand::OperationWithParentPropertyMapping extends MongoDbElement
@@ -75,25 +67,15 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::State
    inProjectFunctions:Boolean[1];
    filterChainDepth:Integer[1];
    inFilter:Boolean[1];
-   shouldIsolateNestedFilter:Boolean[0..1];
-   inIsolatedIsEmpty:Boolean[0..1];
    shouldIsolate:Boolean[1];
    propertyMappingFromRouter : PropertyMapping[*];
    qualifierBase:OperationWithParentPropertyMapping[0..1];
    processingProjectionThread : Boolean[1];
    functionReferenceScope : FunctionParamScope[0..1];
-   importDataFlow : Boolean[0..1];
-   importDataFlowAddFks:Boolean[0..1];
-   importDataFlowCurrentSetOffsetInUnion : Integer[0..1];
-   importDataFlowImplementationCount : Integer[0..1];
    inGetterFlow:Boolean[0..1];
    inIf:Boolean[0..1];
    inIfTrueFalseStmt:Boolean[0..1];
-   addDriverTablePkForProject:Boolean[0..1];
-   insertDriverTablePkInTempTable:String[0..1];
-   useTempTableAsDriver : String[0..1];
    functionExpressionStack : FunctionExpression[*];
-   preserveJoinOrder : Boolean[0..1];
    graphFetchFlow : Boolean[0..1];
    graphFetchProperties : Property<Nil,Any|*>[*];
 }
@@ -107,20 +89,7 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::MergeRes
 
 function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::mongodbExecutionContextToState(execCtx:MongoDbExecutionContext[0..1], s:State[1]):State[1]
 {
-   if ($execCtx->isEmpty(),
-       |$s,
-       |^$s
-        (
-           preserveJoinOrder = $execCtx.preserveJoinOrder,
-           addDriverTablePkForProject = $execCtx.addDriverTablePkForProject,
-           insertDriverTablePkInTempTable = $execCtx.insertDriverTablePkInTempTable,
-           useTempTableAsDriver = $execCtx.useTempTableAsDriver,
-           importDataFlow = $execCtx.importDataFlow,
-           importDataFlowAddFks = $execCtx.importDataFlowAddFks,
-          // importDataFlowFksByTable = $execCtx.importDataFlowFksByTable,
-           importDataFlowImplementationCount = $execCtx.importDataFlowImplementationCount
-        )
-   )
+   $s
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::defaultState(mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1]):State[1]
@@ -168,7 +137,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                  v:VariableExpression[1] | processVariableExpression($v,$currentPropertyMapping, $operation, $vars, $state, $context, $extensions),
                  n:NoSetRoutedValueSpecification[1]|$n.value->processValueSpecificationReturnPropertyMapping($currentPropertyMapping, $operation, $vars, $state, $context, $extensions)                 
              ]);
-    $res.element->map(e|$e->match([c:ClassInstanceHolder[1]|true, s:SelectDocumentQuery[1]|$s->validate($vs, $extensions)]));
     $res;
 }
 
@@ -177,7 +145,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
   print(if(!$context.debug, |'', | $context.space+'>Process Function Expression: '+ $functionExpression.func.name->toOne() + '\n'));
   let res  = $functionExpression.func->match ([
                                     p:Property<Nil,Any|*>[1] | processPropertyFunctionExpression($functionExpression, $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);,
-                                    //q:QualifiedProperty<Any>[1] | processQualifiedPropertyFunctionExpression($functionExpression, $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);,
                                     a:Any[1]| processFunctionExpressionForNonPropertyFunction($functionExpression, $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);
                                    ]);
   $res;
@@ -193,7 +160,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
    print(if(!$context.debug, |'', | $context.space+'>Process Variable Expression, name:' + $v.name + '\n'));
    if ($v.name == 'this' && $state.qualifierBase->isNotEmpty(), | let op = $state.qualifierBase->toOne();
                             let sel = $op.element->cast(@SelectDocumentQuery);
-                            //let sel = $elem.select;
                             ^$op(element = ^$sel(filteringOperation = []));,
                           | let res = $v->resolve($vars, $state.inScopeVars)->evaluateAndDeactivate();
 
@@ -273,15 +239,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                                                 ,| $leftSide.currentPropertyMapping
                                                                 ,| $currentPropertyMapping
                                                    )->match([
-                                                    /*
-                                                         o:OtherwiseEmbeddedDocumentInstanceSetImplementation[1] | let navigateToOtherwiseMapping = $o.propertyMappingsByPropertyName($property.name->toOne())->isEmpty();
-                                                                                                                    ^OperationWithParentPropertyMapping
-                                                                                                                     (
-                                                                                                                        element = $sel,
-                                                                                                                        currentPropertyMapping = if($leftSide.currentPropertyMapping->isEmpty(), | $currentPropertyMapping, | $leftSide.currentPropertyMapping)
-                                                                                                                      );
-                                                                                                                     ,
-                                                    */
                                                          a:Any[*]|^OperationWithParentPropertyMapping
                                                                   (
                                                                      element = $sel,
@@ -307,7 +264,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processProperty(property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], currentPropertyMapping:PropertyMapping[*], propertyMappingFromRouter:PropertyMapping[*], srcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[1]
 {
-// Uses function from relational package: function meta::relational::mapping::findPropertyMapping
    let propertyMappings = findPropertyMapping($property, $propertyOwnerClass, $currentPropertyMapping, $propertyMappingFromRouter, $state.mapping->toOne(),$context);
    let res = processPropertyMapping($propertyMappings, $propertyOwnerClass, $srcOperation, $state, $context, $extensions);
    ^OperationWithParentPropertyMapping(element=$res, currentPropertyMapping=$propertyMappings);
@@ -345,7 +301,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::findS
   $supportedFunctions->get($fe.func)
 }
 
-// processGetAll_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]): MongoDbElement[1]
 {
   let setImplementation = $expression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).sets->toOne();
@@ -361,8 +316,8 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(viewSpecification:MongoDbMappingSpecification[1], c:Class<Any>[0..1], addAllColumns:Boolean[1],  state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
 {
-   let newState = ^$state(inProject=false, inProjectFunctions=false, processingProjectionThread=false,  inFilter=false); //shouldIsolate=false,
-   processMongoDbMappingSpecification($viewSpecification, $c, $addAllColumns, $newState, $context, $extensions); //removed $milestoningContext,
+   let newState = ^$state(inProject=false, inProjectFunctions=false, processingProjectionThread=false, inFilter=false);
+   processMongoDbMappingSpecification($viewSpecification, $c, $addAllColumns, $newState, $context, $extensions);
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processDynaFunction(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
@@ -377,7 +332,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                                                pair(^List<MongoDbElement>(values=$zippedParameters->map(pv| let updatedState = if($paramIsIfTrueFalseStmt->eval($pv.first),|^$state(inIfTrueFalseStmt=true),|$state);
                                                                                                                                         $pv.second->processValueSpecification($currentPropertyMapping, $operation, $vars, $updatedState, $context, $extensions);)),{res:MongoDbElement[1]|$res}););
 
-   let parameterNoSQL = $processedParams.first.values->map(x | extractDocumentQuery($x));//$f.parametersValues->map(pv|$pv->processValueSpecification($currentPropertyMapping, $operation, $vars, $state, $joinType, $nodeId, $aggFromMap, $context))->map(x | extractSelectSQLQuery($x));
+   let parameterNoSQL = $processedParams.first.values->map(x | extractDocumentQuery($x));
 
    let mergedNoSQL = if ($parameterNoSQL->isEmpty(),
                      | $operation,
@@ -489,7 +444,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 
    let base = ^SelectDocumentQuery(data = $currentNode);
 
-   let quoteColumnAliases = false; // shouldQuoteColumnAliases($viewSpecification);
+   let quoteColumnAliases = false;
    let requiresAllProperties = true;
 
    let properties = if($requiresAllProperties, | fieldNamesWithMongoDbElement($viewSpecification, $c, $state)->map(c | let newQuery = $c.second->processFieldsInMongoDbElements($state, $base, $context, $extensions);
@@ -523,7 +478,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::rebui
                                ),
                      data = $newQuery.data,
                      filteringOperation = []
-                     //extraFilteringOperation=$newQuery.select.extraFilteringOperation
                );
 }
 
@@ -538,7 +492,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::field
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFieldsInMongoDbElements(z:MongoDbElement[1], state:State[1], srcOperation:SelectDocumentQuery[1], context:DebugContext[1], extensions:Extension[*]): SelectDocumentQuery[1]
 {
-   $srcOperation->validate([], $extensions);
+   //$srcOperation->validate([], $extensions);
    let result = $z->match(
                [
                   f:Field[1] |
@@ -574,7 +528,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                                       
                ]
             );
-   $result->validate([], $extensions);
+   //$result->validate([], $extensions);
    $result;
 }
 
@@ -629,14 +583,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                s:SelectDocumentQuery[1] | $s,
                t:Collection[1] | $t
              ]);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::validate(s:SelectDocumentQuery[1], v:ValueSpecification[0..1], extensions:Extension[*]):Boolean[1]
-{
-   let allNodes = if($s.data->isEmpty(),|[],|$s.data->toOne()->getAllNodes())->cast(@DocumentTreeNode);
-   // validateNode('currentTreeNode', $s, $s.currentTreeNode, $v, $allNodes, $extensions);
-   // What exactly do we validate here?
-   true;
 }
 
 function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::getAllNodes(s:TreeNode[1]):TreeNode[*]

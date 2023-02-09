@@ -15,6 +15,7 @@
 // Press F9 to execute the 'go' function...
 // Press F10 to run the full test suite
 
+/*
 ###Mapping
 Mapping meta::external::store::document::tests::object::MongoDbMapping
 (
@@ -29,7 +30,6 @@ import meta::external::store::mongodb::metamodel::mapping::*;
 import meta::pure::graphFetch::execution::*;
 import meta::relational::runtime::*;
 import meta::json::*;
-
 
 function poc::tests::createTableAndFillDb(connection : meta::relational::runtime::DatabaseConnection[1]) : Boolean[1]
 {
@@ -112,8 +112,9 @@ function go():Any[*]
       mongoDbElement=$collection,
       mongoDatabase=$mongoDatabase
     );
-
-   let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->project(x | $x.fName, 'firstName')};
+  // ->project([p|$p.firstName, p|$p.lastName], ['firstName','lastName']),
+   //let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->project([x | $x.fName, y | $y.lName], ['firstName', 'lastName'])};
+   let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->filter(y | $y.fName == 'Theo')};
     //  ->graphFetch($personTree)->serialize($personTree)};
 
 
@@ -136,6 +137,7 @@ function go():Any[*]
    let mappingMongo = ^meta::pure::mapping::Mapping(classMappings=[$mongoDbClassMapping], name='mongoDbClassMapping');
    let mongoExtensions = [meta::external::store::mongodb::extension::mongoDbExtensions()];
    let executionContext = ^meta::pure::runtime::ExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+   let mongoDbExecutionContext = ^meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
    let debugContext = ^meta::pure::tools::DebugContext(
       debug=false,
       space=' '
@@ -151,17 +153,14 @@ function go():Any[*]
    let inScopeVars = $functionParameters->map(ep|pair($ep.name, ^List<Any>(values=$ep)))->newMap()->putAll($openVars);
    let fe = $clusters->at(0).val->byPassValueSpecificationWrapper()->cast(@FunctionExpression);
 
-  /*
-   println('THE FE IS');
-   println($fe);
-  */
 
    //let result = execute($personQuery, $mapping, $myRunTime, meta::relational::extension::relationalExtensions()).values;
 
    //let result = execute($personQuery, $mapping, $myRunTime, meta::external::store::mongodb::extension::mongoDbExtensions()).values;
 
-   let result =meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand($fe, $mappingMongo, $inScopeVars, $executionContext, $debugContext, $mongoExtensions);
+   let result = meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand($fe, $mappingMongo, $inScopeVars, $debugContext, $mongoDbExecutionContext, $mongoExtensions);
 
    println($result);
 
 }
+*/
