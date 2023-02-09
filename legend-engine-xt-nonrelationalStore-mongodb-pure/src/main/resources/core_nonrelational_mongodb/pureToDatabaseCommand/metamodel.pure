@@ -1,0 +1,18 @@
+import meta::external::store::mongodb::metamodel::*;
+
+Class meta::external::store::mongodb::functions::pureToDatabaseCommand::metamodel::VarPlaceHolder extends MongoDbElement
+{
+   name : String[1];
+   propertyPath : Property<Nil,Any|*>[*];
+   type: Type[1];
+   multiplicity: Multiplicity [0..1];
+}
+
+Class meta::external::store::mongodb::functions::pureToDatabaseCommand::metamodel::FreeMarkerOperationHolder extends MongoDbElement
+[
+   parameterType : $this.parameters->forAll(param| $param->instanceOf(Literal) || $param->instanceOf(meta::external::store::mongodb::functions::pureToDatabaseCommand::metamodel::FreeMarkerOperationHolder) || $param->instanceOf(DynaFunction))
+]
+{
+   name : String[1];
+   parameters : MongoDbElement[*];
+}
