@@ -13,6 +13,7 @@ import meta::pure::runtime::*;
 import meta::pure::mapping::*;
 import meta::external::store::mongodb::extension::databaseCommandToString::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::metamodel::*;
+import meta::external::store::mongodb::metamodel::aggregation::*;
 
 
 Class meta::external::store::mongodb::functions::pureToDatabaseCommand::PureFunctionToMongoDbFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->MongoDbElement[1]}>>
@@ -29,6 +30,7 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::Operatio
    currentPropertyMapping : PropertyMapping[*];
 }
 
+/*
 Class meta::external::store::mongodb::functions::pureToDatabaseCommand::FunctionParamScope
 {
    parent : FunctionParamScope[0..1];
@@ -45,6 +47,7 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::Function
       if($resolved->isEmpty(),| if(!$this.parent->isEmpty(),|$this.parent->toOne().resolveFunctionReferenceByVar($v),|[]),|$resolved.second->toOne());
    }:FunctionParamScope[0..1];
 }
+*/
 
 Class meta::external::store::mongodb::functions::pureToDatabaseCommand::ClassInstanceHolder extends MongoDbElement
 {
@@ -67,11 +70,10 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::State
    inProjectFunctions:Boolean[1];
    filterChainDepth:Integer[1];
    inFilter:Boolean[1];
-   shouldIsolate:Boolean[1];
    propertyMappingFromRouter : PropertyMapping[*];
    qualifierBase:OperationWithParentPropertyMapping[0..1];
    processingProjectionThread : Boolean[1];
-   functionReferenceScope : FunctionParamScope[0..1];
+   //functionReferenceScope : FunctionParamScope[0..1];
    inGetterFlow:Boolean[0..1];
    inIf:Boolean[0..1];
    inIfTrueFalseStmt:Boolean[0..1];
@@ -92,17 +94,17 @@ function <<access.private>> meta::external::store::mongodb::functions::pureToDat
    $s
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::defaultState(mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1]):State[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::defaultState(mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1]):State[1] 
 {
-   ^State(inScopeVars=$inScopeVars, supportedFunctions=getSupportedFunctions(), mapping=$mapping, inProject=false, inProjectFunctions=false, inFilter=false, filterChainDepth=0, processingProjectionThread=false, shouldIsolate=true);
+   ^State(inScopeVars=$inScopeVars, supportedFunctions=getSupportedFunctions(), mapping=$mapping, inProject=false, inProjectFunctions=false, inFilter=false, filterChainDepth=0, processingProjectionThread=false);
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], executionCtx:MongoDbExecutionContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
 {
-  toDatabaseCommand($functionExpression, $mapping, $inScopeVars, $debug, $executionCtx->mongodbExecutionContextToState(defaultState($mapping, $inScopeVars)), $extensions)
+  toDatabaseCommand($functionExpression, $mapping, $inScopeVars, $debug, $executionCtx->mongodbExecutionContextToState(defaultState($mapping, $inScopeVars)), $extensions, ^DatabaseCommand())
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], state:State[1], extensions:Extension[*]):SelectDocumentQuery[1]
+function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], state:State[1], extensions:Extension[*], dbCommand: DatabaseCommand[*]):SelectDocumentQuery[1]
 {
   $functionExpression
     ->processDatabaseCommand($state, $debug, $extensions);
@@ -120,7 +122,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                             )->cast(@SelectDocumentQuery)->toOne();
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*],  operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[*]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[*]
 {
    processValueSpecificationReturnPropertyMapping($vs, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->map(r | $r.element);
 }
@@ -162,7 +164,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                             let sel = $op.element->cast(@SelectDocumentQuery);
                             ^$op(element = ^$sel(filteringOperation = []));,
                           | let res = $v->resolve($vars, $state.inScopeVars)->evaluateAndDeactivate();
-
+/*
                             let resolvedOperation = if(!$state.functionReferenceScope->isEmpty(), //attempt to resolve the variable name to a SelectWithCursor recorded in either this or a parent scope
                                                             | let resolvedOperation = $state.functionReferenceScope->toOne().resolveFunctionReferenceByName($v.name);
                                                               if(!$resolvedOperation->isEmpty(),| $resolvedOperation,|$operation)->toOne();,
@@ -174,24 +176,25 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                            [],
                                           |$res
                                         );
-
-                            if($nres->isEmpty(),                                                   //true for function params e.g. $e in '[]->filter(e|$e...)'
+*/
+                            if($res->isEmpty(),                                                   //true for function params e.g. $e in '[]->filter(e|$e...)'
                                        |$operation->match([ o:OperationWithParentPropertyMapping[1] | $o,
                                                              a:MongoDbElement[1] | ^OperationWithParentPropertyMapping(
-                                                                                                    element=$resolvedOperation,
+                                                                                                    element=$operation,
                                                                                                     currentPropertyMapping=$currentPropertyMapping
                                                                                                )
                                                           ]),
-                                       |$nres->toOne()->match(
+                                       |$res->toOne()->match(
                                                                 [
                                                                    e:VariableExpression[1]| ^OperationWithParentPropertyMapping(element=$operation);,
                                                                    a:Any[1]|                     //the resolved VariableExpression (ValueSpecification) is processed with respect to the $state recorded at the time the owning QualifiedProperty is processed e.g. address in 'Firm.all->filter(f|$f.employeesByAddress($f.address));' employeesByAddress(address: Address[1]){..}'
-                                                                            let possiblyNewState = if(!$state.functionReferenceScope ->isEmpty(),
+                                                                            /*let possiblyNewState = if(!$state.functionReferenceScope ->isEmpty(),
                                                                                                                     | let resolvedVariableExpression=$state.functionReferenceScope->toOne().resolveFunctionReferenceByVar($v);
                                                                                                                       if(!$resolvedVariableExpression->isEmpty(),|^$state(functionReferenceScope=$resolvedVariableExpression->toOne()),|$state);,
                                                                                                                     | $state
                                                                                                      )->toOne();
-                                                                            processValueSpecificationReturnPropertyMapping($nres->toOne(), $currentPropertyMapping, $resolvedOperation, $vars, $possiblyNewState, $context->shift(), $extensions);
+                                                                                                     */
+                                                                            processValueSpecificationReturnPropertyMapping($res->toOne(), $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);
                                                                 ]);
                              );
                           )->cast(@OperationWithParentPropertyMapping);
@@ -205,6 +208,10 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValue(vals:Any[*], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[*]
 {
     let select = $operation;
+    println('processValue');
+    println($operation);
+    println('vals');
+    println($vals);
     if ($vals->isEmpty(), | $state.inFilter->if(|^$select(filteringOperation = ^meta::external::store::mongodb::metamodel::Literal(value=^DocumentNull())),|^$select(fields = ^meta::external::store::mongodb::metamodel::Literal(value=^DocumentNull())))
                         , | $vals->map(v | $v->match([
                                   s:String[1] | $state.inFilter->if(|^$select(filteringOperation = ^Literal(value=$s)),|^$select(fields = ^Literal(value=$s))),
@@ -338,7 +345,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                      | $operation,
                      | let sqls = if ($parameterNoSQL->size() > 1,
                            | let zippedParameterNoSQLs = $parameterNoSQL->size()->range()->zip($parameterNoSQL);
-                             $zippedParameterNoSQLs->map(s| let updatedState = if($isIfTrueFalseStmt,|^$state(inIfTrueFalseStmt=true, shouldIsolate=true),|^$state(shouldIsolate=true));
+                             $zippedParameterNoSQLs->map(s| let updatedState = if($isIfTrueFalseStmt,|^$state(inIfTrueFalseStmt=true),|$state);
                                                           $s.second;);,
                            | $parameterNoSQL
                        );
@@ -519,6 +526,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                                       |  let sqlThreads = $d.parameters->map(p|$p->processFieldsInMongoDbElements($state, $srcOperation, $context, $extensions));
                                                          let merged = $sqlThreads->mergeDocumentQueryData($state, $context, $extensions);
                                                          let pFunc = ^$d(parameters = $state.inFilter->if(|$merged.filteringOperation,|$merged.fields));
+                                                         // TODO: seems to not be coming here?
                                                          $state.inFilter->if(|^$merged(filteringOperation=$pFunc),|^$merged(fields=$pFunc));
                                                     );
                                      $newSelect;
@@ -755,7 +763,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processUnary(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], f:meta::pure::metamodel::function::Function<{MongoDbElement[1]->MongoDbElement[1]}>[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
 {
    let existingNoSqlQuery = processValueSpecification($expression.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne()->cast(@SelectDocumentQuery);
-   //let existingSqlQuery = $nested.select;
    $state.inFilter->if(
                   |^$existingNoSqlQuery(
                         filteringOperation = $f->eval($existingNoSqlQuery.filteringOperation->toOne())
@@ -814,7 +821,8 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                           );
                                      );
     
-    if ($state.inFilter, | ^$mergedNoSQL(fields=$operation.fields, filteringOperation = $filteringOperation), |  ^$mergedNoSQL(fields=$filteringOperation));
+    // TODO: seems to not add fields
+    if ($state.inFilter, | /*println('in the true'); println($mergedNoSQL.data.alias->cast(@CollectionAlias).mongoDbElement->cast(@Collection).fields); println('fields'); println($operation.fields);*/ ^$mergedNoSQL(fields=$operation.fields, filteringOperation = $filteringOperation);, | /*println('in the false'); println($mergedNoSQL); println('fields'); println($filteringOperation);*/ ^$mergedNoSQL(fields=$filteringOperation););
                      
 }
 
@@ -946,32 +954,30 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getSu
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processPropertyMapping(propertyMapping:PropertyMapping[*], propertyOwnerClass:Class<Any>[1], srcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
 {
-   let res = $propertyMapping->match([
+   $propertyMapping->match([
                r:MongoDbPropertyMapping[*] | processMongoDbPropertyMapping($r, $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $context->shift(), $extensions),
                e:EmbeddedMongoDbInstanceSetImplementation[*] | if(($state.inGetterFlow == true) && $e->size() == 1 && $e->toOne()->instanceOf(OtherwiseEmbeddedMongoDbInstanceSetImplementation),
                                                                      | processMongoDbPropertyMapping($e->toOne()->cast(@OtherwiseEmbeddedMongoDbInstanceSetImplementation).otherwisePropertyMapping->cast(@MongoDbPropertyMapping), $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $context->shift(), $extensions);,
                                                                      | $srcOperation;
                                                                   )
              ]);
-   $res;
 }
 
 //  Renu : Core function to fix, completely gutted
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processMongoDbPropertyMapping(documentPropertyMappings:MongoDbPropertyMapping[*], property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], oldSrcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processMongoDbPropertyMapping(mongoDbPropertyMappings:MongoDbPropertyMapping[*], property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], oldSrcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
 {
    let propertyReturnType = $property->cast(@Property<Nil,Any|*>).genericType.rawType->toOne();
    $propertyReturnType->match(
                                  [
                                     p:DataType[1] |
-                                                    let documentElement = $oldSrcOperation.data.alias.mongoDbElement->toOne();
-                                                    let propName = $documentElement->getPropertyName($property, $documentPropertyMappings, $extensions);
+                                                    let mongoDbElement = $oldSrcOperation.data.alias.mongoDbElement->toOne();
+                                                    let propName = $mongoDbElement->getPropertyName($property, $mongoDbPropertyMappings, $extensions);
 
                                                     let result  = pair($propName, $oldSrcOperation);
 
                                                     let srcOperation = $result.second;
-                                                    // ---------------------------------------------------
 
-                                                    let mappingImpl = $documentPropertyMappings->at(0).mongoDbElement;
+                                                    let mappingImpl = $mongoDbPropertyMappings->at(0).mongoDbElement;
 
                                                     let relElement = $oldSrcOperation.data.alias.mongoDbElement->toOne();
 
@@ -995,23 +1001,20 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
                                                                   );
 
                                                     let selectDocumentQuery = if($state.inFilter,
-                                                                        | ^$res(filteringOperation = $res.filteringOperation->at(0)->usePropertyName($property, $documentPropertyMappings, $extensions)),
-                                                                        | ^$res(filteringOperation = [], fields = $res.fields->at(0)->usePropertyName($property, $documentPropertyMappings, $extensions))
+                                                                        | ^$res(filteringOperation = $res.filteringOperation->at(0)->usePropertyName($property, $mongoDbPropertyMappings, $extensions)),
+                                                                        | ^$res(filteringOperation = [], fields = $res.fields->at(0)->usePropertyName($property, $mongoDbPropertyMappings, $extensions))
                                                                       );
 
                                                     $selectDocumentQuery;
                                                     ,
-                                    c:Class<Any>[1] |let srcOperation = $oldSrcOperation;
-                                                    $srcOperation;
+                                    c:Class<Any>[1] |$oldSrcOperation;
                                   ]
                              );
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::getPropertyName(documentElement:MongoDbElement[1],property:AbstractProperty<Any>[1], mongoDbPropertyMappings:MongoDbPropertyMapping[*], extensions:Extension[*]):String[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::getPropertyName(mongoDbElement:MongoDbElement[1],property:AbstractProperty<Any>[1], mongoDbPropertyMappings:MongoDbPropertyMapping[*], extensions:Extension[*]):String[1]
 {
-   $documentElement->match(
-            [//u:Union[1]| '"'+ $relationalPropertyMappings.relationalOperationElement->buildUniqueName(false, $extensions)+'"',
-             a:Any[1]|'"'+$property.name->toOne()+'"'] );
+   '"'+$property.name->toOne()+'"'
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::usePropertyName(element:MongoDbElement[1], property:AbstractProperty<Any>[1], mongoDbPropertyMappings:MongoDbPropertyMapping[*], extensions:Extension[*]):MongoDbElement[1]

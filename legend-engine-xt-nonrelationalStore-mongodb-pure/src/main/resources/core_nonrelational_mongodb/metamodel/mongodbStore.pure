@@ -194,9 +194,9 @@ Class meta::external::store::mongodb::metamodel::Collation
 
 Class meta::external::store::mongodb::metamodel::aggregation::DatabaseCommand
 {
-    type: String[1];
-    collectionName: String[1];
-    aggregationPipeline: AggregationPipeline[1];
+    type: String[0..1];
+    collectionName: String[0..1];
+    aggregationPipeline: AggregationPipeline[0..1];
 }
 
 Class meta::external::store::mongodb::metamodel::aggregation::ViewPipeline extends AggregationPipeline
@@ -510,6 +510,7 @@ meta::external::store::mongodb::metamodel::SelectDocumentQuery extends meta::ext
     distinct : Boolean[0..1];
     data : RootJoinDocumentTreeNode[0..1];
     filteringOperation : MongoDbElement[*];
+    databaseCommand: DatabaseCommand[0..1];
     //leftSideOfFilter : DocumentTreeNode[0..1];
     //savedFilteringOperation : Pair<DocumentTreeNode, DocumentStoreElement>[*];
     // orderBy
