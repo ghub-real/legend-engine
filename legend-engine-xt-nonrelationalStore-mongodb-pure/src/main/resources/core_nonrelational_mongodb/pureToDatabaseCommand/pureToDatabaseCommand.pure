@@ -14,1019 +14,133 @@ import meta::pure::mapping::*;
 import meta::external::store::mongodb::extension::databaseCommandToString::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::metamodel::*;
 import meta::external::store::mongodb::metamodel::aggregation::*;
-
-
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::PureFunctionToMongoDbFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->MongoDbElement[1]}>>
-{
-}
+import meta::pure::functions::meta::*;
 
 Class meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbExecutionContext extends ExecutionContext
 {
 }
 
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::OperationWithParentPropertyMapping extends MongoDbElement
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], executionCtx:MongoDbExecutionContext[1], extensions:Extension[*]):String[1]
 {
-   element : MongoDbElement[1];
-   currentPropertyMapping : PropertyMapping[*];
+  //toDatabaseCommand($functionExpression, $mapping, $inScopeVars, $debug, $executionCtx->mongodbExecutionContextToState(defaultState($mapping, $inScopeVars)), $extensions)
+  'asadasd'
 }
 
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], extensions:Extension[*]): DatabaseCommand[1]
+{
+  let result = if ($functionExpression.functionName == 'filter',
+    | let dbCommand = ^DatabaseCommand(
+        aggregationPipeline=^AggregationPipeline(
+          stages=[
+            processSimpleFunctionExpressionToMatchStage(
+              $functionExpression->cast(@SimpleFunctionExpression),
+              $mapping,
+              $inScopeVars,
+              $debug
+            )
+          ]
+        )
+      ),
+    | ^DatabaseCommand());
+    println('toDatabaseCommand');
+    println($result, 10);
+  $result;
+}
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processSimpleFunctionExpressionToMatchStage(functionExpression: FunctionExpression[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MatchStage[1]
+{
+  let instanceValue = processInstanceValue($functionExpression.parametersValues->at(1)->cast(@FunctionRoutedValueSpecification).value->cast(@InstanceValue), $mapping, $inScopeVars, $debug);
+  let matchStage = processSimpleFunctionExpression($functionExpression, $mapping, $inScopeVars, $debug);
+  ^MatchStage(expression=$matchStage);
+}
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processSimpleFunctionExpression(functionExpression: FunctionExpression[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): ArgumentExpression[1]
+{
+  let result = if ($functionExpression.functionName == 'getAll',
+    | processInstanceValue($functionExpression.parametersValues->at(0)->cast(@InstanceValue), $mapping,  $inScopeVars, $debug),
+    | if ($functionExpression.functionName == 'filter',
+      | 
+        let instanceValue = processInstanceValue($functionExpression.parametersValues->at(1)->cast(@FunctionRoutedValueSpecification).value->cast(@InstanceValue), $mapping, $inScopeVars, $debug);
+        /*
+        println('instance value in filter');
+        println($instanceValue);
+        println('first param');
+        println($functionExpression.parametersValues->at(0));
+        */
+        let expressionFake = ^LiteralValue(value=^StringTypeValue(value='afdf'));
+        ^ObjectExpression(keyValues=[^KeyValueExpressionPair(field='asd',argument=^LiteralValue(value=^StringTypeValue(value='afdf')))]);,
+      | if ($functionExpression.functionName == 'and',
+        | 
+          let leftSide = processSimpleFunctionExpression($functionExpression.parametersValues->at(0)->cast(@SimpleFunctionExpression), $mapping, $inScopeVars, $debug);
+          let rightSide = processSimpleFunctionExpression($functionExpression.parametersValues->at(1)->cast(@SimpleFunctionExpression), $mapping, $inScopeVars, $debug);
+          let expressionFake1 = ^LiteralValue(value=^StringTypeValue(value='afdf'));
+          let expressionFake2 = ^LiteralValue(value=^StringTypeValue(value='afdf'));
+          ^AndOperatorExpression(expressions=[$expressionFake1, $expressionFake2]);,
+        | if ($functionExpression.functionName == 'equal',
+          | 
+            let equalOperatorExpression = processEqual($functionExpression, $mapping, $inScopeVars, $debug);
+            println('equalOperatorExpression is:');
+            println($equalOperatorExpression);
+            ^ObjectExpression(keyValues=[$equalOperatorExpression]);,
+          | ^ObjectExpression(keyValues=[^KeyValueExpressionPair(field='asd',argument=^LiteralValue(value=^StringTypeValue(value='afdf')))]);
+          )
+        )
+      )
+    );
+    $result->cast(@ArgumentExpression);
+}
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processEqual(functionExpression: FunctionExpression[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): KeyValueExpressionPair[1]
+{
+  //println($functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name);
+  let leftSide = getFieldPathForPropertyNameAndMapping($functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne(), $mapping);
+  let rightSide = processInstanceValue($functionExpression.parametersValues->at(1)->cast(@InstanceValue), $mapping, $inScopeVars, $debug)->cast(@LiteralValue);
+  ^KeyValueExpressionPair(field=$leftSide, argument=^EqOperatorExpression(expression=$rightSide));
+}
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::getFieldPathForPropertyNameAndMapping(propertyName: String[1], mapping: Mapping[1]): String[1]
+{
+  println('getFieldPathForPropertyNameAndMapping');
+  //println(meta::json::toPrettyJSON($mapping.classMappings->cast(@RootMongoDbInstanceSetImplementation).propertyMappings), 8);
+  //println($mapping, 5);
+  let mongoDbPropertyMapping = $mapping.classMappings->cast(@RootMongoDbInstanceSetImplementation).propertyMappings->filter(x | $x.property.name == $propertyName)->toOne();
+  //println('mongoDbPropertyMapping');
+  //println($mongoDbPropertyMapping);
+  $mongoDbPropertyMapping->cast(@MongoDbPropertyMapping).mongoDbElement->cast(@Field).name;
+}
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processInstanceValue(i: InstanceValue[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): ArgumentExpression[1]
+{
+  let result = $i.values->match([
+    s: String[1] | ^LiteralValue(value=^StringTypeValue(value=$s));,
+    l: LambdaFunction<Any>[1] |
+      let fe = $i.values->cast(@LambdaFunction<Any>).expressionSequence->cast(@SimpleFunctionExpression);
+      processSimpleFunctionExpression($fe->toOne(), $mapping, $inScopeVars, $debug);
+
+  ]);
+  $result->toOne();
+}
 /*
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::FunctionParamScope
+if($argument.functionName == 'graphFetch',
+  | 
+    println('in graphFetch');
+    println($argument.parametersValues->at(0));
+    let match = if($argument.parametersValues->at(0).functionName == 'filter'*, | processSimpleFunctionExpression($argument.parametersValues->at(0)),| '');
+    let matchFake = ^MatchStage(expression=^LiteralValue(value=^StringTypeValue(value='afdf')));
+    let collectionName = 'persons';
+    ^DatabaseCommand(aggregationPipeline=^AggregationPipeline(stages=$matchFake));,
+  | 
+  */
+/*
+  function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification(vs:ValueSpecification[1], parentQuery:DatabaseCommand[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): DatabaseCommand[1]
 {
-   parent : FunctionParamScope[0..1];
-   varToSelect : Map<String,SelectDocumentQuery>[0..1];
-   varExpressionToSelect :  Pair<VariableExpression,FunctionParamScope>[*];
-
-   resolveFunctionReferenceByName(s : String[1]){
-      let resolved = if(!$this.varToSelect->isEmpty(),|$this.varToSelect->toOne()->get($s),|[]);
-      if ($resolved->isEmpty(),| if(!$this.parent->isEmpty(),|$this.parent->toOne().resolveFunctionReferenceByName($s),|[]),|$resolved->toOne());
-   }:SelectDocumentQuery[0..1];
-
-   resolveFunctionReferenceByVar(v : VariableExpression[1]){
-      let resolved = $this.varExpressionToSelect->filter(p|$p.first.name == $v.name)->first();
-      if($resolved->isEmpty(),| if(!$this.parent->isEmpty(),|$this.parent->toOne().resolveFunctionReferenceByVar($v),|[]),|$resolved.second->toOne());
-   }:FunctionParamScope[0..1];
-}
-*/
-
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::ClassInstanceHolder extends MongoDbElement
-{
-   value : Any[1];
-}
-
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::EnumProcessingHolder
-{
-  param : ValueSpecification[1];
-  processedParam : MongoDbElement[1];
-  currentPropertyMapping : OperationWithParentPropertyMapping[1];
-}
-
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::State
-{
-   inScopeVars:Map<String, List<Any>>[1];
-   supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->MongoDbElement[1]}>>[1];
-   mapping:Mapping[1];
-   inProject:Boolean[1]; // should we fetch all properties in getAll ('NOT'ed)
-   inProjectFunctions:Boolean[1];
-   filterChainDepth:Integer[1];
-   inFilter:Boolean[1];
-   propertyMappingFromRouter : PropertyMapping[*];
-   qualifierBase:OperationWithParentPropertyMapping[0..1];
-   processingProjectionThread : Boolean[1];
-   //functionReferenceScope : FunctionParamScope[0..1];
-   inGetterFlow:Boolean[0..1];
-   inIf:Boolean[0..1];
-   inIfTrueFalseStmt:Boolean[0..1];
-   functionExpressionStack : FunctionExpression[*];
-   graphFetchFlow : Boolean[0..1];
-   graphFetchProperties : Property<Nil,Any|*>[*];
-}
-
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::MergeResultContainer
-{
-   node : DocumentTreeNode[1];
-   fields : MongoDbElement[*];
-   filteringOperation : MongoDbElement[*];
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::mongodbExecutionContextToState(execCtx:MongoDbExecutionContext[0..1], s:State[1]):State[1]
-{
-   $s
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::defaultState(mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1]):State[1] 
-{
-   ^State(inScopeVars=$inScopeVars, supportedFunctions=getSupportedFunctions(), mapping=$mapping, inProject=false, inProjectFunctions=false, inFilter=false, filterChainDepth=0, processingProjectionThread=false);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], executionCtx:MongoDbExecutionContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-  toDatabaseCommand($functionExpression, $mapping, $inScopeVars, $debug, $executionCtx->mongodbExecutionContextToState(defaultState($mapping, $inScopeVars)), $extensions, ^DatabaseCommand())
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], state:State[1], extensions:Extension[*], dbCommand: DatabaseCommand[*]):SelectDocumentQuery[1]
-{
-  $functionExpression
-    ->processDatabaseCommand($state, $debug, $extensions);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processDatabaseCommand(functionExpression:FunctionExpression[1], state:State[1], debug:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-  processValueSpecification( $functionExpression,
-                              [],
-                              ^SelectDocumentQuery(),
-                              newMap([]->cast(@Pair<VariableExpression, ValueSpecification>), VariableExpression->classPropertyByName('name')->cast(@Property<VariableExpression,String|1>)),
-                              $state,
-                              $debug,
-                              $extensions
-                            )->cast(@SelectDocumentQuery)->toOne();
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[*]
-{
-   processValueSpecificationReturnPropertyMapping($vs, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->map(r | $r.element);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecificationReturnPropertyMapping(vs:ValueSpecification[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[*]
-{
-  let res = $vs->evaluateAndDeactivate()->match(
+   $vs->evaluateAndDeactivate()->match(
              [
-                 r:StoreMappingRoutedValueSpecification[1] | $r.value->processValueSpecificationReturnPropertyMapping($currentPropertyMapping, $operation, $vars, ^$state(propertyMappingFromRouter = $r.propertyMapping), $context, $extensions),
-                 r:FunctionRoutedValueSpecification[1] | $r.value->processValueSpecificationReturnPropertyMapping($currentPropertyMapping, $operation, $vars, $state, $context, $extensions),
-                 f:FunctionExpression[1] | processFunctionExpression($f, $currentPropertyMapping, $operation, $vars, ^$state(functionExpressionStack+=$f),  $context, $extensions),
-                 i:InstanceValue[1] | let elements = processInstanceValue($i, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions);
-                                      $elements->map(e | ^OperationWithParentPropertyMapping(element=$e));,
-                 v:VariableExpression[1] | processVariableExpression($v,$currentPropertyMapping, $operation, $vars, $state, $context, $extensions),
-                 n:NoSetRoutedValueSpecification[1]|$n.value->processValueSpecificationReturnPropertyMapping($currentPropertyMapping, $operation, $vars, $state, $context, $extensions)                 
-             ]);
-    $res;
+                 r:ExtendedRoutedValueSpecification[1] | $r.value->processValueSpecification($parentQuery, $inScopeVars, $debug),
+                 r:FunctionRoutedValueSpecification[1] | $r.value->processValueSpecification($parentQuery, $inScopeVars, $debug),
+                 f:FunctionExpression[1]               | $f->processFunctionExpression($parentQuery, $inScopeVars, $debug),
+                 i:InstanceValue[1]                    | $i->processInstanceValue($parentQuery, $inScopeVars, $debug),
+                 v:VariableExpression[1]               | $v->processVariableExpression($parentQuery, $inScopeVars, $debug)
+             ])
 }
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunctionExpression(functionExpression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[*]
-{
-  print(if(!$context.debug, |'', | $context.space+'>Process Function Expression: '+ $functionExpression.func.name->toOne() + '\n'));
-  let res  = $functionExpression.func->match ([
-                                    p:Property<Nil,Any|*>[1] | processPropertyFunctionExpression($functionExpression, $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);,
-                                    a:Any[1]| processFunctionExpressionForNonPropertyFunction($functionExpression, $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);
-                                   ]);
-  $res;
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::shift(d:DebugContext[1]):DebugContext[1]
-{
-   ^$d(space = $d.space+'   ');
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processVariableExpression(v:VariableExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[*]
-{
-   print(if(!$context.debug, |'', | $context.space+'>Process Variable Expression, name:' + $v.name + '\n'));
-   if ($v.name == 'this' && $state.qualifierBase->isNotEmpty(), | let op = $state.qualifierBase->toOne();
-                            let sel = $op.element->cast(@SelectDocumentQuery);
-                            ^$op(element = ^$sel(filteringOperation = []));,
-                          | let res = $v->resolve($vars, $state.inScopeVars)->evaluateAndDeactivate();
-/*
-                            let resolvedOperation = if(!$state.functionReferenceScope->isEmpty(), //attempt to resolve the variable name to a SelectWithCursor recorded in either this or a parent scope
-                                                            | let resolvedOperation = $state.functionReferenceScope->toOne().resolveFunctionReferenceByName($v.name);
-                                                              if(!$resolvedOperation->isEmpty(),| $resolvedOperation,|$operation)->toOne();,
-                                                            | $operation);
-
-                            let nres = if($res->isNotEmpty() && $res->toOne()->instanceOf(InstanceValue) && $res->cast(@InstanceValue).values->size() == 1 && //$res->cast(@InstanceValue).values->at(0)->instanceOf(VarPlaceHolder) &&
-                                          !$state.functionReferenceScope->isEmpty() && $state.functionReferenceScope->toOne().resolveFunctionReferenceByName($v.name)->isNotEmpty(),
-                                          |//The open variable is managed in the scope of the expression, so we should not stub it
-                                           [],
-                                          |$res
-                                        );
 */
-                            if($res->isEmpty(),                                                   //true for function params e.g. $e in '[]->filter(e|$e...)'
-                                       |$operation->match([ o:OperationWithParentPropertyMapping[1] | $o,
-                                                             a:MongoDbElement[1] | ^OperationWithParentPropertyMapping(
-                                                                                                    element=$operation,
-                                                                                                    currentPropertyMapping=$currentPropertyMapping
-                                                                                               )
-                                                          ]),
-                                       |$res->toOne()->match(
-                                                                [
-                                                                   e:VariableExpression[1]| ^OperationWithParentPropertyMapping(element=$operation);,
-                                                                   a:Any[1]|                     //the resolved VariableExpression (ValueSpecification) is processed with respect to the $state recorded at the time the owning QualifiedProperty is processed e.g. address in 'Firm.all->filter(f|$f.employeesByAddress($f.address));' employeesByAddress(address: Address[1]){..}'
-                                                                            /*let possiblyNewState = if(!$state.functionReferenceScope ->isEmpty(),
-                                                                                                                    | let resolvedVariableExpression=$state.functionReferenceScope->toOne().resolveFunctionReferenceByVar($v);
-                                                                                                                      if(!$resolvedVariableExpression->isEmpty(),|^$state(functionReferenceScope=$resolvedVariableExpression->toOne()),|$state);,
-                                                                                                                    | $state
-                                                                                                     )->toOne();
-                                                                                                     */
-                                                                            processValueSpecificationReturnPropertyMapping($res->toOne(), $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions);
-                                                                ]);
-                             );
-                          )->cast(@OperationWithParentPropertyMapping);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processInstanceValue(i:InstanceValue[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[*]
-{
-  processValue($i.values, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValue(vals:Any[*], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[*]
-{
-    let select = $operation;
-    println('processValue');
-    println($operation);
-    println('vals');
-    println($vals);
-    if ($vals->isEmpty(), | $state.inFilter->if(|^$select(filteringOperation = ^meta::external::store::mongodb::metamodel::Literal(value=^DocumentNull())),|^$select(fields = ^meta::external::store::mongodb::metamodel::Literal(value=^DocumentNull())))
-                        , | $vals->map(v | $v->match([
-                                  s:String[1] | $state.inFilter->if(|^$select(filteringOperation = ^Literal(value=$s)),|^$select(fields = ^Literal(value=$s))),
-                                  n:Number[1] | $state.inFilter->if(|^$select(filteringOperation = ^Literal(value=$n)),|^$select(fields = ^Literal(value=$n))),
-                                  d:Date[1] | $state.inFilter->if(|^$select(filteringOperation = ^Literal(value=$d)),|^$select(fields = ^Literal(value=$d))),
-                                  b:Boolean[1] | $state.inFilter->if(|^$select(filteringOperation = ^Literal(value=$b)),|^$select(fields = ^Literal(value=$b))),
-                                  //e:Enum[1] | let ev = mapEnumValue($e, $currentPropertyMapping, $context); ^$operation(select = $state.inFilter->if(|^$select(filteringOperation = ^Literal(value=$ev)),|^$select(columns = ^Literal(value=$ev))));,
-                                  v:ValueSpecification[1] | processValueSpecification($v, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions),
-                                  l:LambdaFunction<Any>[1] | $l.expressionSequence->at(0)->processValueSpecification($currentPropertyMapping, $operation, $vars, $state, $context, $extensions),
-                                  a:Any[1] | ^ClassInstanceHolder(value=$a);
-                             ])) );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processPropertyFunctionExpression(fe:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[1]
-{
-   let propertyOwner = $fe.parametersValues->at(0)->map(p|$p->byPassRouterInfo());
-
-   print(if(!$context.debug, |'', | $context.space+'>Process Property Function Expression: ' + $fe.func.name->toOne() + ', property owner:' + $propertyOwner.genericType->genericTypeClass().name->toOne() + ', inFilter:' + $state.inFilter->toString() + '\n'));
-
-   let leftSide = processValueSpecificationReturnPropertyMapping($fe.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions)->toOne();
-   let result = $leftSide.element->match(
-                     [
-                        c : ClassInstanceHolder[1] |
-                              let val = $fe.func->cast(@Property<Nil,Any|*>)->eval($c.value);
-                              let element = processValue($val, $currentPropertyMapping, $operation, $vars, $state, $context->shift(), $extensions)->toOne();
-                              ^OperationWithParentPropertyMapping(element=$element);,
-                        sel : SelectDocumentQuery[1] |
-                                let toCheckVals = if ($state.inFilter, |$sel.filteringOperation, |$sel.fields);
-                                let property = $fe.func->cast(@AbstractProperty<Any>);
-                                let propertyOwnerClass = $propertyOwner.genericType->genericTypeClass();
-                                let baseOperation = if($currentPropertyMapping->isEmpty()
-                                                                ,| $leftSide.currentPropertyMapping
-                                                                ,| $currentPropertyMapping
-                                                   )->match([
-                                                         a:Any[*]|^OperationWithParentPropertyMapping
-                                                                  (
-                                                                     element = $sel,
-                                                                     currentPropertyMapping = if($leftSide.currentPropertyMapping->isEmpty(), | $currentPropertyMapping, | $leftSide.currentPropertyMapping)
-                                                                  );
-                                                      ]);
-                              processProperty(
-                                           $property,
-                                           $propertyOwnerClass,
-                                           $baseOperation.currentPropertyMapping,
-                                           $state.propertyMappingFromRouter,
-                                           $baseOperation.element->cast(@SelectDocumentQuery),
-                                           $state,
-                                           $context->shift(),
-                                           $extensions
-                                      );
-                           
-
-                     ]
-                   );
-   $result;
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processProperty(property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], currentPropertyMapping:PropertyMapping[*], propertyMappingFromRouter:PropertyMapping[*], srcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[1]
-{
-   let propertyMappings = findPropertyMapping($property, $propertyOwnerClass, $currentPropertyMapping, $propertyMappingFromRouter, $state.mapping->toOne(),$context);
-   let res = processPropertyMapping($propertyMappings, $propertyOwnerClass, $srcOperation, $state, $context, $extensions);
-   ^OperationWithParentPropertyMapping(element=$res, currentPropertyMapping=$propertyMappings);
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::wrapIfNecessary(operation:MongoDbElement[1]):OperationWithParentPropertyMapping[1]
-{
-   $operation->match([ o:OperationWithParentPropertyMapping[1] | $o,
-                       a:MongoDbElement[1] | ^OperationWithParentPropertyMapping(element=$operation)
-                     ])
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunctionExpressionForNonPropertyFunction(functionExpression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):OperationWithParentPropertyMapping[*]
-{
-   let func = findSupportedFunction($functionExpression, $state.supportedFunctions);
-   if ( (!$func->isEmpty()), | let params1 = [^List<Any>(values=$functionExpression), ^List<Any>(values=$currentPropertyMapping)];
-                                   let params = $params1->concatenate([$operation, $vars, $state, $context]->map(v | ^List<Any>(values=$v)))->concatenate(^List<Any>(values = $extensions));
-                                   $func->toOne()->evaluate($params)->cast(@MongoDbElement)->toOne()->wrapIfNecessary();
-       , |
-
-
-      if($functionExpression.func->instanceOf(FunctionDefinition),
-         |let expression = $functionExpression.func->cast(@FunctionDefinition<Any>).expressionSequence;
-              assertEquals(1, $expression->size(), | 'Functions with more than one functionExpression are not supported yet! The function \'' + $functionExpression.func->toString() + '\' has ' + $expression->size()->toString() + ' expressions.');
-              processValueSpecificationReturnPropertyMapping($expression->toOne(), $currentPropertyMapping, $operation, $functionExpression->mapVariables($vars, $state.inScopeVars), ^$state(inScopeVars=^Map<String, List<Any>>()), $context->shift(), $extensions);
-         ,
-         |fail('No MQL translation exists for the PURE function \''+$functionExpression.func.name->toOne()+'\'. \nIf you would like to add a SQL translation for the function then follow the step-by-step guide on the PURE wiki.'); $operation->wrapIfNecessary();
-          );
-   );
-}
-
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::findSupportedFunction(fe:FunctionExpression[1], supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->MongoDbElement[1]}>>[1]):meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->MongoDbElement[1]}>[0..1]
-{
-  $supportedFunctions->get($fe.func)
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]): MongoDbElement[1]
-{
-  let setImplementation = $expression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).sets->toOne();
-   processGetAll($expression, $setImplementation, $expression.parametersValues, $state, $vars, $context, $extensions);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(expression: FunctionExpression[1], setImplementation:SetImplementation[1], parameters:ValueSpecification[*], state:State[1], vars:Map<VariableExpression, ValueSpecification>[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{
-   let processRootSetImpl = {r:RootMongoDbInstanceSetImplementation[1] | processGetAll($r, $r.class, !$state.inProject, $state, $context, $extensions);};
-
-   $setImplementation->match([r:RootMongoDbInstanceSetImplementation[1]| $processRootSetImpl->eval($r)]);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(viewSpecification:MongoDbMappingSpecification[1], c:Class<Any>[0..1], addAllColumns:Boolean[1],  state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-   let newState = ^$state(inProject=false, inProjectFunctions=false, processingProjectionThread=false, inFilter=false);
-   processMongoDbMappingSpecification($viewSpecification, $c, $addAllColumns, $newState, $context, $extensions);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processDynaFunction(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{
-   let funcName = $f.func.functionName->toOne();
-
-   let isIfTrueFalseStmt = $f.func == if_Boolean_1__Function_1__Function_1__T_m_ || $state.inIf == true;
-   let paramIsIfTrueFalseStmt = {paramIndex:Integer[1]|$state.inIf == true && $paramIndex->in([1,2])};
-
-   let processedParams = if($f->isIfForEnum($state.inFilter),| processIfForEnum($f, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)
-                                                            ,| let zippedParameters = $f.parametersValues->size()->range()->zip($f.parametersValues);
-                                                               pair(^List<MongoDbElement>(values=$zippedParameters->map(pv| let updatedState = if($paramIsIfTrueFalseStmt->eval($pv.first),|^$state(inIfTrueFalseStmt=true),|$state);
-                                                                                                                                        $pv.second->processValueSpecification($currentPropertyMapping, $operation, $vars, $updatedState, $context, $extensions);)),{res:MongoDbElement[1]|$res}););
-
-   let parameterNoSQL = $processedParams.first.values->map(x | extractDocumentQuery($x));
-
-   let mergedNoSQL = if ($parameterNoSQL->isEmpty(),
-                     | $operation,
-                     | let sqls = if ($parameterNoSQL->size() > 1,
-                           | let zippedParameterNoSQLs = $parameterNoSQL->size()->range()->zip($parameterNoSQL);
-                             $zippedParameterNoSQLs->map(s| let updatedState = if($isIfTrueFalseStmt,|^$state(inIfTrueFalseStmt=true),|$state);
-                                                          $s.second;);,
-                           | $parameterNoSQL
-                       );
-                       let nsqls =
-                                     if($f.func.functionName->toOne() != 'or',
-                                       |$sqls,
-                                       |$sqls->map(s|$s->moveExtraFilterToFilter($extensions))
-                                     );
-                       $nsqls->mergeMongoDbQueryData($state, $context, $extensions);
-               );
-
-   let res = $state.inFilter->if(
-                           | let unSupportedBiTemporalProcessing = $mergedNoSQL.filteringOperation->isEmpty();
-                             if($unSupportedBiTemporalProcessing ,| $mergedNoSQL
-                                                                 ,| ^$mergedNoSQL(filteringOperation = newDynaFunction($f.func.functionName->toOne(), if($parameterNoSQL->isEmpty(), | [], |$mergedNoSQL.filteringOperation))));,
-                           | ^$mergedNoSQL
-                             (
-                                fields = newDynaFunction($f.func.functionName->toOne(), $mergedNoSQL.fields)
-                             )
-                        );
-
-   $processedParams.second->eval($res);
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::newDynaFunction(name: String[1], params: MongoDbElement[*]): DynaFunction[1]
-{
-   if($name->in(['and','or']),
-               | newAndOrDynaFunctionWrappedInGroup($name, $params),
-               | ^DynaFunction(name = $name, parameters = $params)
-     );
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::newAndOrDynaFunctionWrappedInGroup(name: String[1], params: MongoDbElement[*]): DynaFunction[1]
-{
-   ^DynaFunction(name = 'group', parameters = ^DynaFunction(name = $name, parameters = $params));
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::moveExtraFilterToFilter(s:SelectDocumentQuery[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-   let filters = $s.filteringOperation;
-   ^$s(
-         filteringOperation = if ($filters->size() > 1,|^DynaFunction(name = 'group', parameters = $filters->andFilters($extensions)->toOne()),|$filters)
-   );
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::processIfForEnum(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):Pair<List<MongoDbElement>,meta::pure::metamodel::function::Function<{MongoDbElement[1]->MongoDbElement[1]}>>[1]
-{
-   print(if(!$context.debug, |'',
-            | $context.space+'Processing "if for enum"\n'));
-
-   let execSides = $f.parametersValues->tail()->map(p|pair($p,$p->byPassRouterInfo()->cast(@InstanceValue).values->cast(@LambdaFunction<Any>)->toOne()));
-   let propertyMappings = $execSides.second.expressionSequence->map(e|
-                                                               let classPropertyPair = $e->findPropertySequence()->first();
-                                                               if(!$classPropertyPair->isEmpty(),| let class = $classPropertyPair.first;
-                                                                                                   let propertyName = $classPropertyPair.second.name->toOne();
-                                                                                                   let classMapping = $state.mapping.classMappingByClass($class->toOne());
-                                                                                                   $classMapping->cast(@PropertyMappingsImplementation).propertyMappingsByPropertyName($propertyName);
-                                                                                                ,|[]);
-                                                             );
-
-   let distinctTransformers = $propertyMappings->filter(m|$m->instanceOf(MongoDbPropertyMapping))->cast(@MongoDbPropertyMapping).transformer->distinct();
-   let semiStructuredMappings = $propertyMappings->filter(m|$m->instanceOf(MongoDbPropertyMapping))->forAll(x|$x->instanceOf(SemiStructuredMongoDbPropertyMapping));
-
-   assertFalse($distinctTransformers->size() > 1, 'Unable to determine a unique Enum property mapping for an if stmt (returning an Enum)');
-   if ($semiStructuredMappings,
-       | print(if(!$context.debug, |'', |$context.space+'  Ignoring distinct transformer check as all property mappings are semi structured property mappings\n'));,
-       | assertFalse($distinctTransformers->isEmpty(), 'Unable to determine the Enum property mapping for an if stmt (returning an Enum)');
-   );
-
-   print(if(!$context.debug, |'',
-            | $context.space+'  Found '+$distinctTransformers->size()->toString()+' distinct transformers\n'));
-
-   let foundEnumPropertyMapping = $propertyMappings->at(0);
-   let isEnumConstantSide = {l:LambdaFunction<Any>[1] |
-         $l.expressionSequence->match([
-            sfe : SimpleFunctionExpression[1]| $sfe.func == extractEnumValue_Enumeration_1__String_1__T_1_,
-            iv : InstanceValue[1]|$iv.values->size() == 1 && $iv.values->toOne()->instanceOf(Enum),
-            vs:ValueSpecification[*]|false
-            ]);
-         };
-
-   let pred = $f.parametersValues->at(0)->processValueSpecification($currentPropertyMapping, $operation, $vars, $state, $context, $extensions);
-   let sides = $execSides->map(s|$s.first->processValueSpecification(if($isEnumConstantSide->eval($s.second),
-                                                                        |print(if(!$context.debug, |'', | $context.space+'  Enum in if is a constant\n'));
-                                                                         $foundEnumPropertyMapping;,
-                                                                        |print(if(!$context.debug, |'', | $context.space+'  Enum in if is NOT a constant\n'));
-                                                                         $currentPropertyMapping;
-                                                                     ), $operation, $vars, $state, $context, $extensions));
-   pair(^List<MongoDbElement>(values=$pred->concatenate($sides)),{r:MongoDbElement[1]|^OperationWithParentPropertyMapping(element=$r, currentPropertyMapping=$foundEnumPropertyMapping)});
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::isIfForEnum(f:FunctionExpression[1], inFilter:Boolean[1]):Boolean[1]
-{
-   $f.func.functionName->toOne()=='if' && !$inFilter && $f.genericType.rawType->toOne()->instanceOf(Enumeration)
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processMongoDbMappingSpecification(viewSpecification:MongoDbMappingSpecification[1], c:Class<Any>[0..1], addAllColumns:Boolean[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-   let mainCollection = $viewSpecification.mainMongoDbRelation->processMongoDbRelation($c, $addAllColumns, $state, $context, $extensions);  //removed $milestoningContext,
-
-   let currentNode = ^RootJoinDocumentTreeNode(alias=^CollectionAlias(name = $mainCollection->cast(@meta::external::store::mongodb::metamodel::NamedMongoDbRelation).name, mongoDbElement = $mainCollection));
-
-
-   let base = ^SelectDocumentQuery(data = $currentNode);
-
-   let quoteColumnAliases = false;
-   let requiresAllProperties = true;
-
-   let properties = if($requiresAllProperties, | fieldNamesWithMongoDbElement($viewSpecification, $c, $state)->map(c | let newQuery = $c.second->processFieldsInMongoDbElements($state, $base, $context, $extensions);
-                                                                                                           rebuildSelectDocumentQuery($c.first, [], $newQuery, $quoteColumnAliases);)
-                                             , | [] );
-
-   ^SelectDocumentQuery(
-          distinct = false,
-          fields = $properties.fields,
-          data = $properties.data->at(0),
-          filteringOperation = $properties.filteringOperation
-    );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::rebuildSelectDocumentQuery(name:String[0..1], suffix:String[0..1], newQuery: SelectDocumentQuery[1], quotes:Boolean[1]):SelectDocumentQuery[1]
-{
-   let newName = if($name->isEmpty(),
-                    |$newQuery.fields->toOne()->cast(@Field).name,
-                    |$name->toOne()
-                 )+
-                 if($suffix->isEmpty(),
-                    |'',
-                    |'_'+$suffix->toOne()
-                 );
-   ^SelectDocumentQuery(
-                     fields = ^Alias(name = if($quotes,
-                                                |'"'+$newName+'"',
-                                                |$newName
-                                             ),
-                                      mongoDbElement = $newQuery.fields->toOne()
-                               ),
-                     data = $newQuery.data,
-                     filteringOperation = []
-               );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::fieldNamesWithMongoDbElement(vs: MongoDbMappingSpecification[1], c:Class<Any>[0..1], state: State[1]):Pair<String, MongoDbElement>[*]
-{
-   $vs->match([
-               r:RootMongoDbInstanceSetImplementation[1] | $r->dataTypePropertyMappings()
-                                                              ->filter(x | if($state.graphFetchFlow == true, | $x.property->in($state.graphFetchProperties), | true))
-                                                              ->map(pm|pair($pm.property.name->toOne(),$pm->cast(@MongoDbPropertyMapping).mongoDbElement))
-              ]);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFieldsInMongoDbElements(z:MongoDbElement[1], state:State[1], srcOperation:SelectDocumentQuery[1], context:DebugContext[1], extensions:Extension[*]): SelectDocumentQuery[1]
-{
-   //$srcOperation->validate([], $extensions);
-   let result = $z->match(
-               [
-                  f:Field[1] |
-                              let currentTreeNode = $srcOperation.data->toOne();
-
-                              let alias = $currentTreeNode.alias;
-                              let mongoDbElement = $alias.mongoDbElement;
-
-                              // Make sure the column is available a potentially SQL
-                              let newSrcOperation = $mongoDbElement->match([
-
-                                 s:SelectDocumentQuery[1] | $srcOperation;,
-                                 a:Any[1]| $srcOperation;
-                              ]);
-
-                              let newOpSelect = $newSrcOperation; //.select;
-                              let field = ^Field(name=$f.name, type=$f.type, owner=$f.owner);
-                              if ($state.inFilter,| ^$newOpSelect(filteringOperation = $field),|^$newOpSelect(fields = $field, filteringOperation = $field));
-                              ,
-                  d:DynaFunction[1]| let newSelect = if ($d.parameters->isEmpty(),
-                                                      | let select = $srcOperation;
-                                                         $state.inFilter->if(|^$select(filteringOperation = $d),|^$select(fields = $d));
-                                                         ,
-                                                      |  let sqlThreads = $d.parameters->map(p|$p->processFieldsInMongoDbElements($state, $srcOperation, $context, $extensions));
-                                                         let merged = $sqlThreads->mergeDocumentQueryData($state, $context, $extensions);
-                                                         let pFunc = ^$d(parameters = $state.inFilter->if(|$merged.filteringOperation,|$merged.fields));
-                                                         // TODO: seems to not be coming here?
-                                                         $state.inFilter->if(|^$merged(filteringOperation=$pFunc),|^$merged(fields=$pFunc));
-                                                    );
-                                     $newSelect;
-                                     ,
-                  l:Literal[1]| let select = $srcOperation;
-                                $state.inFilter->if(|^$select(filteringOperation = $l),|^$select(fields = $l));
-                                                      
-               ]
-            );
-   //$result->validate([], $extensions);
-   $result;
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::mergeDocumentQueryData(preQuerySet:SelectDocumentQuery[*], state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-    let hasIsolations = false;
-
-    let res = $preQuerySet->tail()->fold(
-      {
-         q,a |
-               if ($q != [] && !$q.data->isEmpty()
-                   ,|
-                      let new_a = $a;
-                      let new_q = $q;
-
-                      //let id = buildNodeId($nodeId, '_m' + $preQuerySet->indexOf($q)->toString());
-
-                      let merged = merge(
-                                           ^MergeResultContainer(
-                                              node = $new_a.data->toOne(),
-                                              fields = $new_q.fields,
-                                              filteringOperation = $new_q.filteringOperation//,
-                                            ),
-                                            $new_q.data->toOne(),
-                                            $state,
-                                            $context,
-                                            $extensions
-                                        );
-
-                      ^$new_a
-                         (
-                            fields = $new_a.fields,
-                            data = $merged.node->cast(@RootJoinDocumentTreeNode),
-                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation)
-                         );
-                   ,|
-                        ^$a
-                         (
-                            fields = $a.fields->concatenate($q.fields),
-                            filteringOperation += $q.filteringOperation
-                         );
-               );
-        }, $preQuerySet->first()->toOne()
-    );
-
-   $res;
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processMongoDbRelation(r: MongoDbElement[1], c:Class<Any>[0..1], addAllColumns:Boolean[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1] //milestoningContext: TemporalMilestoningContext[0..1], 
-{
-   $r->match([
-               s:SelectDocumentQuery[1] | $s,
-               t:Collection[1] | $t
-             ]);
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::getAllNodes(s:TreeNode[1]):TreeNode[*]
-{
-   $s->concatenate($s.childrenData->map(k|$k->getAllNodes()));
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::merge(parentTargetTreeNode:MergeResultContainer[1], sourceTreeNode:DocumentTreeNode[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MergeResultContainer[1]
-{
-   
-        let newNode = $parentTargetTreeNode.node;
-       ^$parentTargetTreeNode
-        (
-           fields = $parentTargetTreeNode.fields,
-           filteringOperation = $parentTargetTreeNode.filteringOperation
-        );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{  
-  let leftSidePure = $expression.parametersValues->at(0);
-  let leftSideOp = processValueSpecificationReturnPropertyMapping($leftSidePure, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
-  let leftSide = $leftSideOp.element->cast(@SelectDocumentQuery);
-
-  let rootData = $leftSide.data->toOne();
-  let tree = $rootData;
-
-  let rootSelect = ^SelectDocumentQuery(
-    filteringOperation = if(isGetAll($leftSidePure),
-                                                          |$leftSide.filteringOperation,
-                                                          |$state.inFilter->if( | $leftSide.filteringOperation,
-                                                                                | let byPassedLeft = $leftSidePure->byPassRouterInfo();
-                                                                                  let isDataTypeInput = $byPassedLeft.genericType.rawType->isNotEmpty() && $byPassedLeft.genericType.rawType->toOne()->instanceOf(DataType);
-                                                                                  let isSemiStructuredPropertyMapping = ($leftSideOp.currentPropertyMapping->size() >= 1) && $leftSideOp.currentPropertyMapping->forAll(pm | $pm->instanceOf(meta::external::store::mongodb::metamodel::mapping::SemiStructuredMongoDbPropertyMapping));
-                                                                                  if ($isDataTypeInput || $isSemiStructuredPropertyMapping, | $leftSide.fields, | []);)),
-    data=$tree
-  );
-
-  let filterFunction = $expression->instanceValuesAtParameter(1, $vars, $state.inScopeVars)->at(0)->cast(@FunctionDefinition<Any>);
-  let filterFunctionExpression = $filterFunction.expressionSequence->at(0);
-
-  let inScopeVarsWithPlaceholdersState = $filterFunction->addPlaceHoldersForLambdaOpenVariables($vars, $state);
-
-  let rightSide = processValueSpecification($filterFunctionExpression, $currentPropertyMapping, $rootSelect, $vars, ^$inScopeVarsWithPlaceholdersState(inFilter=true), $context, $extensions)->toOne()->cast(@SelectDocumentQuery);
-
-  let merged = [$leftSide, $rightSide]->cast(@SelectDocumentQuery)->mergeMongoDbQueryData($state, $context, $extensions);
-
-  let mergedWithCollapsedFilteringOperation = ^$merged(filteringOperation = $merged.filteringOperation->tail()->fold({f,a|[$a->toOne(),$f]->andFilters($extensions)}, $merged.filteringOperation->head()));
-
-  $mergedWithCollapsedFilteringOperation;
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::andFilters(s:MongoDbElement[*], extensions:Extension[*]):MongoDbElement[0..1]
-{
-   $s->combineFilters(true, $extensions);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::orFilters(s:MongoDbElement[*], extensions:Extension[*]):MongoDbElement[0..1]
-{
-   $s->combineFilters(false, $extensions);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::combineFilters(s:MongoDbElement[*], and:Boolean[1], extensions:Extension[*]):MongoDbElement[0..1]
-{
-   let ns = $s->map(f|pair($f->buildUniqueName(true, $extensions), $f))->removeDuplicates({a,b|$a.first == $b.first}).second;
-   if ($ns->isEmpty(),
-         |[],
-         |if ($ns->size() == 1,
-            | $ns->toOne(),
-            | let dynaName = if($and,| 'and',| 'or');
-              newAndOrDynaFunctionRelaxedBrackets($dynaName, $ns->reverse());
-         )
-   );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::newAndOrDynaFunctionRelaxedBrackets(funcName: String[1], params: MongoDbElement[*]): DynaFunction[1]
-{
-   let potentiallyWrapedParams = $params->map(p | $p->match([ d: DynaFunction[1] | if($d.name->in(['and','or']) && $d.name != $funcName, | ^DynaFunction(name='group', parameters=$d), | $d),
-                                                              r: MongoDbElement[1] | $r
-                                                            ])
-                                              );
-   ^DynaFunction(name = $funcName, parameters = $potentiallyWrapedParams);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::buildUniqueName(elements:MongoDbElement[*], alias:Boolean[1], extensions:Extension[*]):String[1]
-{
-   'uniqueName'
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::mergeMongoDbQueryData(preQuerySet:SelectDocumentQuery[*], state:State[1], context:DebugContext[1], extensions:Extension[*]):SelectDocumentQuery[1]
-{
-    let hasIsolations = false;
-
-    let res = $preQuerySet->tail()->fold(
-      {
-         q,a |
-               if ($q != [] && !$q.data->isEmpty()
-                   ,|
-                      let new_a = $a;
-                      let new_q = $q;
-
-
-                      let merged = merge(
-                                           ^MergeResultContainer(
-                                              node = $new_a.data->toOne(),
-                                              fields = $new_q.fields,
-                                              filteringOperation = $new_q.filteringOperation//,
-                                            ),
-                                            $new_q.data->toOne(),
-                                            $state,
-                                            $context,
-                                            $extensions
-                                        );
-
-                      ^$new_a
-                         (
-                            fields = $new_a.fields,
-                            data = $merged.node->cast(@RootJoinDocumentTreeNode),
-                            filteringOperation = $new_a.filteringOperation->concatenate($merged.filteringOperation)
-                         );
-                   ,|
-                        ^$a
-                         (
-                            fields = $a.fields->concatenate($q.fields),
-                            filteringOperation += $q.filteringOperation
-                         );
-               );
-        }, $preQuerySet->first()->toOne()
-    );
-
-   $res;
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::addPlaceHoldersForLambdaOpenVariables(fn:FunctionDefinition<Any>[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1]):State[1]
-{
-   let inScopeVars = $state.inScopeVars;
-   $fn->match([
-                  l:LambdaFunction<Any>[1] | let placeHolders = $l.openVariables->map(v |if($inScopeVars->get($v)->isEmpty(),
-                                                                                             |pair($v, ^List<Any>(values=[^VarPlaceHolder(name=$v,type = $l->functionReturnType().rawType->toOne())]));,
-                                                                                             | []
-                                                                                         )
-                                                                                     );
-                                             ^$state(inScopeVars=$inScopeVars->putAll($placeHolders));,
-                  o:FunctionDefinition<Any>[1] | $state;
-   ]);
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::isGetAll(v:ValueSpecification[1]):Boolean[1]
-{
-   let extracted = $v->match([e:StoreMappingRoutedValueSpecification[1]|$e.value, v:ValueSpecification[1]|$v]);
-   $extracted->instanceOf(FunctionExpression) && $extracted->cast(@FunctionExpression).functionName == 'getAll';
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::canProcessAt(functionExpression:FunctionExpression[1]):Boolean[1]
-{
-   // Can process 'at' in the context of semi structured set implementations
-   let params = $functionExpression.parametersValues->evaluateAndDeactivate();
-   if(($params->size() == 2) && ($params->at(0)->instanceOf(StoreMappingRoutedValueSpecification)),
-      | let firstParam = $params->at(0)->cast(@StoreMappingRoutedValueSpecification);
-        ($firstParam.sets->size() == 1) && ($firstParam.sets->at(0)->instanceOf(SemiStructuredMongoDbInstanceSetImplementation));,
-      | false
-   );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processNot(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{
-   processUnary($f, $currentPropertyMapping, $operation, {a|^DynaFunction(name = 'not', parameters = $a)}, $vars, $state, $context, $extensions)->cast(@SelectDocumentQuery)->moveExtraFilterToFilter($extensions)
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processUnary(expression:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectDocumentQuery[1], f:meta::pure::metamodel::function::Function<{MongoDbElement[1]->MongoDbElement[1]}>[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{
-   let existingNoSqlQuery = processValueSpecification($expression.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne()->cast(@SelectDocumentQuery);
-   $state.inFilter->if(
-                  |^$existingNoSqlQuery(
-                        filteringOperation = $f->eval($existingNoSqlQuery.filteringOperation->toOne())
-                    )
-                  ,
-                  |^$existingNoSqlQuery(
-                        fields = $f->eval($existingNoSqlQuery.fields->toOne())
-                    )
-               );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processEquals(
-                 expression : FunctionExpression[1],
-                 currentPropertyMapping:PropertyMapping[*],
-                 operation : SelectDocumentQuery[1],
-                 vars : Map<VariableExpression, ValueSpecification>[1],
-                 state:State[1],
-                 context : DebugContext[1],
-                 extensions:Extension[*]
-         ) : MongoDbElement[1]
-{
-   let leftParam = $expression.parametersValues->at(0);
-   let rightParam = $expression.parametersValues->at(1);
-
-   assert($leftParam.multiplicity->hasUpperBound() && ($leftParam.multiplicity->getUpperBound() <= 1)
-          ,|'Left multiplicity error. Please use \'exists\' instead of \'==\' in the expression: '+$leftParam->asString()+' == '+$rightParam->asString());
-
-   assert($rightParam.multiplicity->hasUpperBound() && ($rightParam.multiplicity->getUpperBound() <= 1)
-          ,|'Right multiplicity error. Please use \'exists\' instead of \'==\' in the expression: '+$leftParam->asString()+' == '+$rightParam->asString());
-
-   validateParamHasDataTypeReturnType($leftParam);
-   validateParamHasDataTypeReturnType($rightParam);
-
-   let left = processValueSpecificationReturnPropertyMapping($leftParam, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
-   let right = processValueSpecificationReturnPropertyMapping($rightParam, $currentPropertyMapping, $operation, $vars, $state, $context, $extensions)->toOne();
-
-   let mergedNoSQL = mergeMongoDbQueryData([$left.element, $right.element]->map(x | $x->extractDocumentQuery()), $state, $context, $extensions);
-   
-   let leftVal = $state.inFilter->if(|$mergedNoSQL.filteringOperation->at(0),|$mergedNoSQL.fields->at(0));
-   let rightVal = $state.inFilter->if(|$mergedNoSQL.filteringOperation->at(1),|$mergedNoSQL.fields->at(1));
-
-   let filteringOperation = if($leftVal->hasReferenceToEnum() || $rightVal->hasReferenceToEnum(),
-                                      |let firstVal  = ^EnumProcessingHolder(param = $leftParam, processedParam = $leftVal, currentPropertyMapping = $left);
-                                       let secondVal = ^EnumProcessingHolder(param = $rightParam, processedParam = $rightVal, currentPropertyMapping = $right);
-                                       processEqualsForEnum($firstVal, $secondVal, $context);,
-                                      |if($leftVal->hasOptionalVarPlaceHolderValue() && $rightVal->hasOptionalVarPlaceHolderValue(),                                                   
-                                          |^FreeMarkerOperationHolder(name = 'optionalVarPlaceHolderOpSelector', parameters = [$leftVal,
-                                                                                                                              ^FreeMarkerOperationHolder(name = 'optionalVarPlaceHolderOpSelector', parameters = [$rightVal, ^DynaFunction(name = 'equal', parameters = [$leftVal,$rightVal]),^DynaFunction(name = 'equal', parameters = [^Literal(value = 1), ^Literal(value = 0)])]),   
-                                                                                                                              ^FreeMarkerOperationHolder(name = 'optionalVarPlaceHolderOpSelector', parameters = [$rightVal, ^DynaFunction(name = 'equal', parameters = [^Literal(value = 1), ^Literal(value = 0)]),^DynaFunction(name = 'equal', parameters = [^Literal(value = 1), ^Literal(value = 1)])])]),
-                                          |if($rightVal->hasOptionalVarPlaceHolderValue(),                                        
-                                              |^FreeMarkerOperationHolder(name = 'optionalVarPlaceHolderOpSelector', parameters = [$rightVal, ^DynaFunction(name = 'equal', parameters = [$leftVal, $rightVal]), ^DynaFunction(name = 'isNull', parameters = [$leftVal])]),                                                                                                                                                           
-                                              |if($leftVal->hasOptionalVarPlaceHolderValue(),
-                                                  |^FreeMarkerOperationHolder(name = 'optionalVarPlaceHolderOpSelector', parameters = [$leftVal, ^DynaFunction(name = 'equal', parameters = [$leftVal, $rightVal]), ^DynaFunction(name = 'isNull', parameters = [$rightVal])]),      
-                                                  |^DynaFunction(name = 'equal', parameters = [$leftVal, $rightVal]));                                           
-                                              );
-                                          );
-                                     );
-    
-    // TODO: seems to not add fields
-    if ($state.inFilter, | /*println('in the true'); println($mergedNoSQL.data.alias->cast(@CollectionAlias).mongoDbElement->cast(@Collection).fields); println('fields'); println($operation.fields);*/ ^$mergedNoSQL(fields=$operation.fields, filteringOperation = $filteringOperation);, | /*println('in the false'); println($mergedNoSQL); println('fields'); println($filteringOperation);*/ ^$mergedNoSQL(fields=$filteringOperation););
-                     
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::hasOptionalVarPlaceHolderValue(e:MongoDbElement[1]):Boolean[1]
-{  
-   $e->instanceOf(Literal) && $e->cast(@Literal).value->instanceOf(VarPlaceHolder) && $e->cast(@Literal).value->cast(@VarPlaceHolder).multiplicity->isNotEmpty() && $e->cast(@Literal).value->cast(@VarPlaceHolder).multiplicity->toOne()->isZeroOne();
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::hasReferenceToEnum(e:MongoDbElement[1]):Boolean[1]
-{
-  $e->hasEnumValue() || $e->hasEnumerationVarPlaceHolderValue()
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::hasEnumValue(e:MongoDbElement[1]):Boolean[1]
-{
-  $e->instanceOf(Literal) && $e->cast(@Literal).value->instanceOf(Enum)
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::hasEnumerationVarPlaceHolderValue(e:MongoDbElement[1]):Boolean[1]
-{
-  $e->instanceOf(Literal) && $e->cast(@Literal).value->instanceOf(VarPlaceHolder) && $e->cast(@Literal).value->cast(@VarPlaceHolder).type->instanceOf(Enumeration)
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::extractDocumentQuery(src:MongoDbElement[1]):SelectDocumentQuery[0..1]
-{
-   $src->match(
-                  [
-                     o:SelectDocumentQuery[1] | $o,
-                     l:Literal[1] | []
-                  ]
-              )
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::validateParamHasDataTypeReturnType(vs:ValueSpecification[1]): Boolean[1]
-{
-    let type = $vs->match([
-                            e:StoreMappingRoutedValueSpecification[1] | $e.value.genericType.rawType,
-                            vs:ValueSpecification[1] | $vs.genericType.rawType
-                         ]);
-
-   assert($type->isEmpty() || $type->toOne()->instanceOf(DataType) || ($type->toOne() == Enum) || ($type->toOne() == Nil), | 'Filter expressions are only supported for Primitives and Enums. Filter contains a parameter of type ' + if($type->isEmpty(),|'',|$type->toOne()->toString()));
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processEqualsForEnum(firstVal : EnumProcessingHolder[1], secondVal : EnumProcessingHolder[1], context : DebugContext[1]) : MongoDbElement[1]
-{  
-    let hasOnlyEnumValues = [$firstVal, $secondVal]->forAll(e|$e.processedParam->hasEnumValue());  
-    if($hasOnlyEnumValues,
-        | ^DynaFunction(name = 'equal', parameters = [$firstVal, $secondVal]->map(v|^Literal(value=$v.processedParam->cast(@Literal).value->toString()))),
-        | let enumVar = [$firstVal, $secondVal]->partition(e|$e.processedParam->hasEnumerationVarPlaceHolderValue());
-          let hasEnumVarAndEnumProp = $enumVar.first.values->isNotEmpty() && $enumVar.second.values.currentPropertyMapping->toOne()->map(e|$e->cast(@OperationWithParentPropertyMapping).currentPropertyMapping->isNotEmpty() && $e->cast(@OperationWithParentPropertyMapping).currentPropertyMapping->cast(@MongoDbPropertyMapping).transformer->toOne()->instanceOf(EnumerationMapping))->toOne();
-          let hasEnumVarAndEnumVal = $enumVar.first.values->isNotEmpty() && $enumVar.second.values.processedParam->toOne()->hasEnumValue();
-          if($hasEnumVarAndEnumProp,
-              | let enumParamFreeMarker = generateFreeMarkerForEnumParam($enumVar.second.values.currentPropertyMapping->toOne(), $enumVar.first.values.processedParam->toOne());
-                generateFreeMarkerOpSelectorForEnumParam($enumParamFreeMarker, $enumVar.second.values.processedParam->toOne(), $enumVar.first.values.processedParam->toOne());,
-              | if($hasEnumVarAndEnumVal,
-                    | let literal = $enumVar.first.values.processedParam->cast(@Literal).value->cast(@VarPlaceHolder); 
-                      ^DynaFunction(name = 'equal', parameters = [^Literal(value=^VarPlaceHolder(name=$literal.name->toOne(),type = $literal.type->toOne(),multiplicity = $literal.multiplicity->toOne())), ^Literal(value = $enumVar.second.values.processedParam->cast(@Literal).value->toOne()->toString())]);,
-                    | // Case 3 - EnumVal & EnumClassProp
-                      let hasEnumProp = [$firstVal, $secondVal]->partition(e|$e.processedParam->hasEnumValue());
-                      let sourceVal = enumToStoreValue($hasEnumProp.first.values.processedParam->cast(@Literal)->toOne(), $hasEnumProp.second.values.param->toOne()->evaluateAndDeactivate(), $hasEnumProp.second.values.currentPropertyMapping.currentPropertyMapping);
-                      $sourceVal->match([
-                                          l:Literal[1] |  ^DynaFunction(name = 'equal', parameters = [$hasEnumProp.second.values.processedParam->toOne(), $l]),
-                                          ll: LiteralList[1] | ^DynaFunction(name = 'in', parameters = [$hasEnumProp.second.values.processedParam->toOne(), $ll])
-                                        ]);
-                  );
-            );
-      );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::enumToStoreValue(enumWrapper : Literal[1],
-        enumPropWrapper : ValueSpecification[1],
-        currentPropertyMapping:PropertyMapping[*]):MongoDbElement[1]
-{
-    let enum = $enumWrapper->cast(@Literal).value;
-    let expr = $enumPropWrapper->byPassRouterInfo()->cast(@SimpleFunctionExpression);
-
-    let enumPropMapping = $currentPropertyMapping->at(0)->cast(@MongoDbPropertyMapping);
-
-    if ($expr.func.name == 'getEnum',
-          | [],
-          | let property = $expr.func->match([
-                                      p:Property<Nil,Any|*>[1]|$p,
-                                      n:NativeFunction<Any>[1]|
-                                                                assert($n == map_T_m__Function_1__V_m_ || $n == map_T_$0_1$__Function_1__V_$0_1$_ || $n == map_T_MANY__Function_1__V_MANY_);
-                                                               let lambda = $expr.parametersValues->evaluateAndDeactivate()->at(1)->byPassRouterInfo()->cast(@InstanceValue).values->at(0)->cast(@LambdaFunction<Any>);
-                                                               $lambda.expressionSequence->at(0)->evaluateAndDeactivate()->byPassRouterInfo()->cast(@FunctionExpression).func->cast(@Property<Nil,Any|*>);
-                                     ]);
-             assertEquals($enumPropMapping.property, $property, 'The mapping must be for the enum property');
-             );
-
-    let sourceVal = if ($enumPropMapping->instanceOf(SemiStructuredMongoDbPropertyMapping),
-                        | $enum->id(),
-                        | $enumPropMapping.transformer->toOne()->cast(@EnumerationMapping<Any> ).toSourceValues($enum)
-                    );
-
-    if ($sourceVal->size() == 1,
-        | ^Literal(value=$sourceVal->toOne()),
-        | ^LiteralList( values=$sourceVal->map(e | ^Literal(value = $e)) )
-    );
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::generateFreeMarkerOpSelectorForEnumParam(firstVal:FreeMarkerOperationHolder[1], secondVal:MongoDbElement[1], enumParam:MongoDbElement[1]):FreeMarkerOperationHolder[1]
-{
-  let enumFreeMarker = ^FreeMarkerOperationHolder(name = 'equalEnumOpSelector', parameters = [$firstVal, ^DynaFunction(name = 'in', parameters = [$secondVal, $firstVal]), ^DynaFunction(name = 'equal', parameters = [$secondVal, $firstVal])]);
-  ^FreeMarkerOperationHolder(name = 'optionalVarPlaceHolderOpSelector', parameters = [$enumParam, $enumFreeMarker, ^DynaFunction(name = 'equal', parameters = [^Literal(value=0), ^Literal(value=1)])]);
-}
-
-function <<access.private>> meta::external::store::mongodb::functions::pureToDatabaseCommand::generateFreeMarkerForEnumParam(propertyMapping:OperationWithParentPropertyMapping[1], enumParam:MongoDbElement[1]):FreeMarkerOperationHolder[1]
-{  
-  ^FreeMarkerOperationHolder(name = 'enumMap_' + fetchEnumFullPath($propertyMapping.currentPropertyMapping->cast(@MongoDbPropertyMapping).transformer->cast(@EnumerationMapping<Any>)), parameters = [$enumParam->cast(@Literal)])
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::fetchEnumFullPath(enum:EnumerationMapping<Any>[*]):String[1]
-{
-  $enum.parent->toOne()->elementToPath()->replace('::', '_') + '_' + $enum.name->toOne();
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::getSupportedFunctions():Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], PropertyMapping[0..1], SelectDocumentQuery[1], Map<VariableExpression, ValueSpecification>[1], State[1], DebugContext[1], Extension[*]->MongoDbElement[1]}>>[1]
-{
-   newMap([
-        ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::collection::getAll_Class_1__T_MANY_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_),
-        ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::collection::filter_T_MANY__Function_1__T_MANY_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_),
-        ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::equal_Any_MANY__Any_MANY__Boolean_1_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processEquals_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_),
-        ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::and_Boolean_1__Boolean_1__Boolean_1_,second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processDynaFunction_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_),
-        ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::or_Boolean_1__Boolean_1__Boolean_1_,second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processDynaFunction_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_),
-        ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::not_Boolean_1__Boolean_1_,second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processNot_FunctionExpression_1__PropertyMapping_MANY__SelectDocumentQuery_1__Map_1__State_1__DebugContext_1__Extension_MANY__MongoDbElement_1_)
-   ])
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processPropertyMapping(propertyMapping:PropertyMapping[*], propertyOwnerClass:Class<Any>[1], srcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{
-   $propertyMapping->match([
-               r:MongoDbPropertyMapping[*] | processMongoDbPropertyMapping($r, $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $context->shift(), $extensions),
-               e:EmbeddedMongoDbInstanceSetImplementation[*] | if(($state.inGetterFlow == true) && $e->size() == 1 && $e->toOne()->instanceOf(OtherwiseEmbeddedMongoDbInstanceSetImplementation),
-                                                                     | processMongoDbPropertyMapping($e->toOne()->cast(@OtherwiseEmbeddedMongoDbInstanceSetImplementation).otherwisePropertyMapping->cast(@MongoDbPropertyMapping), $propertyMapping.property->at(0), $propertyOwnerClass, $srcOperation, $state, $context->shift(), $extensions);,
-                                                                     | $srcOperation;
-                                                                  )
-             ]);
-}
-
-//  Renu : Core function to fix, completely gutted
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processMongoDbPropertyMapping(mongoDbPropertyMappings:MongoDbPropertyMapping[*], property:AbstractProperty<Any>[1], propertyOwnerClass:Class<Any>[1], oldSrcOperation:SelectDocumentQuery[1], state:State[1], context:DebugContext[1], extensions:Extension[*]):MongoDbElement[1]
-{
-   let propertyReturnType = $property->cast(@Property<Nil,Any|*>).genericType.rawType->toOne();
-   $propertyReturnType->match(
-                                 [
-                                    p:DataType[1] |
-                                                    let mongoDbElement = $oldSrcOperation.data.alias.mongoDbElement->toOne();
-                                                    let propName = $mongoDbElement->getPropertyName($property, $mongoDbPropertyMappings, $extensions);
-
-                                                    let result  = pair($propName, $oldSrcOperation);
-
-                                                    let srcOperation = $result.second;
-
-                                                    let mappingImpl = $mongoDbPropertyMappings->at(0).mongoDbElement;
-
-                                                    let relElement = $oldSrcOperation.data.alias.mongoDbElement->toOne();
-
-                                                    let res = if (
-                                                                      $relElement->instanceOf(SelectDocumentQuery)
-                                                                        &&
-                                                                      ($mappingImpl->instanceOf(meta::external::store::mongodb::metamodel::Operation) || $mappingImpl->instanceOf(meta::external::store::mongodb::metamodel::Literal))
-                                                                        &&
-                                                                      $relElement->cast(@SelectDocumentQuery).fields->filter(c|$c->instanceOf(meta::external::store::mongodb::metamodel::Alias))->cast(@meta::external::store::mongodb::metamodel::Alias).name->contains($propName)
-                                                                    
-                                                                    ,
-                                                                    |
-                                                                      let newField = ^Field(name=$propName, type=^meta::external::store::mongodb::metamodel::StringTypeReference(list=true));                                                                      
-                                                                      if ($state.inFilter,
-                                                                       |^$srcOperation(filteringOperation+=$newField),
-                                                                       |^$srcOperation(fields+=$newField)
-                                                                    );
-                                                                    ,
-                                                                    |
-                                                                      $mappingImpl->processFieldsInMongoDbElements($state, $srcOperation, $context, $extensions);
-                                                                  );
-
-                                                    let selectDocumentQuery = if($state.inFilter,
-                                                                        | ^$res(filteringOperation = $res.filteringOperation->at(0)->usePropertyName($property, $mongoDbPropertyMappings, $extensions)),
-                                                                        | ^$res(filteringOperation = [], fields = $res.fields->at(0)->usePropertyName($property, $mongoDbPropertyMappings, $extensions))
-                                                                      );
-
-                                                    $selectDocumentQuery;
-                                                    ,
-                                    c:Class<Any>[1] |$oldSrcOperation;
-                                  ]
-                             );
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::getPropertyName(mongoDbElement:MongoDbElement[1],property:AbstractProperty<Any>[1], mongoDbPropertyMappings:MongoDbPropertyMapping[*], extensions:Extension[*]):String[1]
-{
-   '"'+$property.name->toOne()+'"'
-}
-
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::usePropertyName(element:MongoDbElement[1], property:AbstractProperty<Any>[1], mongoDbPropertyMappings:MongoDbPropertyMapping[*], extensions:Extension[*]):MongoDbElement[1]
-{
-  $element->match(   [
-                        l:Literal[1]|$l,
-                        ll:LiteralList[1]|$ll,
-                        s:SelectDocumentQuery[1]|^$s(filteringOperation = $s.filteringOperation->map(f|$f->usePropertyName($property, $mongoDbPropertyMappings, $extensions)));,
-                        t:CollectionAlias[1]| $t,
-                        op:BinaryOperation[1]|^$op(left=$op.left->usePropertyName($property, $mongoDbPropertyMappings, $extensions), right=$op.right->usePropertyName($property, $mongoDbPropertyMappings, $extensions)),
-                        fn:FieldName[1] |$fn,
-                        f:Field[1]| $f
-                    ]
-                 )
-}
