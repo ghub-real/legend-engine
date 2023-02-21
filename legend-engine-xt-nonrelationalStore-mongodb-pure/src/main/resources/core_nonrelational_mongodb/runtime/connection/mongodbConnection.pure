@@ -1,0 +1,38 @@
+// Copyright 2022 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::external::store::mongodb::runtime::*;
+import meta::pure::alloy::connections::*;
+import meta::pure::runtime::*;
+import meta::pure::mapping::*;
+import meta::pure::alloy::connections::alloy::*;
+
+/**
+Document Store connection types
+*/
+
+Class meta::external::store::mongodb::runtime::connections::MongoDatabaseConnection extends meta::external::store::mongodb::runtime::DatabaseConnection
+{
+  /*
+    datasourceSpecification: meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1];
+    authenticationStrategy: meta::external::store::document::runtime::authentication::AuthenticationStrategy[1];
+    postProcessors: meta::external::store::document::runtime::connections::PostProcessor[*];
+  */
+}
+
+Class meta::external::store::mongodb::runtime::connections::TestMongoDatabaseConnection extends meta::external::store::mongodb::runtime::connections::MongoDatabaseConnection
+{
+    {doc.doc = 'This is used to seed test data - array of json.'}
+    testDataSetupJson : String[0..1];
+}

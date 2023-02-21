@@ -192,7 +192,7 @@ Class meta::external::store::mongodb::metamodel::Collation
   locale: String[1];
 }
 
-Class meta::external::store::mongodb::metamodel::aggregation::DatabaseCommand
+Class meta::external::store::mongodb::metamodel::aggregation::DatabaseCommand extends MongoQueryElement
 {
     type: String[0..1];
     collectionName: String[0..1];
@@ -203,13 +203,13 @@ Class meta::external::store::mongodb::metamodel::aggregation::ViewPipeline exten
 {
 }
 
-Class meta::external::store::mongodb::metamodel::aggregation::AggregationPipeline
+Class meta::external::store::mongodb::metamodel::aggregation::AggregationPipeline extends MongoQueryElement
 {
     stages: Stage[*];
 }
 
 
-Class meta::external::store::mongodb::metamodel::aggregation::Stage
+Class meta::external::store::mongodb::metamodel::aggregation::Stage extends MongoQueryElement
 {
 }
 
@@ -247,12 +247,16 @@ Class meta::external::store::mongodb::metamodel::LiteralList extends meta::exter
    <<equality.Key>> values:Literal[*];
 }
 
+Class <<typemodifiers.abstract>> meta::external::store::mongodb::metamodel::aggregation::MongoQueryElement
+{
+}
+
 Class meta::external::store::mongodb::metamodel::aggregation::AggregateExpression
 {
   arguments: ArgumentExpression[*];
 }
 
-Class meta::external::store::mongodb::metamodel::aggregation::ArgumentExpression
+Class meta::external::store::mongodb::metamodel::aggregation::ArgumentExpression extends MongoQueryElement
 {
 }
 
@@ -316,7 +320,7 @@ Class meta::external::store::mongodb::metamodel::aggregation::NorOperatorExpress
 {
 }
 
-Class meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair
+Class meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair extends MongoQueryElement
 {
   field: String[1];
   argument: ArgumentExpression[1];
