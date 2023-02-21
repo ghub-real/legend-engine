@@ -184,14 +184,14 @@ function meta::protocols::pure::vX_X_X::invocation::execution::execute::legendEx
    // This choice is made as ExecutionContext information can affect the results computed by the executionPlan endpoint
    // If we have either of the two ExecutionContexts in the conditional - throwing the generated execution plan to the executePlan endpoint does *not* return the same results as hittign execute with function,mapping, and runtime
    // hence we default to old behaviour in the case of AuthContext of VectorBatchQueryContext, otherwise we use the two execution plan endpoints
-   let typeAndresultJSON = if(isOptionSet('ExecPlan') && !($context->isNotEmpty() && $extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).invocation_execution_execute1->fold({a,b|$a->eval($context) || $b}, false)),
-      | let planGenerated = if(isOptionSet('PlanLocal'),
+   let typeAndresultJSON = if(true || isOptionSet('ExecPlan') && !($context->isNotEmpty() && $extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).invocation_execution_execute1->fold({a,b|$a->eval($context) || $b}, false)),
+      | let planGenerated = if(true || isOptionSet('PlanLocal'),
                                {|
                                   let basicPlan = if($m.name->isEmpty(),
                                                     |meta::pure::executionPlan::executionPlan($f, if($context->isEmpty(), |^ExecutionContext(), |$context->toOne()), $extensions, noDebug());,
                                                     |meta::pure::executionPlan::executionPlan($f, $m, $pureRuntime, if($context->isEmpty(), |^ExecutionContext(), |$context->toOne()), $extensions, noDebug()););
                                   let boundPlan = meta::pure::executionPlan::platformBinding::localBinding::bindTestPlanToPlatformLocally($basicPlan, $extensions);
-                                  let unused    = if(isOptionSet('ShowLocalPlan'), |println($boundPlan->meta::pure::executionPlan::toString::planToString(true, $extensions)), |[]);
+                                  let unused    = if( true || isOptionSet('ShowLocalPlan'), |println($boundPlan->meta::pure::executionPlan::toString::planToString(true, $extensions)), |[]);
                                   $boundPlan->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformPlan($extensions)->meta::json::toJSON(1000, meta::json::config(false, false, true, true));
                                },
                                {|
