@@ -1,3 +1,4 @@
+import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::external::store::mongodb::runtime::*;
 import meta::pure::graphFetch::executionPlan::*;
@@ -12,6 +13,12 @@ import meta::pure::mapping::*;
 import meta::pure::executionPlan::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::external::store::mongodb::graphFetch::executionPlan::*;
+import meta::external::store::mongodb::contract::*;
+
+Class meta::external::store::mongodb::contract::CurrentExecutionNode extends ExecutionNode
+{
+  databaseCommand: DatabaseCommand[1];
+}
 
 function meta::external::store::mongodb::contract::mongoDbStoreContract(): StoreContract[1]
 {
@@ -50,9 +57,11 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
 
       //let queryExeCtx = if($exeCtx->instanceOf(MongoDbExecutionContext),|$exeCtx,|[])->cast(@MongoDbExecutionContext);
       let queryExeCtx = $exeCtx->cast(@MongoDbExecutionContext);
-      let originalQuery = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions);
+      let originalQuery = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
       $originalQuery;
-      ^ExecutionNode(resultType=^ResultType(type = Boolean));
+      println('the original query is');
+      //println($originalQuery);
+      ^CurrentExecutionNode(resultType=^ResultType(type = Boolean), databaseCommand = $originalQuery);
       /*
       $originalQuery->postProcessSQLQuery($store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $extensions)
                     ->generateExecutionNodeForPostProcessedResult($sq, $store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $debug, $extensions);

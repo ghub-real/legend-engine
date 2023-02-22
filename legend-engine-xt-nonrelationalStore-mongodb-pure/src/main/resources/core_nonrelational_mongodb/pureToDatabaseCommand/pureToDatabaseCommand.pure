@@ -21,25 +21,17 @@ Class meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbE
 {
 }
 
-Class meta::external::store::mongodb::functions::pureToDatabaseCommand::PureFunctionToMongoDbFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoQueryElement[1]}>>
+Class meta::external::store::mongodb::functions::pureToDatabaseCommand::PureFunctionToMongoDbFunctionPair extends Pair<meta::pure::metamodel::function::Function<Any>, meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoDbOperationElement[1]}>>
 {
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], extensions:Extension[*]): MongoQueryElement[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], extensions:Extension[*]): MongoDbOperationElement[1]
 {
-  /*
-  println('toDatabaseCommand');
-  println($functionExpression, 3);
-  */
    processValueSpecification($functionExpression, ^DatabaseCommand(), $mapping, $inScopeVars, $debug);
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunctionExpression(f:FunctionExpression[1], databaseCommand:DatabaseCommand[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]):MongoQueryElement[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunctionExpression(f:FunctionExpression[1], databaseCommand:DatabaseCommand[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]):MongoDbOperationElement[1]
 {
-  /*
-  println('meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunctionExpression');
-  println($f);
-  */
    let res  = $f.func->match ([
       //p:Property<Nil,Any|*>[1] | ^$databaseCommand(processingParam = $f->findAndReplacePropertyPathsInValueSpecification([]).second.values->toOne()),
       //q:QualifiedProperty<Any>[1] | ^$databaseCommand(processingParam = $f->findAndReplacePropertyPathsInValueSpecification([]).second.values->toOne()),
@@ -49,7 +41,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
    $res;
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunction(f:FunctionExpression[1], databaseCommand:DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoQueryElement[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFunction(f:FunctionExpression[1], databaseCommand:DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDbOperationElement[1]
 {
    let func = findSupportedFunction($f, getSupportedFunctions());
    if(!$func->isEmpty(),
@@ -58,29 +50,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
    );
 }
 
-/*
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand(functionExpression:FunctionExpression[1], mapping:Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1], extensions:Extension[*]): DatabaseCommand[1]
-{
-  let result = if ($functionExpression.functionName == 'filter',
-    | let dbCommand = ^DatabaseCommand(
-        aggregationPipeline=^AggregationPipeline(
-          stages=[
-            processFunctionExpressionToMatchStage(
-              $functionExpression->cast(@SimpleFunctionExpression),
-              $mapping,
-              $inScopeVars,
-              $debug
-            )
-          ]
-        )
-      ),
-    | ^DatabaseCommand());
-    println('toDatabaseCommand');
-    println($result, 10);
-  $result;
-}
-*/
-
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processEqual(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): ObjectExpression[1]
 {
   let leftSide = getFieldPathForPropertyNameAndMapping($functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne(), $mapping);
@@ -88,19 +57,13 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
   ^ObjectExpression(keyValues=^KeyValueExpressionPair(field=$leftSide, argument=^EqOperatorExpression(expression=$rightSide)));
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processNot(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): NotOperatorExpression[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processNot(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): ObjectExpression[1]
 {
-  println('processNot');
-  println($functionExpression);
-  
-  let leftSide = processValueSpecification($functionExpression.parametersValues->at(0), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@ObjectExpression);
-  /*
-  let rightSide = processValueSpecification($functionExpression.parametersValues->at(1), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@ObjectExpression);
-  ^NEOperatorExpression(expression=);
-  */
-  //let leftSide = getFieldPathForPropertyNameAndMapping($functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne(), $mapping);
-  //let rightSide = processInstanceValue($functionExpression.parametersValues->at(1)->cast(@InstanceValue), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@LiteralValue);
-  ^NotOperatorExpression(expressions=[$leftSide]);
+  let objectExpression = processValueSpecification($functionExpression.parametersValues->at(0), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@ObjectExpression);
+  let keyValuePair = $objectExpression.keyValues->at(0);
+  let field = $keyValuePair.field;
+  let expression = $keyValuePair.argument->cast(@EqOperatorExpression).expression;
+  ^ObjectExpression(keyValues=^KeyValueExpressionPair(field=$field, argument=^NEOperatorExpression(expression=$expression)));
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::getFieldPathForPropertyNameAndMapping(propertyName: String[1], mapping: Mapping[1]): String[1]
@@ -109,7 +72,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getFi
   $mongoDbPropertyMapping->cast(@MongoDbPropertyMapping).mongoDbElement->cast(@Field).name;
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processInstanceValue(i: InstanceValue[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoQueryElement[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processInstanceValue(i: InstanceValue[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDbOperationElement[1]
 {
   $i.values->match([
     s: String[1] | ^LiteralValue(value=^StringTypeValue(value=$s));,
@@ -119,12 +82,8 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
   ]);
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification(vs:ValueSpecification[1], databaseCommand:DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoQueryElement[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification(vs:ValueSpecification[1], databaseCommand:DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDbOperationElement[1]
 {
-  /*
-  println('meta::external::store::mongodb::functions::pureToDatabaseCommand::processValueSpecification');
-  println($vs);
-  */
    $vs->evaluateAndDeactivate()->match(
              [
                  s:StoreMappingRoutedValueSpecification[1] | $s.value->processValueSpecification($databaseCommand, $mapping, $inScopeVars, $debug),
@@ -138,10 +97,31 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand [1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): DatabaseCommand[1]
 {
-  /*
-  println('meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter');
-  println($functionExpression);
-  */
+  let leftSide = processValueSpecification($functionExpression.parametersValues->at(0), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@DatabaseCommand);
+  let rightSide = processValueSpecification($functionExpression.parametersValues->at(1), $databaseCommand, $mapping, $inScopeVars, $debug)->match([
+    l: LogicalOperatorExpression[1] | $l->cast(@LogicalOperatorExpression),
+    o: ObjectExpression [1]         | $o->cast(@ObjectExpression)
+  ]);
+
+  let matchStage = if ($leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(MatchStage))->size() == 1, 
+    | let existingMatchStageKeyValuePairExpressions = $leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(MatchStage))->toOne()->cast(@MatchStage).expression->cast(@ObjectExpression).keyValues;
+      let currentKeyValuePairExpressions = $rightSide->cast(@ObjectExpression).keyValues;
+      ^MatchStage(expression=^ObjectExpression(keyValues=$existingMatchStageKeyValuePairExpressions->concatenate($currentKeyValuePairExpressions)));,
+    | ^MatchStage(expression=$rightSide)
+  )->toOne();
+
+  let projectStage = if ($leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(ProjectStage))->size() == 1,
+    | $leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(ProjectStage))->toOne()->cast(@ProjectStage),
+    | []);
+  
+  ^$leftSide(
+    aggregationPipeline = ^AggregationPipeline(stages=[$matchStage]->concatenate($projectStage))
+  );
+}
+
+/*
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand [1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDbOperationElement[1]
+{
   let leftSideDatabaseCommand = processValueSpecification($functionExpression.parametersValues->at(0), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@DatabaseCommand);
   let rightSide = processValueSpecification($functionExpression.parametersValues->at(1), $databaseCommand, $mapping, $inScopeVars, $debug)->match([
     l: LogicalOperatorExpression[1] | $l->cast(@LogicalOperatorExpression),
@@ -151,8 +131,35 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
   let existingStages = $leftSideDatabaseCommand.aggregationPipeline.stages->concatenate(^MatchStage(expression=$rightSide));
   ^$leftSideDatabaseCommand(
     aggregationPipeline = ^AggregationPipeline(stages=$existingStages)
+  )->cast(@DatabaseCommand);
+}
+*/
+
+/*
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand [1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDbOperationElement[1]
+{
+  let leftSide = processValueSpecification($functionExpression.parametersValues->at(0), $databaseCommand, $mapping, $inScopeVars, $debug)->cast(@DatabaseCommand);
+  let rightSide = processValueSpecification($functionExpression.parametersValues->at(1), $databaseCommand, $mapping, $inScopeVars, $debug)->match([
+    l: LogicalOperatorExpression[1] | $l->cast(@LogicalOperatorExpression),
+    o: ObjectExpression [1]         | $o->cast(@ObjectExpression)
+  ]);
+
+  let matchStage = if ($leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(MatchStage))->size() == 1, 
+    | let existingMatchStageKeyValuePairExpressions = $leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(MatchStage))->toOne()->cast(@MatchStage).expression->cast(@ObjectExpression).keyValues;
+      let currentKeyValuePairExpressions = $rightSide->cast(@ObjectExpression).keyValues;
+      ^MatchStage(expression=^ObjectExpression(keyValues=$existingMatchStageKeyValuePairExpressions->concatenate($currentKeyValuePairExpressions)));,
+    | ^MatchStage(expression=$rightSide)
+  )->toOne();
+
+  let projectStage = if ($leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(ProjectStage))->size() == 1,
+    | $leftSide.aggregationPipeline.stages->filter(x | $x->instanceOf(ProjectStage))->toOne()->cast(@ProjectStage),
+    | []);
+  
+  ^$leftSide(
+    aggregationPipeline = ^AggregationPipeline(stages=[$matchStage]->concatenate($projectStage))
   );
 }
+*/
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processAnd(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand [1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): AndOperatorExpression[1]
 {
@@ -174,21 +181,24 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::getProjectKeyValuesForMongoDbPropertyMappings(propertyMappings: MongoDbPropertyMapping[*]): KeyValueExpressionPair[*]
 {
   $propertyMappings->map(k | 
+    let ff = $k.property.name->toOne();
+    println('the ff');
+    println($ff);
     let field = meta::json::toJSONElement($k.property)->cast(@JSONObject).keyValuePairs.value->at(0)->cast(@meta::json::JSONString).value;
     ^KeyValueExpressionPair(argument=^ComputedFieldValue(value=$k.mongoDbElement->cast(@Field).name), field=$field);
   );
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::findSupportedFunction(fe:FunctionExpression[1], supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoQueryElement[1]}>>[1]):meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoQueryElement[1]}>[0..1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::findSupportedFunction(fe:FunctionExpression[1], supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoDbOperationElement[1]}>>[1]):meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoDbOperationElement[1]}>[0..1]
 {
    $supportedFunctions->get($fe.func)
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::getSupportedFunctions():Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoQueryElement[1]}>>[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::getSupportedFunctions():Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoDbOperationElement[1]}>>[1]
 {
    newMap([
       ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::equal_Any_MANY__Any_MANY__Boolean_1_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processEqual_FunctionExpression_1__DatabaseCommand_1__Mapping_1__Map_1__DebugContext_1__ObjectExpression_1_),
-      ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::not_Boolean_1__Boolean_1_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processNot_FunctionExpression_1__DatabaseCommand_1__Mapping_1__Map_1__DebugContext_1__NotOperatorExpression_1_),
+      ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::not_Boolean_1__Boolean_1_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processNot_FunctionExpression_1__DatabaseCommand_1__Mapping_1__Map_1__DebugContext_1__ObjectExpression_1_),
       ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::collection::filter_T_MANY__Function_1__T_MANY_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processFilter_FunctionExpression_1__DatabaseCommand_1__Mapping_1__Map_1__DebugContext_1__DatabaseCommand_1_),
       ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::collection::getAll_Class_1__T_MANY_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll_FunctionExpression_1__DatabaseCommand_1__Mapping_1__Map_1__DebugContext_1__DatabaseCommand_1_),
       ^PureFunctionToMongoDbFunctionPair(first=meta::pure::functions::boolean::and_Boolean_1__Boolean_1__Boolean_1_, second=meta::external::store::mongodb::functions::pureToDatabaseCommand::processAnd_FunctionExpression_1__DatabaseCommand_1__Mapping_1__Map_1__DebugContext_1__AndOperatorExpression_1_)

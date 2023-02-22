@@ -1,0 +1,132 @@
+// let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->filter(y | $y.fName != 'Theo')->graphFetch($personTree)};
+
+    // THAT DOESNT WORK
+    // let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->filter(y | $y.fName == 'Theo' && $y.age != 'asd')->filter(y | $y.lName != 'Malatestas')->graphFetch($personTree)};
+
+    // let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->filter(y | $y.fName == 'Theo')->filter(y | $y.lName != 'Malatestas')->graphFetch($personTree)};
+
+    //println($personQuery, 12);
+
+    // let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->filter(y | $y.fName == 'Theo' && $y.lName == 'Malatestas')->graphFetch($personTree)};
+
+    // let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->graphFetch($personTree)};
+import meta::external::store::mongodb::contract::*;
+import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
+import meta::pure::graphFetch::execution::*;
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::assertMongoExecutionPlan(functionExpression: LambdaFunction<Any>[*], expecetdDatabaseCommand: String[1]): Boolean[1]
+{
+  println('ok1',3);
+
+    let personTree = #{
+      meta::external::store::mongodb::functions::pureToDatabaseCommand::Person {
+         fName,
+         lName
+      }
+    }#;
+
+    let firstName = ^meta::external::store::mongodb::metamodel::Field(
+          name = 'firstName',
+          type = ^meta::external::store::mongodb::metamodel::StringTypeReference(list=false),
+          nullable = false
+    );
+    let lastName = ^meta::external::store::mongodb::metamodel::Field(
+          name = 'lName',
+          type = ^meta::external::store::mongodb::metamodel::StringTypeReference(list=false),
+          nullable = false
+    );
+    let age = ^meta::external::store::mongodb::metamodel::Field(
+          name = 'age',
+          type = ^meta::external::store::mongodb::metamodel::IntegerTypeReference(list=false),
+          nullable = false
+    );
+
+    let domainClass = meta::external::store::mongodb::functions::pureToDatabaseCommand::Person;
+
+    let personPropMappings = [
+      ^meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping(
+        property = $domainClass.properties->filter(p | $p.name == 'fName')->toOne(),
+        sourceSetImplementationId = 'person', targetSetImplementationId = '',
+        mongoDbElement = $firstName),
+      ^meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping(
+        property = $domainClass.properties->filter(p | $p.name == 'lName')->toOne(),
+        sourceSetImplementationId = 'person', targetSetImplementationId = '',
+        mongoDbElement = $lastName),
+        ^meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping(
+        property = $domainClass.properties->filter(p | $p.name == 'age')->toOne(),
+        sourceSetImplementationId = 'person', targetSetImplementationId = '',
+        mongoDbElement = $age)
+   ];
+
+   let mongoDatabase = ^meta::external::store::mongodb::metamodel::MongoDatabase(
+        name     = 'TestMongoDatabase',
+        authenticationEnabled = false
+    );
+
+    let collection = ^meta::external::store::mongodb::metamodel::Collection(
+      owner=$mongoDatabase,
+      name='person',
+      fields= [$firstName, $lastName, $age]
+    );
+
+
+    let collectionAlias = ^meta::external::store::mongodb::metamodel::CollectionAlias(
+      name='person',
+      mongoDbElement=$collection,
+      mongoDatabase=$mongoDatabase
+    );
+
+     let personQuery = {|meta::external::store::mongodb::functions::pureToDatabaseCommand::Person.all()->filter(y | $y.fName == 'Theo')};
+
+   let mongoDbClassMapping = ^meta::external::store::mongodb::metamodel::mapping::RootMongoDbInstanceSetImplementation(
+    class=$domainClass,
+    root=true,
+    id='person',
+    userDefinedPrimaryKey = false,
+    parent = meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbMapping,
+    propertyMappings = $personPropMappings,
+    mainCollectionAlias = $collectionAlias
+   );
+
+   let mappingMongo = ^meta::pure::mapping::Mapping(classMappings=[$mongoDbClassMapping], name='mongoDbClassMapping');
+   let mongoExtensions = [meta::external::store::mongodb::extension::mongoDbExtensions()];
+   let executionContext = ^meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+   let debugContext = ^meta::pure::tools::DebugContext(
+      debug=false,
+      space=' '
+    );
+   let mongoRuntime = ^meta::pure::runtime::Runtime(connections = ^meta::external::store::mongodb::runtime::connections::MongoDatabaseConnection(element=$mongoDatabase, type=meta::external::store::mongodb::runtime::DatabaseType.MongoDb));
+
+   let result = meta::pure::executionPlan::executionPlan($personQuery, $mappingMongo, $mongoRuntime, $executionContext, meta::external::store::mongodb::extension::mongoDbExtensions(), $debugContext);
+
+/*
+   println('the result is');
+   println($result);
+   */
+   assertEquals($expecetdDatabaseCommand, meta::json::toJSON($result.rootExecutionNode->cast(@CurrentExecutionNode).databaseCommand, 10));
+}
+
+function <<test.BeforePackage>> meta::external::store::mongodb::functions::pureToDatabaseCommand::setUp():Boolean[1]
+{
+  println('setup tests');
+  true;
+}
+
+function <<test.Test>> meta::external::store::mongodb::functions::pureToDatabaseCommand::testGraphFetchWithFilterNotEqual():Any[*]
+{
+  let personTree = #{
+      meta::external::store::mongodb::functions::pureToDatabaseCommand::Person {
+         fName,
+         lName
+      }
+    }#;
+
+
+  let personQuery = {|meta::external::store::mongodb::functions::pureToDatabaseCommand::Person.all()->filter(y | $y.fName != 'Theo')->graphFetch($personTree)};
+
+  
+  let expectedDatabaseCommand = '{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::DatabaseCommand","type":null,"collectionName":"person","aggregationPipeline":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::AggregationPipeline","stages":[{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::MatchStage","expression":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::ObjectExpression","keyValues":[{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair","field":"firstName","argument":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::EqOperatorExpression","expression":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::LiteralValue","value":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::StringTypeValue","value":"Theo"}}}}]}},{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::ProjectStage","filters":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::ObjectExpression","keyValues":[{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair","field":"fName","argument":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::ComputedFieldValue","value":"firstName"}},{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair","field":"lName","argument":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::ComputedFieldValue","value":"lName"}},{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair","field":"age","argument":{"__TYPE":"meta::external::store::mongodb::metamodel::aggregation::ComputedFieldValue","value":"age"}}]}}]}}';
+  
+   assertMongoExecutionPlan($personQuery, $expectedDatabaseCommand);
+   assertEquals(1, 1);
+}

@@ -68,6 +68,7 @@ Class meta::external::store::mongodb::graphFetch::executionPlan::DocumentRootQue
   batchSize : Integer[0..1];
   enableConstraints : Boolean[1];
   checked : Boolean[1];
+  databaseCommand: DatabaseCommand[1];
   //tempCollectionName: String[1];
 }
 
@@ -107,8 +108,8 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
    /* Generate Document Query */
    //let pureToDocumentQueryState      = createPureToDocumentQueryState($simplePrimitiveProperties, $sq.inScopeVars, $mapping, $exeCtx);
    //println($lhsFe);
-   let databaseCommand    = $lhsFe->toDatabaseCommand($mapping, $sq.inScopeVars, $debug, $extensions);
-   println(meta::json::toPrettyJSON($databaseCommand, 12));
+   let databaseCommand    = $lhsFe->toDatabaseCommand($mapping, $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
+   println(meta::json::toPrettyJSON($databaseCommand, 15));
 
    //let documentNode       = $selectDocumentQuery->meta::external::store::mongodb::graphFetch::executionPlan::buildDocumentQueryExecutionNode($dbConnection, $extensions);
 
@@ -127,6 +128,7 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
       resultType     = $rootTree->resultTypeFromGraphFetchTree(),
       nodeIndex      = 0,
       graphFetchTree = $rootTree,
+      databaseCommand = $databaseCommand,
      // batchSize      = $batchSize,
       //tempCollectionName  = 'root',
       //columns        = $sqlNode.resultColumns->filter(x | $x.label->startsWith('"pk_'))->map(x | ^SQLResultColumn(label = $x.label->substring(1, $x.label->length() - 1), dataType = $x.dataType->toOne())),
