@@ -1,4 +1,0 @@
-Enum meta::external::store::mongodb::metamodel::runtime::DatabaseType
-{
-  Mongo
-}

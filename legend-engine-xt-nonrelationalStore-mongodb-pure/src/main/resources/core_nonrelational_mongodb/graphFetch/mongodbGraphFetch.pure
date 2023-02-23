@@ -100,7 +100,7 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
    let oneRuntime   = ^Runtime(connections = [$dbConnection]);
    //let batchSize    = if($fe.func == graphFetch_T_MANY__RootGraphFetchTree_1__Integer_1__T_MANY_, | $fe->instanceValueAtParameter(2)->cast(@Integer), | 1000);
 
-   let simplePrimitiveProperties = $rootTree.subTrees->filter(x | !$x->cast(@RoutedPropertyGraphFetchTree).propertyMapping->toOne()->cast(@MongoDbPropertyMapping).mongoDbElement->cast(@Field).type->instanceOf(meta::external::store::mongodb::metamodel::ObjectIdTypeReference))->cast(@PropertyGraphFetchTree).property->cast(@Property<Nil,Any|*>);
+   let simplePrimitiveProperties = $rootTree.subTrees->filter(x | !$x->cast(@RoutedPropertyGraphFetchTree).propertyMapping->toOne()->cast(@MongoDbPropertyMapping).field.type->instanceOf(meta::external::store::mongodb::metamodel::ObjectIdType))->cast(@PropertyGraphFetchTree).property->cast(@Property<Nil,Any|*>);
 
    /* Assert conditions on sets */
    $setImpls->map(x | $x->assertConditionsOnSetImpl($simplePrimitiveProperties));
@@ -108,6 +108,7 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
    /* Generate Document Query */
    //let pureToDocumentQueryState      = createPureToDocumentQueryState($simplePrimitiveProperties, $sq.inScopeVars, $mapping, $exeCtx);
    //println($lhsFe);
+   println('planRootGraphFetchExecutionMongoDb');
    let databaseCommand    = $lhsFe->toDatabaseCommand($mapping, $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
    println(meta::json::toPrettyJSON($databaseCommand, 15));
 

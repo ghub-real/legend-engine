@@ -79,8 +79,7 @@ function meta::external::store::mongodb::contract::getStore(r:InstanceSetImpleme
   $r->match(
     [
       r:RootMongoDbInstanceSetImplementation[1]|
-          //let mainCollectionAlias = $r.mainCollectionAlias;
-          $r.mainCollectionAlias.mongoDatabase->toOne(),
+          $r.mainCollection.owner->toOne(),
       s:CrossSetImplementation[1]|$s.targetStore
     ]
   )  

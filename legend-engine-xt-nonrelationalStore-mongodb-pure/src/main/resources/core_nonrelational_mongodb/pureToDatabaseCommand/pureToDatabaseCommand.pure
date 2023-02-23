@@ -69,7 +69,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::getFieldPathForPropertyNameAndMapping(propertyName: String[1], mapping: Mapping[1]): String[1]
 {
   let mongoDbPropertyMapping = $mapping.classMappings->cast(@RootMongoDbInstanceSetImplementation).propertyMappings->filter(x | $x.property.name == $propertyName)->toOne();
-  $mongoDbPropertyMapping->cast(@MongoDbPropertyMapping).mongoDbElement->cast(@Field).name;
+  $mongoDbPropertyMapping->cast(@MongoDbPropertyMapping).field.path;
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processInstanceValue(i: InstanceValue[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDbOperationElement[1]
@@ -172,7 +172,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand [1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): DatabaseCommand[1]
 {
   let setImplementation = $functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).sets->toOne();
-  let collectionName = $setImplementation->cast(@RootMongoDbInstanceSetImplementation).mainCollectionAlias.mongoDbElement->cast(@Collection).name;
+  let collectionName = $setImplementation->cast(@RootMongoDbInstanceSetImplementation).mainCollection->cast(@Collection).name;
   let projectedKeys = getProjectKeyValuesForMongoDbPropertyMappings($setImplementation->cast(@RootMongoDbInstanceSetImplementation).propertyMappings->cast(@MongoDbPropertyMapping));
   let result = ^$databaseCommand(collectionName=$collectionName, aggregationPipeline=^AggregationPipeline(stages=^ProjectStage(filters=^ObjectExpression(keyValues=[$projectedKeys]))));
   $result;
@@ -185,7 +185,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getPr
     println('the ff');
     println($ff);
     let field = meta::json::toJSONElement($k.property)->cast(@JSONObject).keyValuePairs.value->at(0)->cast(@meta::json::JSONString).value;
-    ^KeyValueExpressionPair(argument=^ComputedFieldValue(value=$k.mongoDbElement->cast(@Field).name), field=$field);
+    ^KeyValueExpressionPair(argument=^ComputedFieldValue(value=$k.property.name->toOne()), field=$field);
   );
 }
 

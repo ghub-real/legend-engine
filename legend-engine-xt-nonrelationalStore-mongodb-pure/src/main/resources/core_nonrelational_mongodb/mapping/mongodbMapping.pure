@@ -1,0 +1,40 @@
+import meta::external::store::mongodb::metamodel::*;
+import meta::external::store::mongodb::metamodel::mapping::*;
+import meta::pure::mapping::*;
+
+Class meta::external::store::mongodb::metamodel::mapping::MongoDbInstanceSetImplementation extends InstanceSetImplementation
+{
+  primaryKey : Field[*];
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::MongoDbMappingSpecification
+{
+    userDefinedPrimaryKey : Boolean[1];
+    mainCollection : Collection[1];
+    mainCollection(){$this.mainCollection}:Collection[1];
+}
+
+
+Class meta::external::store::mongodb::metamodel::mapping::RootMongoDbInstanceSetImplementation extends MongoDbInstanceSetImplementation, MongoDbMappingSpecification
+{
+}
+
+Class meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping extends PropertyMapping
+{
+   field : Field[1];
+}
+
+function meta::external::store::mongodb::metamodel::mapping::functions::dataTypePropertyMappings(impl:MongoDbInstanceSetImplementation[1]):PropertyMapping[*]
+{
+   $impl.allPropertyMappings()->map(pm | $pm.property->genericType().typeArguments->at(1).rawType->toOne()->match([
+                                              d : meta::pure::metamodel::type::DataType[1] | $pm,
+                                              a : Any[1] | []
+                                             ]))
+}
+
+/*
+Class meta::external::store::mongodb::metamodel::mapping::EmbeddedMongoDbInstanceSetImplementation extends EmbeddedSetImplementation, MongoDbInstanceSetImplementation
+{
+    setMappingOwner : RootMongoDbInstanceSetImplementation[1];
+}
+*/
