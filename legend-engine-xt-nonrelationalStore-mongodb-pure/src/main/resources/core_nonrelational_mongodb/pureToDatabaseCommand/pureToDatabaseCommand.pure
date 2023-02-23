@@ -180,12 +180,11 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::getProjectKeyValuesForMongoDbPropertyMappings(propertyMappings: MongoDbPropertyMapping[*]): KeyValueExpressionPair[*]
 {
+  println(meta::json::toPrettyJSON($propertyMappings, 7));
   $propertyMappings->map(k | 
-    let ff = $k.property.name->toOne();
-    println('the ff');
-    println($ff);
-    let field = meta::json::toJSONElement($k.property)->cast(@JSONObject).keyValuePairs.value->at(0)->cast(@meta::json::JSONString).value;
-    ^KeyValueExpressionPair(argument=^ComputedFieldValue(value=$k.property.name->toOne()), field=$field);
+    let field = $k.property.name->toOne();
+    //let field = meta::json::toJSONElement($k.property)->cast(@JSONObject).keyValuePairs.value->at(0)->cast(@meta::json::JSONString).value;
+    ^KeyValueExpressionPair(argument=^ComputedFieldValue(value=$k.field.path), field=$field);
   );
 }
 

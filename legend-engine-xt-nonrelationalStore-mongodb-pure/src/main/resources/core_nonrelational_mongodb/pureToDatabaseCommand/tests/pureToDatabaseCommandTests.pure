@@ -117,18 +117,18 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getMo
 {
 
     let firstName = ^meta::external::store::mongodb::metamodel::Field(
-          name = 'firstName',
-          type = ^meta::external::store::mongodb::metamodel::StringTypeReference(list=false),
+          path = 'firstName',
+          type = ^meta::external::store::mongodb::metamodel::BsonType(),
           nullable = false
     );
     let lastName = ^meta::external::store::mongodb::metamodel::Field(
-          name = 'lName',
-          type = ^meta::external::store::mongodb::metamodel::StringTypeReference(list=false),
+          path = 'lName',
+          type = ^meta::external::store::mongodb::metamodel::BsonType(),
           nullable = false
     );
     let age = ^meta::external::store::mongodb::metamodel::Field(
-          name = 'age',
-          type = ^meta::external::store::mongodb::metamodel::IntegerTypeReference(list=false),
+          path = 'age',
+          type = ^meta::external::store::mongodb::metamodel::BsonType(),
           nullable = false
     );
 
@@ -138,15 +138,15 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getMo
       ^meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping(
         property = $domainClass.properties->filter(p | $p.name == 'fName')->toOne(),
         sourceSetImplementationId = 'person', targetSetImplementationId = '',
-        mongoDbElement = $firstName),
+        field = $firstName),
       ^meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping(
         property = $domainClass.properties->filter(p | $p.name == 'lName')->toOne(),
         sourceSetImplementationId = 'person', targetSetImplementationId = '',
-        mongoDbElement = $lastName),
+        field = $lastName),
         ^meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping(
         property = $domainClass.properties->filter(p | $p.name == 'age')->toOne(),
         sourceSetImplementationId = 'person', targetSetImplementationId = '',
-        mongoDbElement = $age)
+        field = $age)
    ];
 
    let mongoDatabase = getMongoDatabase();
@@ -157,12 +157,6 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getMo
       fields= [$firstName, $lastName, $age]
     );
 
-    let collectionAlias = ^meta::external::store::mongodb::metamodel::CollectionAlias(
-      name='person',
-      mongoDbElement=$collection,
-      mongoDatabase=$mongoDatabase
-    );
-
    let mongoDbClassMapping = ^meta::external::store::mongodb::metamodel::mapping::RootMongoDbInstanceSetImplementation(
     class=$domainClass,
     root=true,
@@ -170,7 +164,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::getMo
     userDefinedPrimaryKey = false,
     parent = meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDbMapping,
     propertyMappings = $personPropMappings,
-    mainCollectionAlias = $collectionAlias
+    mainCollection = $collection
    );
 
    ^meta::pure::mapping::Mapping(classMappings=[$mongoDbClassMapping], name='mongoDbClassMapping');
