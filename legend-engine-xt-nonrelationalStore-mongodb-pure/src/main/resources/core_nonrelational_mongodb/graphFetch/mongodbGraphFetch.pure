@@ -33,10 +33,15 @@ import meta::external::store::mongodb::mapping::functions::*;
 import meta::external::store::mongodb::graphFetch::executionPlan::*;
 
 
-Class meta::external::store::mongodb::graphFetch::executionPlan::DocumentGraphFetchExecutionNode extends LocalGraphFetchExecutionNode
+Class meta::external::store::mongodb::graphFetch::executionPlan::MongoDbGraphFetchExecutionNode extends LocalGraphFetchExecutionNode
 {
    //<<doc.deprecated>> relationalNode : ExecutionNode[0..1];
-   children : DocumentGraphFetchExecutionNode[*];
+   children : MongoDbGraphFetchExecutionNode[0..*];
+   batchSize : Integer[0..1];
+   enableConstraints : Boolean[1];
+   checked : Boolean[1];
+   databaseCommand: DatabaseCommand[1];
+  //tempCollectionName: String[1];
 }
 
 //Class <<doc.deprecated>> meta::relational::graphFetch::executionPlan::RelationalTempTableGraphFetchExecutionNode extends RelationalGraphFetchExecutionNode
@@ -54,23 +59,6 @@ Class meta::external::store::mongodb::graphFetch::executionPlan::DocumentGraphFe
 //   parentTempTableName : String[1];
 //   parentTempTableColumns : SQLResultColumn[*];
 //}
-
-Class meta::external::store::mongodb::graphFetch::executionPlan::DocumentClassQueryTempTableGraphFetchExecutionNode extends DocumentGraphFetchExecutionNode  // By pass the temp table class RelationalTempTableGraphFetchExecutionNode
-{
-}
-
-Class meta::external::store::mongodb::graphFetch::executionPlan::DocumentPrimitiveQueryGraphFetchExecutionNode extends DocumentGraphFetchExecutionNode
-{
-}
-
-Class meta::external::store::mongodb::graphFetch::executionPlan::DocumentRootQueryTempTableGraphFetchExecutionNode extends DocumentClassQueryTempTableGraphFetchExecutionNode
-{
-  batchSize : Integer[0..1];
-  enableConstraints : Boolean[1];
-  checked : Boolean[1];
-  databaseCommand: DatabaseCommand[1];
-  //tempCollectionName: String[1];
-}
 
 // Class meta::relational::graphFetch::executionPlan::DocumentStoreCrossRootQueryTempTableGraphFetchExecutionNode extends RelationalClassQueryTempTableGraphFetchExecutionNode
 // {
@@ -106,11 +94,9 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
    $setImpls->map(x | $x->assertConditionsOnSetImpl($simplePrimitiveProperties));
 
    /* Generate Document Query */
-   //let pureToDocumentQueryState      = createPureToDocumentQueryState($simplePrimitiveProperties, $sq.inScopeVars, $mapping, $exeCtx);
-   //println($lhsFe);
    println('planRootGraphFetchExecutionMongoDb');
    let databaseCommand    = $lhsFe->toDatabaseCommand($mapping, $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
-   println(meta::json::toPrettyJSON($databaseCommand, 15));
+   //println(meta::json::toPrettyJSON($databaseCommand, 15));
 
    //let documentNode       = $selectDocumentQuery->meta::external::store::mongodb::graphFetch::executionPlan::buildDocumentQueryExecutionNode($dbConnection, $extensions);
 
@@ -124,7 +110,7 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
    //let wrappedNode   = generateExecutionNodeForPostProcessedResult($sqlNode, $allExecNodes, $postProcessorResult, $extensions);
 
 
-   let documentRootQueryTempTableGraphFetchExecutionNode = ^DocumentRootQueryTempTableGraphFetchExecutionNode
+   let mongoDbExecutionNode = ^MongoDbGraphFetchExecutionNode
    (
       resultType     = $rootTree->resultTypeFromGraphFetchTree(),
       nodeIndex      = 0,
@@ -139,7 +125,7 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
       checked = $checked
    );
 
-   $documentRootQueryTempTableGraphFetchExecutionNode;
+   $mongoDbExecutionNode;
 }
 
 function <<access.private>> meta::external::store::mongodb::graphFetch::executionPlan::assertConditionsOnSetImpl(setImpl: MongoDbInstanceSetImplementation[1], simplePrimitiveProperties: Property<Nil,Any|*>[*]):Boolean[1]

@@ -1,0 +1,112 @@
+{
+  "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::DatabaseCommand",
+  "type": null,
+  "collectionName": "person",
+  "aggregationPipeline":   {
+    "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::AggregationPipeline",
+    "stages": [
+      {
+        "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::MatchStage",
+        "expression":         {
+          "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::OrOperatorExpression",
+          "expressions": [
+            {
+              "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::AndOperatorExpression",
+              "expressions": [
+                {
+                  "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ObjectExpression",
+                  "keyValues": [
+                    {
+                      "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair",
+                      "field": "firstName",
+                      "argument":                       {
+                        "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::EqOperatorExpression",
+                        "expression":                         {
+                          "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::LiteralValue",
+                          "value":                           {
+                            "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::StringTypeValue",
+                            "value": "Theo"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ObjectExpression",
+                  "keyValues": [
+                    {
+                      "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair",
+                      "field": "lName",
+                      "argument":                       {
+                        "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::NEOperatorExpression",
+                        "expression":                         {
+                          "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::LiteralValue",
+                          "value":                           {
+                            "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::StringTypeValue",
+                            "value": "SomeLastName"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ObjectExpression",
+              "keyValues": [
+                {
+                  "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair",
+                  "field": "lName",
+                  "argument":                   {
+                    "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::NEOperatorExpression",
+                    "expression":                     {
+                      "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::LiteralValue",
+                      "value":                       {
+                        "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::StringTypeValue",
+                        "value": "AnotherLastName"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ProjectStage",
+        "filters":         {
+          "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ObjectExpression",
+          "keyValues": [
+            {
+              "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair",
+              "field": "fName",
+              "argument":               {
+                "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ComputedFieldValue",
+                "value": "firstName"
+              }
+            },
+            {
+              "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair",
+              "field": "lName",
+              "argument":               {
+                "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ComputedFieldValue",
+                "value": "lName"
+              }
+            },
+            {
+              "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair",
+              "field": "age",
+              "argument":               {
+                "__TYPE": "meta::external::store::mongodb::metamodel::aggregation::ComputedFieldValue",
+                "value": "age"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

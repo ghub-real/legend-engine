@@ -52,7 +52,7 @@ function <<test.Test>> meta::external::store::mongodb::functions::pureToDatabase
 function <<test.Test>> meta::external::store::mongodb::functions::pureToDatabaseCommand::testGraphFetchWithGetAllFilterWithSingleFilterContainingMultipleLambdas():Any[*]
 {
 
-  let query = {|meta::external::store::mongodb::functions::pureToDatabaseCommand::Person.all()->filter(y | $y.fName == 'Theo' && $y.lName == 'SomeLastName' )}; //->graphFetch(getPersonTree())
+  let query = {|meta::external::store::mongodb::functions::pureToDatabaseCommand::Person.all()->filter(y | $y.fName == 'Theo' && $y.lName != 'SomeLastName' )}; //->graphFetch(getPersonTree())
 
   let expectedDatabaseCommand = readTestFileToString('getAllFilterWithSingleFilterContainingMultipleLambdas.json');
 
@@ -64,6 +64,15 @@ function <<test.Test>> meta::external::store::mongodb::functions::pureToDatabase
   let query = {|meta::external::store::mongodb::functions::pureToDatabaseCommand::Person.all()->filter(y | !$y.fName == 'Theo')->filter(y | !$y.lName == 'SomeLastName')};
 
   let expectedDatabaseCommand = readTestFileToString('getAllWithTwoFiltersWithSingleLambda.json');
+
+  executeQueryAndAssertMongoDatabase($query->evaluateAndDeactivate(), $expectedDatabaseCommand);
+}
+
+function <<test.Test>> meta::external::store::mongodb::functions::pureToDatabaseCommand::testGraphFetchWithGetAllFilterWithMultipleLogicalOperatorsWithSingleLambda():Any[*]
+{
+  let query = {|meta::external::store::mongodb::functions::pureToDatabaseCommand::Person.all()->filter(y | $y.fName == 'Theo' && !$y.lName == 'SomeLastName' || $y.lName != 'AnotherLastName' )};
+
+  let expectedDatabaseCommand = readTestFileToString('getAllFilterWithMultipleLogicalOperatorsWithSingleLambda.json');
 
   executeQueryAndAssertMongoDatabase($query->evaluateAndDeactivate(), $expectedDatabaseCommand);
 }
@@ -95,7 +104,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::execu
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::assertMongoDabase(executionPlan: ExecutionPlan[1], expectedDatabaseCommand: String[1]):Boolean[1]
 {
-  let actualDatabaseCommand = meta::json::toPrettyJSON($executionPlan.rootExecutionNode->cast(@CurrentExecutionNode).databaseCommand, 10);
+  let actualDatabaseCommand = meta::json::toPrettyJSON($executionPlan.rootExecutionNode->cast(@CurrentExecutionNode).databaseCommand, 20);
   assertEquals($expectedDatabaseCommand, $actualDatabaseCommand);
 }
 
