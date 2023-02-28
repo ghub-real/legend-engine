@@ -37,10 +37,10 @@ Class meta::external::store::mongodb::graphFetch::executionPlan::MongoDbGraphFet
 {
    //<<doc.deprecated>> relationalNode : ExecutionNode[0..1];
    children : MongoDbGraphFetchExecutionNode[0..*];
-   batchSize : Integer[0..1];
-   enableConstraints : Boolean[1];
-   checked : Boolean[1];
-   databaseCommand: DatabaseCommand[1];
+  //  batchSize : Integer[0..1];
+  //  enableConstraints : Boolean[1];
+  //  checked : Boolean[1];
+  //  databaseCommand: DatabaseCommand[1];
   //tempCollectionName: String[1];
 }
 
@@ -114,15 +114,15 @@ function meta::external::store::mongodb::graphFetch::executionPlan::planRootGrap
    (
       resultType     = $rootTree->resultTypeFromGraphFetchTree(),
       nodeIndex      = 0,
-      graphFetchTree = $rootTree,
-      databaseCommand = $databaseCommand,
+      graphFetchTree = $rootTree
+      // databaseCommand = $databaseCommand,
      // batchSize      = $batchSize,
       //tempCollectionName  = 'root',
       //columns        = $sqlNode.resultColumns->filter(x | $x.label->startsWith('"pk_'))->map(x | ^SQLResultColumn(label = $x.label->substring(1, $x.label->length() - 1), dataType = $x.dataType->toOne())),
       //children       = $rootTree->generateRelationalChildGraphNodes($rootTree->nodePathName(), $setImpls, $simplePrimitiveProperties, $orderedPaths, $store, $mapping, $oneRuntime, $sq.inScopeVars, $exeCtx, $extensions, $debug),
       //executionNodes = $documentNode,
-      enableConstraints = $enableConstraints,
-      checked = $checked
+      // enableConstraints = $enableConstraints,
+      // checked = $checked
    );
 
    $mongoDbExecutionNode;

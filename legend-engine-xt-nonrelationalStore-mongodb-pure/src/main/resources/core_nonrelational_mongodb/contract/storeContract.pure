@@ -1,3 +1,4 @@
+import meta::relational::mapping::*;
 import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::external::store::mongodb::runtime::*;
@@ -14,14 +15,12 @@ import meta::pure::executionPlan::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::external::store::mongodb::graphFetch::executionPlan::*;
 import meta::external::store::mongodb::contract::*;
-
-Class meta::external::store::mongodb::contract::CurrentExecutionNode extends ExecutionNode
-{
-  databaseCommand: DatabaseCommand[1];
-}
+import meta::external::store::mongodb::executionPlan::*;
 
 function meta::external::store::mongodb::contract::mongoDbStoreContract(): StoreContract[1]
 {
+
+  println('meta::external::store::mongodb::contract::mongoDbStoreContract()');
   ^StoreContract
   (
     id = 'mongoDbStore',
@@ -29,15 +28,18 @@ function meta::external::store::mongodb::contract::mongoDbStoreContract(): Store
     planGraphFetchExecution = meta::external::store::mongodb::contract::planGraphFetchExecution_StoreMappingLocalGraphFetchExecutionNodeGenerationInput_1__LocalGraphFetchExecutionNode_1_,
     supportsStore = s:Store[1]|$s->instanceOf(meta::external::store::mongodb::metamodel::MongoDatabase),
     supportsNativeJoinAmongElements = false,
-    supportsSetImplementation = s:SetImplementation[1]| $s->instanceOf(MongoDbInstanceSetImplementation) ||
+    supportsSetImplementation = s:SetImplementation[1]| $s->instanceOf(MongoDbInstanceSetImplementation) || $s->instanceOf(RootRelationalInstanceSetImplementation) ||
                                                         $s->instanceOf(CrossSetImplementation) && $s->cast(@CrossSetImplementation).targetStore->instanceOf(MongoDatabase),
     resolveStoreFromSetImplementation = s:InstanceSetImplementation[1]|$s->meta::external::store::mongodb::contract::getStore(),
     supports = meta::external::store::mongodb::contract::supports_FunctionExpression_1__Boolean_1_
-  )
+  );
 }
 
 function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]): ExecutionNode[1]
 {
+
+  println('meta::external::store::mongodb::contract::planExecution(');
+
    let store = $sq.store->cast(@MongoDatabase);
    let fe = $sq.fe->evaluateAndDeactivate();
    if($fe.func->in([meta::pure::graphFetch::execution::graphFetchFunctions()]),
@@ -56,12 +58,17 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
                           );
 
       //let queryExeCtx = if($exeCtx->instanceOf(MongoDbExecutionContext),|$exeCtx,|[])->cast(@MongoDbExecutionContext);
+
+       println('$exeCtx');
+       println($exeCtx);
+
+
       let queryExeCtx = $exeCtx->cast(@MongoDbExecutionContext);
       let originalQuery = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
       $originalQuery;
       println('the original query is');
       //println($originalQuery);
-      ^CurrentExecutionNode(resultType=^ResultType(type = Boolean), databaseCommand = $originalQuery);
+      ^MongoDbExecutionNode(resultType=^ResultType(type = Boolean), databaseCommand = $originalQuery);
       /*
       $originalQuery->postProcessSQLQuery($store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $extensions)
                     ->generateExecutionNodeForPostProcessedResult($sq, $store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $debug, $extensions);

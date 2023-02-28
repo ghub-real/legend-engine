@@ -13,6 +13,7 @@
 // limitations under the License.
 
 ###Pure
+import meta::json::*;
 import meta::protocols::*;
 import meta::protocols::pure::vX_X_X::metamodel::executionPlan::*;
 
@@ -123,6 +124,13 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::AggregationAwareE
    aggregationAwareActivity: String[1];
 }
 
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode extends ExecutionNode
+// {
+//   //  connection : meta::external::store::elasticsearch::v7::protocol::vX_X_X::runtime::Elasticsearch7StoreConnection[1];
+//    databaseCommand    : JSONElement[1];
+// }
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::ModelToModelExecutionNode extends ExecutionNode
 {

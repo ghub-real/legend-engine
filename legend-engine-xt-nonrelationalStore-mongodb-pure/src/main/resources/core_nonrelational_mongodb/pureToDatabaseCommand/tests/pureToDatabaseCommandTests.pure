@@ -5,6 +5,7 @@ import meta::external::store::mongodb::metamodel::*;
 import meta::pure::router::metamodel::clustering::*;
 import meta::pure::graphFetch::*;
 import meta::external::store::mongodb::contract::*;
+import meta::external::store::mongodb::executionPlan::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::pure::graphFetch::execution::*;
 import meta::pure::mapping::*;
@@ -104,7 +105,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::execu
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::assertMongoDabase(executionPlan: ExecutionPlan[1], expectedDatabaseCommand: String[1]):Boolean[1]
 {
-  let actualDatabaseCommand = meta::json::toPrettyJSON($executionPlan.rootExecutionNode->cast(@CurrentExecutionNode).databaseCommand, 20);
+  let actualDatabaseCommand = meta::json::toPrettyJSON($executionPlan.rootExecutionNode->cast(@MongoDbExecutionNode).databaseCommand, 20);
   assertEquals($expectedDatabaseCommand, $actualDatabaseCommand);
 }
 

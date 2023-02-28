@@ -1,0 +1,8 @@
+import meta::json::*;
+
+
+// Equivalent of meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLExecutionNode
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+    databaseCommand    : JSONElement[1];
+}

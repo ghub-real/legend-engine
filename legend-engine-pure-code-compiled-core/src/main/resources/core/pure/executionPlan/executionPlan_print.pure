@@ -23,6 +23,7 @@ import meta::pure::router::printer::*;
 import meta::pure::runtime::*;
 import meta::pure::router::clustering::*;
 import meta::pure::router::metamodel::clustering::*;
+import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 
 function meta::pure::executionPlan::toString::planToStringWithoutFormatting(e:ExecutionPlan[1], extensions:meta::pure::extension::Extension[*]):String[1]
 {
@@ -59,7 +60,9 @@ function <<access.public>> meta::pure::executionPlan::toString::planNodeToString
          g:meta::pure::mapping::modelToModel::graphFetch::executionPlan::StoreStreamReadingExecutionNode[1] | $g->meta::pure::mapping::modelToModel::graphFetch::executionPlan::storeStreamReadingExecutionNodeToString($space, $extensions),
          i:meta::pure::mapping::modelToModel::graphFetch::executionPlan::InMemoryGraphFetchExecutionNode[1] | $i->meta::pure::mapping::modelToModel::graphFetch::executionPlan::inMemoryGraphFetchExecutionNodeToString($space, $extensions),
          v:VariableResolutionExecutionNode[1] | 'VariableResolution\n' + $space + '(' + header($v, $space, $extensions) + '\n' + $space + '  varName = ' + $v.varName + '\n' + $v->childrenToString($space+'  ', $extensions) + '\n' + $space + ')\n',
-         p:meta::pure::graphFetch::executionPlan::PlatformPrimitiveQualifierLocalGraphFetchExecutionNode[1] | $p->meta::pure::graphFetch::executionPlan::platformPrimitiveQualifierLocalGraphFetchExecutionNodeToString($space, $extensions)
+         p:meta::pure::graphFetch::executionPlan::PlatformPrimitiveQualifierLocalGraphFetchExecutionNode[1] | $p->meta::pure::graphFetch::executionPlan::platformPrimitiveQualifierLocalGraphFetchExecutionNodeToString($space, $extensions),
+        m:Any[1]|'Sequence MongoDbExecutionContext\n'
+        
       ])->toOneMany()
    );
    $space + $root;

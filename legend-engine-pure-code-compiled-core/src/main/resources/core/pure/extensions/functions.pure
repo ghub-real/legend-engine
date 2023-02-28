@@ -34,6 +34,7 @@ import meta::pure::graphFetch::executionPlan::*;
 // Store Extension --------------------------------------------------------------------------
 function meta::pure::extension::storeContractForSetImplementation(extensions: Extension[*], s:InstanceSetImplementation[1]):StoreContract[1]
 {
+  println('meta::pure::extension::storeContractForSetImplementation(');
   $extensions.availableStores
     ->removeDuplicates(x|$x.id,{a,b|$a==$b})
     ->filter(sc|$sc.supportsSetImplementation->eval($s))
@@ -54,6 +55,7 @@ function meta::pure::extension::_storeContractForSetImplementation(extensions: E
   
 function meta::pure::extension::storeContractFromStore(extensions: Extension[*], s: Store[1]):StoreContract[1]
 {
+  println('meta::pure::extension::storeContractFromStore(');
   $extensions.availableStores
     ->removeDuplicates(x|$x.id,{a,b|$a==$b})
     ->filter(sc|$sc.supportsStore->eval($s))
@@ -63,6 +65,14 @@ function meta::pure::extension::storeContractFromStore(extensions: Extension[*],
 function <<access.private>> meta::pure::extension::unique(storeContracts:StoreContract[*], message:Function<{->String[1]}>[1]):meta::pure::store::StoreContract[1]
 {
   let list = $storeContracts->removeDuplicates(x|$x.id,{a,b|$a==$b});
+// let list = $storeContracts;
+
+println('meta::pure::extension::unique');
+println('$storeContracts:');
+println($storeContracts->size());
+  println(meta::json::toPrettyJSON($storeContracts, 10));
+
+
   assert($list->isNotEmpty(), |'The system can\'t find the appropriate StoreContract '+$message->eval());
   assert($list->size() == 1, |'The system found too many StoreContracts ['+$list.id->joinStrings(',')+'] '+$message->eval());
   $list->toOne();  

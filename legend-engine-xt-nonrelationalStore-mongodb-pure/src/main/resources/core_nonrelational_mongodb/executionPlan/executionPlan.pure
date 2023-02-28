@@ -1,0 +1,9 @@
+import meta::external::store::mongodb::metamodel::aggregation::*;
+import meta::pure::executionPlan::*;
+
+
+
+Class meta::external::store::mongodb::executionPlan::MongoDbExecutionNode extends ExecutionNode
+{
+  databaseCommand: DatabaseCommand[1];
+}

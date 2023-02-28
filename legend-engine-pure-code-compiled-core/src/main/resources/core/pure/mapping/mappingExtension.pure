@@ -221,6 +221,7 @@ function meta::pure::router::clustering::resolveRootFromEmbedded(o:EmbeddedSetIm
 
 function meta::pure::router::routing::getStoreFromSet(set: SetImplementation[1], mapping: Mapping[1], extensions:meta::pure::extension::Extension[*]):Store[1]
 {
+  println('meta::pure::router::routing::getStoreFromSet(');
   $set->storeContractForSetImplementation($mapping, $extensions).second;
 }
 

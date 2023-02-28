@@ -13,6 +13,7 @@
 // limitations under the License.
 
 ###Pure
+import meta::json::*;
 import meta::pure::executionPlan::*;
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::runtime::*;
 import meta::protocols::*;
@@ -33,9 +34,17 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::execution
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode(node:meta::pure::executionPlan::ExecutionNode[1], mapping:meta::pure::mapping::Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode[1]
 {
+  println('meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformNode(');
    let n = $node->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).transfers_executionPlan_transformNode->map(f|$f->eval($mapping, $extensions))->concatenate(
       [
          
+        //  mongoNode: meta::external::store::mongodb::executionPlan::MongoDbExecutionNode[1] | 
+        //  ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode(
+        //   _type =  meta::external::store::mongodb::executionPlan::MongoDbExecutionNode.name->toOne(),
+        //   resultType = $mongoNode.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                
+        //   databaseCommand = $mongoNode.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false))
+        //  ),
          rel:meta::pure::mapping::modelToModel::ModelToModelExecutionNode[1]|
             ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::ModelToModelExecutionNode(
                _type = 'm2m',

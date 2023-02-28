@@ -1,0 +1,475 @@
+// Copyright 2021 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::*;
+import meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::*;
+import meta::protocols::pure::vX_X_X::metamodel::domain::*;
+import meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::*;
+import meta::protocols::pure::vX_X_X::metamodel::store::mongodb::*; 
+
+Class meta::protocols::pure::vX_X_X::metamodel::MongoDbExecutionContext extends meta::protocols::pure::vX_X_X::metamodel::ExecutionContext
+{
+  //  addDriverTablePkForProject : Boolean[0..1];
+  //  insertDriverTablePkInTempTable : String[0..1];
+  //  useTempTableAsDriver : String[0..1];
+  //  preserveJoinOrder:Boolean[0..1];
+  //  importDataFlow : Boolean[0..1];
+  //  importDataFlowAddFks:Boolean[0..1];
+  //  importDataFlowFkCols : meta::protocols::pure::vX_X_X::metamodel::TableForeignColumns[*];
+  //  importDataFlowImplementationCount : Integer[0..1];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::TableForeignColumns
+// {
+//    table: CollectionPtr[1];
+//    fields: String[*];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::objectReference::AlloyRelationalStoreObjectReference extends meta::protocols::pure::vX_X_X::metamodel::objectReference::AlloyObjectReference
+// [
+//    typeCondition : $this.type == meta::protocols::pure::vX_X_X::metamodel::objectReference::AlloyObjectReferenceType.Relational
+// ]
+// {
+//    databaseConnection    : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection[1];
+//    pkMap                 : Map<String, Any>[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::MongoDatabase extends meta::protocols::pure::vX_X_X::metamodel::store::Store
+// {
+//    schemas : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Schema[*];
+//   //  joins : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Join[*];
+//   //  filters : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Filter[*];
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Schema
+{
+   name : String[1];
+   collections : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Collection[*];
+  //  views : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::View[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Relation
+{
+   fields : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Field[*];
+   primaryKey : String[*];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Milestoning
+// {
+//     _type : String[1];
+//    infinityDate : meta::protocols::pure::vX_X_X::metamodel::valueSpecification::raw::CDate[0..1];
+// }
+
+
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::ollection extends MongoDbRelation
+// {
+//   owner: MongoDatabase[1];
+//   name: String[1];
+//   schema: Schema[0..1];
+//   field(fieldName:String[1])
+//   {
+//     $this.fields->cast(@Field)->filter(c | $c.path == $fieldName)->first();
+//   }: Field[0..1];
+// }
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Collection extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Relation
+// {
+//    name : String[1];
+//   //  milestoning : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Milestoning[*];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::ProcessingMilestoning extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Milestoning
+// {
+//    in : String[1];
+//    out : String[1];
+//    outIsInclusive : Boolean[1];
+
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::BusinessSnapshotMilestoning extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Milestoning
+// {
+//    snapshotDate:String[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::BusinessMilestoning extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Milestoning
+// {
+//    from : String[1];
+//    thru : String[1];
+//    thruIsInclusive : Boolean[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::View extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Relation, meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbEntityMapping
+// {
+//    name : String[1];
+//    columnMappings : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::ColumnMapping[*];
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbEntityMapping
+{
+   mainCollection : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::CollectionPtr[1];
+  //  distinct : Boolean[1];
+  //  groupBy : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[*];
+  //  filter : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::FilterWithJoins[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbClassMapping extends meta::protocols::pure::vX_X_X::metamodel::mapping::ClassMapping
+{
+   primaryKey : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[*];
+   propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RelationalAssociationMapping extends meta::protocols::pure::vX_X_X::metamodel::mapping::AssociationMapping
+// {
+//     propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDbClassMapping extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbClassMapping, meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbEntityMapping
+{
+   primaryKey : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[*];
+   propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+}
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbPropertyMapping extends  meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping
+{
+   enumMappingId : String[0..1];
+  //  relationalOperation : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[1];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::EmbeddedMongoDbPropertyMapping extends  meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping
+// {
+//    id : String[1];
+//    classMapping : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbClassMapping[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::OtherwiseEmbeddedMongoDbPropertyMapping extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::EmbeddedMongoDbPropertyMapping
+// {
+//    otherwisePropertyMapping: MongoDbPropertyMapping[1];
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::ColumnMapping
+{
+   name : String[1];
+   operation : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[1];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::FilterWithJoins
+// {
+//    filter : FilterPtr[1];
+//    joins : JoinPtr[*];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::FilterPtr
+// {
+//    db : String[1];
+//    name : String[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::JoinPtr
+// {
+//    db : String[1];
+//    name : String[1];
+//    joinType : String[0..1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Field
+// {
+//    name : String[1];
+//    type : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType[1];
+//    nullable : Boolean[1];
+// }
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//    _type: String[1];
+
+// }
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::BigInt extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::SmallInt extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::TinyInt extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Integer extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Float extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Real extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Double extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Varchar extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//     size: Integer[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Char extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//     size: Integer[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Varbinary extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//     size: Integer[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Decimal extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//     precision : Integer[1];
+//     scale     : Integer[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Numeric extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//     precision : Integer[1];
+//     scale     : Integer[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Timestamp extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Date extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Bit extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Binary extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+//    size:Integer[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Other extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Array extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DataType
+// {
+// }
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Join
+// {
+//    name : String[1];
+//    target : String[0..1];
+//    operation : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[1];
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Filter
+{
+   _type : String[1];
+   name : String[1];
+   operation : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   _type : String[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::FieldPtr extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+  //  tableAlias : String[1];
+   collection: meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::CollectionPtr[1];
+   field : String[1];
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::ElementWithJoins extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+// {
+//    joins : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::JoinPtr[*];
+//    relationalElement : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[0..1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::DynamicFunction extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+// {
+//    funcName : String[1];
+//    parameters : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[*];
+// }
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Literal extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   value : Any[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::LiteralList extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   values : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Literal[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::CollectionPtr extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   database : String[1];
+   schema : String[1];
+   table : String[1];
+   mainCollectionDb: String[1];
+
+}
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::Mapper
+// {
+//    _type: String[1];
+//    from: String[1];
+//    to: String[1];
+// }
+
+// Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::MapperPostProcessor extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::PostProcessor
+// {
+//    mappers: meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::Mapper[*];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::TableNameMapper extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::Mapper {
+//    schema: meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::SchemaNameMapper[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::SchemaNameMapper extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::postProcessor::Mapper {}
+
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::CollectionNameMapper extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::PostProcessorParameter
+// {
+//    in:String[1];
+//    out:String[1];
+//    schemaMapperIn: String[1];
+//    schemaMapperOut: String[1];
+// }
+
+// Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::SchemaNameMapper extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::PostProcessorParameter
+// {
+//    in:String[1];
+//    out:String[1];
+// }
+
+
+
+/*
+
+Equivalent of mondodbStore.pure 
+
+*/
+
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Collection extends MongoDbRelation
+{
+  owner: MongoDatabase[1];
+  name: String[1];
+  schema: Schema[0..1];
+  field(fieldName:String[1])
+  {
+    $this.fields->cast(@Field)->filter(c | $c.path == $fieldName)->first();
+  }: Field[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::CollectionView
+{
+  owner: MongoDatabase[1];
+  name: String[1];
+  collation: Collation[0..1];
+  source: Collection[1];
+  // pipeLine: ViewPipeline[1..*];
+} 
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::MongoDatabase extends meta::pure::store::set::SetBasedStore
+{
+  //name: String[1];
+  collections: Collection[*];
+  views: CollectionView[*];
+  authenticationEnabled: Boolean[1];
+  // authenticationMethod: AuthenticationStrategy[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Collation
+{
+  locale: String[1];
+}
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::MongoDbRelation extends meta::pure::store::set::SetRelation
+{
+   fields : Field[*];
+   primaryKey : Field[*];
+}
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::Field extends meta::pure::store::set::SetColumn
+{
+    <<equality.Key>> path : String[1];
+    <<equality.Key>> type : meta::external::store::mongodb::metamodel::BsonType[1];
+    nullable : Boolean[0..1];
+    owner: Collection[0..1];
+}
+
+
+
+// BSON
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::BaseType
+{
+  allOf: BaseType[*];
+  anyOf: BaseType[*];
+  //bsonType: BaseType[1];
+  enum: String[*]; 
+  not: BaseType[0..1];
+  oneOf: BaseType[*];
+  title: String[0..1];
+  description: String[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::BsonType extends BaseType
+{  
+}
+
+Class {doc.doc = 'UTF 8'} meta::protocols::pure::vX_X_X::metamodel::store::mongodb::StringType extends BsonType
+{
+  pattern: String[0..1];
+  minLength: Integer[0..1];
+  maxLength: Integer[0..1];
+}
+
+// Mongo Database Command
+
+
+Class <<typemodifiers.abstract>> meta::protocols::pure::vX_X_X::metamodel::store::mongodb::MongoDbOperationElement
+{
+}
+
+
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::DatabaseCommand extends MongoDbOperationElement
+{
+    type: String[0..1];
+}
