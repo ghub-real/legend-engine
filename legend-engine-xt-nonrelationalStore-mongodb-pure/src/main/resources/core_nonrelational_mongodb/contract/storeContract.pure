@@ -15,11 +15,6 @@ import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::external::store::mongodb::graphFetch::executionPlan::*;
 import meta::external::store::mongodb::contract::*;
 
-Class meta::external::store::mongodb::contract::CurrentExecutionNode extends ExecutionNode
-{
-  databaseCommand: DatabaseCommand[1];
-}
-
 function meta::external::store::mongodb::contract::mongoDbStoreContract(): StoreContract[1]
 {
   ^StoreContract
@@ -36,18 +31,11 @@ function meta::external::store::mongodb::contract::mongoDbStoreContract(): Store
   )
 }
 
-function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]): ExecutionNode[1]
+function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]): meta::pure::executionPlan::ExecutionNode[1]
 {
    let store = $sq.store->cast(@MongoDatabase);
    let fe = $sq.fe->evaluateAndDeactivate();
-   if($fe.func->in([meta::pure::graphFetch::execution::graphFetchFunctions()]),
-      |
-        // Graph Fetch Flow
-        $sq->meta::pure::graphFetch::executionPlan::planGraphFetchExecution($ext, $m->toOne(), $runtime->toOne(), $exeCtx, $extensions, $debug);,
-
-      |
-        // Normal Flow
-       let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDatabaseConnection));
+   let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDatabaseConnection));
        let storeRuntime = if($connections->size() <= 1,
                              | $runtime->toOne(),
                              | let oldRuntime = $runtime->toOne();
@@ -64,12 +52,12 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
       $originalQuery;
       println('the original query is');
       println($originalQuery);
-      ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(resultType = ^ResultType(type = Any), databaseCommand = $originalQuery);
+      let node = ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(resultType = ^meta::pure::executionPlan::ResultType(type = Any), databaseCommand = $originalQuery);
+      ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = ^meta::pure::executionPlan::ResultType(type = Any), resultSizeRange = PureOne);
       /*
       $originalQuery->postProcessSQLQuery($store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $extensions)
                     ->generateExecutionNodeForPostProcessedResult($sq, $store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $debug, $extensions);
                     */
-   );
 }
 
 function meta::external::store::mongodb::contract::supportsStream(f:FunctionExpression[1]):Boolean[1]
