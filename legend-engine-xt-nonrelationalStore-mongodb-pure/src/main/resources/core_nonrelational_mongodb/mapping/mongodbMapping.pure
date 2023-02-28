@@ -7,16 +7,12 @@ Class meta::external::store::mongodb::metamodel::mapping::MongoDbInstanceSetImpl
   primaryKey : Field[*];
 }
 
-Class meta::external::store::mongodb::metamodel::mapping::MongoDbMappingSpecification
+
+Class meta::external::store::mongodb::metamodel::mapping::RootMongoDbInstanceSetImplementation extends MongoDbInstanceSetImplementation
 {
     userDefinedPrimaryKey : Boolean[1];
     mainCollection : Collection[1];
     mainCollection(){$this.mainCollection}:Collection[1];
-}
-
-
-Class meta::external::store::mongodb::metamodel::mapping::RootMongoDbInstanceSetImplementation extends MongoDbInstanceSetImplementation, MongoDbMappingSpecification
-{
 }
 
 Class meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping extends PropertyMapping

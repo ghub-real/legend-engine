@@ -22,17 +22,9 @@ import meta::pure::alloy::connections::alloy::*;
 Document Store connection types
 */
 
-Class meta::external::store::mongodb::runtime::connections::MongoDatabaseConnection extends meta::external::store::mongodb::runtime::DatabaseConnection
+Class meta::pure::alloy::connections::MongoDatabaseConnection extends meta::external::store::mongodb::runtime::MongoDatabaseConnection
 {
-  /*
-    datasourceSpecification: meta::external::store::document::runtime::connections::specification::DatasourceSpecification[1];
-    authenticationStrategy: meta::external::store::document::runtime::authentication::AuthenticationStrategy[1];
-    postProcessors: meta::external::store::document::runtime::connections::PostProcessor[*];
-  */
-}
-
-Class meta::external::store::mongodb::runtime::connections::TestMongoDatabaseConnection extends meta::external::store::mongodb::runtime::connections::MongoDatabaseConnection
-{
-    {doc.doc = 'This is used to seed test data - array of json.'}
-    testDataSetupJson : String[0..1];
+    datasourceSpecification: meta::pure::alloy::connections::alloy::specification::mongodb::DatasourceSpecification[1];
+    authenticationStrategy: meta::pure::alloy::connections::alloy::authentication::mongodb::AuthenticationStrategy[1];
+    //postProcessors: meta::external::store::document::runtime::connections::PostProcessor[*];
 }

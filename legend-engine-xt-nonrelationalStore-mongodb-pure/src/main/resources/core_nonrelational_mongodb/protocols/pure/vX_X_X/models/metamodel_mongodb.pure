@@ -1,0 +1,153 @@
+// Copyright 2021 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import meta::json::*;
+import meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::*;
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   _type : String[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDbClassMapping extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbClassMapping//, meta::protocols::pure::vX_X_X::metamodel::store::relational::mapping::RelationalEntityMapping
+{
+   primaryKey : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[*];
+   propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbClassMapping extends meta::protocols::pure::vX_X_X::metamodel::mapping::ClassMapping
+{
+   primaryKey : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[*];
+   propertyMappings : meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbPropertyMapping extends  meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping
+{
+   enumMappingId : String[0..1];
+   //mongoDbOperation : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDatabase extends meta::protocols::pure::vX_X_X::metamodel::store::Store
+{
+   collections: Collection[*];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Schema extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   id: String[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   //owner : MongoDatabase[1];
+   schema : Schema[1];
+   name : String[1];
+   fields: Field[*];
+   //mainTableDb: String[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Field extends meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDbElement
+{
+   path : String[1];
+   type : meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::BsonType[1];
+   nullable : Boolean[0..1];
+   owner: Collection[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::BaseType
+{
+  allOf: BaseType[*];
+  anyOf: BaseType[*];
+  //bsonType: BaseType[1];
+  enum: String[*];
+  not: BaseType[0..1];
+  oneOf: BaseType[*];
+  title: String[0..1];
+  description: String[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::BsonType extends BaseType
+{
+}
+
+Class {doc.doc = 'UTF 8'} meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::StringType extends BsonType
+{
+  pattern: String[0..1];
+  minLength: Integer[0..1];
+  maxLength: Integer[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::DoubleType extends BsonType
+{
+  maximum: Number[0..1];
+  minimum: Number[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::BinaryType extends BsonType
+{
+  subType: Integer[1]; // https://www.mongodb.com/docs/manual/reference/bson-types/#binary-data
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::ObjectIdType extends BsonType
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::BoolType extends BsonType
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::DateType extends BsonType
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::NullType extends BsonType
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::RegExType extends BsonType
+{  
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::JavaScriptType extends BsonType
+{  
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::IntType extends BsonType
+{
+  maximum: Integer[0..1];
+  minimum: Integer[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::TimeStampType extends BsonType
+{  
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::LongType extends BsonType
+{
+  maximum: Integer[0..1];
+  minimum: Integer[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::DecimalType extends BsonType
+{
+  maximum: Decimal[1];
+  minimum: Decimal[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MinKeyType extends BsonType
+{  
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MaxKeyType extends BsonType
+{  
+}

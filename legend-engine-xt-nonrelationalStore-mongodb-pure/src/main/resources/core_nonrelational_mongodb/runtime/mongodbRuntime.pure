@@ -22,7 +22,7 @@ Enum meta::external::store::mongodb::runtime::DatabaseType
   MongoDb
 }
 
-Class meta::external::store::mongodb::runtime::DatabaseConnection extends Connection
+Class meta::external::store::mongodb::runtime::MongoDatabaseConnection extends Connection
 {
    type : DatabaseType[1];
    debug : Boolean[0..1];
@@ -43,4 +43,8 @@ Class meta::external::store::mongodb::runtime::DataSource
     name : String[1];
     type : DatabaseType[1];
     serverPrincipal: String[0..1];
+}
+
+Class meta::external::store::mongodb::runtime::TestDatabaseConnection extends MongoDatabaseConnection
+{
 }

@@ -369,6 +369,12 @@ Class meta::external::store::mongodb::metamodel::aggregation::KeyValuePair
   value: BaseTypeValue[1];
 }
 
+Class meta::external::store::mongodb::metamodel::datasource::DatasourceSpecification
+{
+  host: String[1];
+  port: Integer[1];
+}
+
 
 Enum meta::external::store::mongodb::metamodel::authentication::AuthenticationMechanism
 {

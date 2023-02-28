@@ -1,0 +1,107 @@
+// Copyright 2021 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+import meta::json::*;
+import meta::external::store::mongodb::metamodel::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::*;
+import meta::external::store::mongodb::runtime::*;
+import meta::pure::mapping::*;
+
+import meta::external::store::mongodb::metamodel::*;
+import meta::external::store::mongodb::metamodel::mapping::*;
+import meta::external::store::mongodb::metamodel::runtime::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::*;
+import meta::external::store::mongodb::graphFetch::executionPlan::*;
+import meta::protocols::pure::vX_X_X::metamodel::executionPlan::*;
+import meta::external::store::mongodb::runtime::connections::*;
+
+function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbStoreExtension(type:String[1]):meta::pure::extension::SerializerExtension[1]
+{
+   let res = [
+      pair('mongoDbStore', | meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbStoreExtension())
+   ]->filter(f|$f.first == $type);
+   assert($res->isNotEmpty(), |'Can\'t find the type '+$type);
+   $res->at(0).second->eval();
+}
+
+function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbStoreExtension():meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X[1]
+{
+   ^meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X
+   (
+
+    moduleSerializerExtensions = meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtension(),
+    /*
+    scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+                                                     [
+                                                        rsi: RootMongoDbInstanceSetImplementation[1] |
+                                                                          // Main Store
+                                                                          let mainCollection = $rsi.mainCollection;
+                                                                          let mongoDatabase = $mainCollection.owner;
+                                                     ]
+                                                   },
+      */                                             
+
+    transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
+    [
+        db:meta::external::store::mongodb::runtime::MongoDatabaseConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+    ]},
+   transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
+   [
+        d:meta::external::store::mongodb::metamodel::MongoDatabase[1] | $d->transformMongoDatabase($extensions)
+   ]},
+   transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
+          [
+        men:meta::external::store::mongodb::mapping::MongoDbExecutionNode[1]|
+
+                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode(
+                           _type = 'mongoDbQuery',
+                           resultType = $men.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
+                           resultSizeRange = $men.resultSizeRange->isEmpty()->if(|[],|$men.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
+                           databaseCommand = $men.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false)),
+                           //resultFields = $men.resultFields,
+                           authDependent = true
+                           //onConnectionCloseCommitQuery = $men.onConnectionCloseCommitQuery,
+                           //onConnectionCloseRollbackQuery = $men.onConnectionCloseRollbackQuery,
+                           //connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
+              );
+          ];
+       },
+
+      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
+            rdi:RootMongoDbInstanceSetImplementation[1]  | $rdi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDbInstanceSetImplementation($mapping, $extensions),
+            any:Any[1] | println('I AM CALLED TOO - transfers_mapping_transformSetImplementation2'); let a = []; $a;
+          ]}
+   )
+}
+
+
+   //reverse_transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::pure::alloy::connections::alloy::authentication::AuthenticationStrategy[1]}>[*];
+
+
+function meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension[1]
+{
+  let dbSpecificExtensions = meta::protocols::pure::vX_X_X::extension::MongoDbModule->stereotype('SerializerExtension').modelElements->cast(@meta::pure::metamodel::function::Function<{->meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension[1]}>)
+    ->map(f| $f->eval())->sortBy(e| $e.module);
+  let transformDatabaseConnection = $dbSpecificExtensions.transfers_connection_transformDatabaseConnection;
+  ^meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension(
+    module = 'mongoDb',
+    transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
+    transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,
+    transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.transfers_connection_transformDatasourceSpecification
+    //reverse_transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.reverse_transfers_connection_transformAuthenticationStrategy,
+    //reverse_transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.reverse_transfers_connection_transformDatasourceSpecification
+  );
+
+}

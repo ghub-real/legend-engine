@@ -1,0 +1,17 @@
+import meta::pure::executionPlan::*;
+import meta::json::*;
+
+// Equivalent of meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLExecutionNode
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+    databaseCommand    : JSONElement[1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbInstantiationExecutionNode
+[classResultType:$this.resultType->instanceOf(ClassResultType)]
+{
+}

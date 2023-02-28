@@ -1,0 +1,127 @@
+import meta::external::store::mongodb::metamodel::mapping::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::*;
+import meta::pure::mapping::*;
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDbInstanceSetImplementation(r:RootMongoDbInstanceSetImplementation[1], mapping:Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDbClassMapping[1]
+{
+   let collection = $r.mainCollection;
+   let schema = $collection.schema;
+   let db = $collection.owner;
+   //let storeFromTableAlias = $r.mainTableAlias.database;
+  ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDbClassMapping
+   (
+      id = $r.id,
+      _type = 'mongoDb',
+      root = $r.root,
+      class = $r.class->elementToPath(),
+      /*
+      extendsClassMappingId = $r.superSetImplementationId,
+      mappingClass = $r.mappingClass->map(mc|$mc->transformMappingClass($mapping, $extensions)),
+      mainCollection = ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection(
+         _type = 'collection',
+         collection = $collection.name,
+         database = $db->elementToPath(),
+         schema = $schema
+      ),
+      //distinct = $r.distinct->isTrue(),
+      //groupBy = $r.groupBy.columns->map(c|$c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformRelationalOperationElement($db)),
+      //filter = if($r.filter->isEmpty(), |[], | ^FilterWithJoins(filter = ^FilterPtr(db=$r.filter.filter.database->toOne()->elementToPath(), name=$r.filter->toOne().filterName), joins = if($r.filter->toOne().joinTreeNode->isEmpty(),|[],|$r.filter->toOne().joinTreeNode->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformJoinTreeNode()))),
+      */
+      primaryKey = $r.primaryKey->map(c| meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformField($c)),
+      propertyMappings = $r.propertyMappings->map(pm|$pm->transformMongoDbPropertyMapping($db, $mapping, $extensions))
+   );
+}
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformMongoDatabase(db:meta::external::store::mongodb::metamodel::MongoDatabase[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDatabase[1]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDatabase
+   (
+      _type = 'mongoDb',
+      name = $db.name->toOne(),
+      package = if($db.package->isEmpty(), |[], |$db.package->toOne()->elementToPath()),
+      collections = $db.collections->map(c | transformCollection($c)),
+      //schemas = $db.schemas->map(s|$s->transformSchema($db, $extensions)),
+      includedStores = $db.includes->map(i|$i->elementToPath())
+   )
+}
+
+/*
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformMongoDatabase(c:meta::external::store::mongodb::metamodel::Collection[1]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDatabase[1]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDatabase
+   (
+      _type = 'mongoDb',
+      name = $db.name->toOne(),
+      package = if($db.package->isEmpty(), |[], |$db.package->toOne()->elementToPath()),
+      collections = $db.collections->map(c | transformCollection($c)),
+      //schemas = $db.schemas->map(s|$s->transformSchema($db, $extensions)),
+      includedStores = $db.includes->map(i|$i->elementToPath())
+   )
+}
+*/
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformSchema(s:meta::external::store::mongodb::metamodel::Schema[1]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Schema[1]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Schema(
+      _type = 'schema',
+      id = $s.id
+  )
+}
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformCollection(c:meta::external::store::mongodb::metamodel::Collection[1]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection[1]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection(
+      _type = 'collection',
+      name = $c.name,
+      //owner = transformMongoDatabase($c),
+      schema = transformSchema($c.schema->toOne()),
+      fields = $c.fields->map(f | transformField($f))
+  )
+}
+
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformField(f:meta::external::store::mongodb::metamodel::Field[1]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Field[1]
+{
+   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Field(
+      _type = 'field',
+      path = $f.path,
+      type = transformBsonType($f.type),
+      nullable = $f.nullable
+      //owner = $f.owner
+  )
+}
+
+function  meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformBsonType(b: meta::external::store::mongodb::metamodel::BsonType[1]): meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::StringType[1]
+{
+  ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::StringType()
+}
+
+function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformMongoDbPropertyMapping(pm:PropertyMapping[1], topDatabase:meta::external::store::mongodb::metamodel::MongoDatabase[1], mapping : Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::mapping::PropertyMapping[1]
+{
+   $pm->match([
+      r:meta::external::store::mongodb::metamodel::mapping::MongoDbPropertyMapping[1]|
+         ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::MongoDbPropertyMapping
+         (
+            _type = 'mongoDbPropertyMapping',
+            property = $pm.property->createPropertyPtr(),
+            //enumMappingId = $r.transformer->cast(@EnumerationMapping<Any>).name,
+            source = if($pm.property.owner->instanceOf(Association),|$pm.sourceSetImplementationId,|[]),
+            target = $pm.targetSetImplementationId,
+            //mongoDbOperation = $r.mongoDbOperationElement->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongoDb::transformMongoDbOperationElement($topDatabase),
+            localMappingProperty = if ($pm.localMappingProperty->isNotEmpty() && $pm.localMappingProperty->toOne(),
+                                       |^meta::protocols::pure::vX_X_X::metamodel::mapping::LocalMappingPropertyInfo
+                                        (
+                                           type = $r.localMappingPropertyType->toOne()->elementToPath(),
+                                           multiplicity = $r.localMappingPropertyMultiplicity->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()
+                                        ),
+                                       |[]
+                                   )
+         )
+   ]);
+}
+
+function <<access.private>> meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::createPropertyPtr(p:AbstractProperty<Any>[1]): meta::protocols::pure::vX_X_X::metamodel::domain::PropertyPtr[1]
+{
+   let propertyName = 'testName';
+   ^meta::protocols::pure::vX_X_X::metamodel::domain::PropertyPtr(class=$p->genericType().typeArguments->at(0).rawType->toOne()->elementToPath(), property=$propertyName);
+}
