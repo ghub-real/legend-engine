@@ -12,6 +12,6 @@ Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbInstantiat
 }
 
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbInstantiationExecutionNode
-[classResultType:$this.resultType->instanceOf(ClassResultType)]
+//[classResultType:$this.resultType->instanceOf(ClassResultType)]
 {
 }

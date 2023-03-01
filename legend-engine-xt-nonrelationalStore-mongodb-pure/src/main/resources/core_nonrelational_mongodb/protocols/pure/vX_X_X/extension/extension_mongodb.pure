@@ -30,7 +30,7 @@ import meta::external::store::mongodb::runtime::connections::*;
 function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbStoreExtension(type:String[1]):meta::pure::extension::SerializerExtension[1]
 {
    let res = [
-      pair('mongoDbStore', | meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbStoreExtension())
+      pair('mongoDb', | meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbStoreExtension())
    ]->filter(f|$f.first == $type);
    assert($res->isNotEmpty(), |'Can\'t find the type '+$type);
    $res->at(0).second->eval();
@@ -63,10 +63,16 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
    ]},
    transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
           [
+        min:meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode[1]|
+                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode(
+                           _type = 'mongoDbClassInstantiation',
+                           resultType = $min.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)
+                           //resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
+                        ),
         men:meta::external::store::mongodb::mapping::MongoDbExecutionNode[1]|
 
                 ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode(
-                           _type = 'mongoDbQuery',
+                           _type = 'mongoDbExecutionNode',
                            resultType = $men.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
                            resultSizeRange = $men.resultSizeRange->isEmpty()->if(|[],|$men.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            databaseCommand = $men.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false)),

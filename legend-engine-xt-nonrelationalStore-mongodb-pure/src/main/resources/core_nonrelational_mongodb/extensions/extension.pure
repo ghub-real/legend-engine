@@ -6,19 +6,17 @@ function meta::external::store::mongodb::extension::mongoDbExtensions() : meta::
    [mongoDbExtensions('mongoDb')]
 }
 
-/*
 function meta::external::store::mongodb::mongoDbSerializerExtension(version:String[1]):String[1]
 {
-   'meta::protocols::pure::'+$version+'::extension::getRelationalExtension_String_1__SerializerExtension_1_';
+  'meta::protocols::pure::'+$version+'::extension::store::mongodb::getMongoDbStoreExtension_String_1__SerializerExtension_1_'
 }
-*/
 
 function meta::external::store::mongodb::extension::mongoDbExtensions(type:String[1]) : meta::pure::extension::Extension[1]
 {
   ^Extension
   (
     type = $type,
-    availableStores = meta::pure::extension::defaultExtensions().availableStores->concatenate(meta::external::store::mongodb::contract::mongoDbStoreContract())
-    //serializerExtension =  meta::external::store::mongodb::mongoDbSerializerExtension_String_1__String_1_
+    availableStores = meta::pure::extension::defaultExtensions().availableStores->concatenate(meta::external::store::mongodb::contract::mongoDbStoreContract()),
+    serializerExtension =  meta::external::store::mongodb::mongoDbSerializerExtension_String_1__String_1_
   )
 }

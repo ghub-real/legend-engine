@@ -1,3 +1,4 @@
+import meta::pure::router::routing::*;
 import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
 import meta::external::store::mongodb::runtime::*;
@@ -44,16 +45,20 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
                           );
 
       //let queryExeCtx = if($exeCtx->instanceOf(MongoDbExecutionContext),|$exeCtx,|[])->cast(@MongoDbExecutionContext);
-      println('exeCtx');
-      println($exeCtx);
       //let queryExeCtx = $exeCtx->cast(@MongoDbExecutionContext);
       let queryExeCtx = $exeCtx;
       let originalQuery = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
       $originalQuery;
-      println('the original query is');
-      println($originalQuery);
       let node = ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(resultType = ^meta::pure::executionPlan::ResultType(type = Any), databaseCommand = $originalQuery);
-      ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = ^meta::pure::executionPlan::ResultType(type = Any), resultSizeRange = PureOne);
+      let possibleClass = $sq.fe.genericType.rawType->toOne();
+      println('planExecution possible class');
+      //println($possibleClass->cast(@Class<Any>));
+      //println($m->toOne().rootClassMappingByClass($possibleClass->cast(@Class<Any>))->toOne());
+      
+      let setImplementations = $m->toOne().rootClassMappingByClass($possibleClass->cast(@Class<Any>))->toOne()->resolveOperation($m->toOne());
+      let classResultType = ^ClassResultType(type=$possibleClass, setImplementations=[]);
+
+      ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = $classResultType, resultSizeRange = PureOne);
       /*
       $originalQuery->postProcessSQLQuery($store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $extensions)
                     ->generateExecutionNodeForPostProcessedResult($sq, $store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $debug, $extensions);
