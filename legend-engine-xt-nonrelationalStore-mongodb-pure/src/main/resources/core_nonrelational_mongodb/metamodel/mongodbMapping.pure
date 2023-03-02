@@ -43,7 +43,7 @@ Class meta::external::store::mongodb::metamodel::mapping::MongoDBClassMapping
 // Pure Mapping specification
 Class meta::external::store::mongodb::metamodel::mapping::Field
 {
-    ArgumentExpression:  ArgumentExpression[1];   //Can be FieldPathExpression, or regular OperationExpression
+    argumentExpression:  ArgumentExpression[1];   //Can be FieldPathExpression, or regular OperationExpression
     dataType : meta::external::store::mongodb::metamodel::BsonType[0..1];                    // Datatype of the mapped field/expression
     nullable: Boolean[0..1];
     owner: meta::external::store::mongodb::metamodel::Collection[0..1];
@@ -67,7 +67,7 @@ Class meta::external::store::mongodb::mapping::MongoDBMappingSpecification
 }
 
 
-Class meta::external::store::mongodb::mapping::RootMongoDbInstanceSetImplementation extends meta::external::store::mongodb::mapping::MongoDBInstanceSetImplementation, meta::external::store::mongodb::mapping::MongoDBMappingSpecification
+Class meta::external::store::mongodb::mapping::RootMongoDBInstanceSetImplementation extends meta::external::store::mongodb::mapping::MongoDBInstanceSetImplementation, meta::external::store::mongodb::mapping::MongoDBMappingSpecification
 {
 }
 

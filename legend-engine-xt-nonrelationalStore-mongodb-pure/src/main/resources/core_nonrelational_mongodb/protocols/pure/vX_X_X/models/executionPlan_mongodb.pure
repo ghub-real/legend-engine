@@ -1,0 +1,18 @@
+import meta::pure::executionPlan::*;
+import meta::json::*;
+
+// Equivalent of meta::protocols::pure::vX_X_X::metamodel::executionPlan::SQLExecutionNode
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+    databaseCommand    : String[1];
+    // TODO HG Should it be JSONElement to deserialize more simply on the legend-engine layer?
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
+{
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbInstantiationExecutionNode
+//[classResultType:$this.resultType->instanceOf(ClassResultType)]
+{
+}

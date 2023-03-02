@@ -1,0 +1,154 @@
+import meta::pure::router::routing::*;
+import meta::external::store::mongodb::metamodel::aggregation::*;
+import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
+import meta::external::store::mongodb::runtime::*;
+import meta::pure::graphFetch::executionPlan::*;
+import meta::external::store::mongodb::mapping::*;
+import meta::external::store::mongodb::metamodel::*;
+import meta::pure::router::clustering::*;
+import meta::pure::mapping::modelToModel::*;
+import meta::pure::extension::*;
+import meta::pure::runtime::*;
+import meta::pure::store::*;
+import meta::pure::mapping::*;
+import meta::pure::executionPlan::*;
+import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
+import meta::external::store::mongodb::graphFetch::executionPlan::*;
+import meta::external::store::mongodb::contract::*;
+
+function meta::external::store::mongodb::contract::mongoDbStoreContract(): StoreContract[1]
+{
+  ^StoreContract
+  (
+    id = 'mongoDbStore',
+    planExecution =  meta::external::store::mongodb::contract::planExecution_StoreQuery_1__RoutedValueSpecification_$0_1$__Mapping_$0_1$__Runtime_$0_1$__ExecutionContext_1__Extension_MANY__DebugContext_1__ExecutionNode_1_,
+    // planGraphFetchExecution = meta::external::store::mongodb::contract::planGraphFetchExecution_StoreMappingLocalGraphFetchExecutionNodeGenerationInput_1__LocalGraphFetchExecutionNode_1_,
+    supportsStore = s:Store[1]|$s->instanceOf(meta::external::store::mongodb::metamodel::MongoDatabase),
+    supportsNativeJoinAmongElements = false,
+    supportsSetImplementation = s:SetImplementation[1]| $s->instanceOf(MongoDBInstanceSetImplementation) ||
+                                                        $s->instanceOf(CrossSetImplementation) && $s->cast(@CrossSetImplementation).targetStore->instanceOf(MongoDatabase),
+    resolveStoreFromSetImplementation = s:InstanceSetImplementation[1]|$s->meta::external::store::mongodb::contract::getStore(),
+    supports = meta::external::store::mongodb::contract::supports_FunctionExpression_1__Boolean_1_
+  )
+}
+
+function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]): meta::pure::executionPlan::ExecutionNode[1]
+{
+   let store = $sq.store->cast(@MongoDatabase);
+   let fe = $sq.fe->evaluateAndDeactivate();
+   let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDatabaseConnection));
+       let storeRuntime = if($connections->size() <= 1,
+                             | $runtime->toOne(),
+                             | let oldRuntime = $runtime->toOne();
+                               let dbConn = $oldRuntime->connectionByElement($store)->cast(@MongoDatabaseConnection);
+                               ^$oldRuntime(connections = $dbConn);
+                          );
+
+      //let queryExeCtx = if($exeCtx->instanceOf(MongoDbExecutionContext),|$exeCtx,|[])->cast(@MongoDbExecutionContext);
+      //let queryExeCtx = $exeCtx->cast(@MongoDbExecutionContext);
+      let queryExeCtx = $exeCtx;
+      let originalQuery = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
+      $originalQuery;
+      let node = ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(resultType = ^meta::pure::executionPlan::ResultType(type = Any), databaseCommand = $originalQuery);
+      let possibleClass = $sq.fe.genericType.rawType->toOne();
+      println('planExecution possible class');
+      //println($possibleClass->cast(@Class<Any>));
+      //println($m->toOne().rootClassMappingByClass($possibleClass->cast(@Class<Any>))->toOne());
+
+      // let setImplementations = $m->toOne().rootClassMappingByClass($possibleClass->cast(@Class<Any>))->toOne()->resolveOperation($m->toOne());
+      let classResultType = ^ClassResultType(type=$possibleClass, setImplementations=[]);
+
+      ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = $classResultType, resultSizeRange = PureOne);
+      /*
+      $originalQuery->postProcessSQLQuery($store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $extensions)
+                    ->generateExecutionNodeForPostProcessedResult($sq, $store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $debug, $extensions);
+                    */
+}
+
+function meta::external::store::mongodb::contract::supportsStream(f:FunctionExpression[1]):Boolean[1]
+{
+  true;
+}
+
+function meta::external::store::mongodb::contract::getStore(r:InstanceSetImplementation[1]):Store[1]
+{
+  $r->match(
+    [
+      r:RootMongoDBInstanceSetImplementation[1]|
+          $r.mainCollection.owner->toOne(),
+      s:CrossSetImplementation[1]|$s.targetStore
+    ]
+  )
+}
+
+
+// Execution flow
+// function meta::external::store::mongodb::contract::execution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
+// {
+//    execution($sq.store->cast(@Database), $sq.fe, $ext, $m, $runtime, $sq.inScopeVars, $exeCtx, $extensions, $debug);
+// }
+
+
+// TODO HG Figure out where we want to keep this function in relational it lives in relationalMappingExecution.pure.. 
+
+// function meta::relational::mapping::execution(store: Database[1], f:FunctionExpression[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], inScopeVars:Map<String, List<Any>>[1], exeCtx:ExecutionContext[1], extensions:meta::pure::extension::Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
+// {
+//    let toSqlQueryStart = now();
+
+//    let relationalExecutionContext = $exeCtx->match([r:RelationalExecutionContext[1]|$r, a:Any[0..1]|[]]);
+
+//    let originalQuery = $f->toSQLQuery($m, $inScopeVars, $relationalExecutionContext, $debug, $extensions);
+//    let toSqlQueryDurationMilliseconds = ($toSqlQueryStart->dateDiff(now(),DurationUnit.MILLISECONDS));
+
+//    let connections = $runtime.connections->filter(c | $c->instanceOf(DatabaseConnection));
+//    let storeRuntime = if($connections->size() <= 1,
+//                          | $runtime->toOne(),
+//                          | let oldRuntime = $runtime->toOne();
+//                            let dbConn = $oldRuntime->connectionByElement($store)->cast(@DatabaseConnection);
+//                            ^$oldRuntime(connections = $dbConn);
+//                       );
+
+//    let postProcessorResult = postProcessQuery($exeCtx, $originalQuery, $storeRuntime, $store, $extensions);
+
+//    let connection = $runtime->connectionByElement($store)->cast(@DatabaseConnection);
+
+//    let sqlQueryToStringStart = now();
+//    let sql = if($relationalExecutionContext.insertDriverTablePkInTempTable->isEmpty(),
+//                 |sqlQueryToStringPretty($postProcessorResult.query, $connection.type, $connection.timeZone, $connection.quoteIdentifiers, $extensions),
+//                 |meta::relational::functions::toDDL::buildInsertSQLQueryResultIntoTable
+//                                                     (
+//                                                        $relationalExecutionContext.insertDriverTablePkInTempTable->toOne(),
+//                                                        $postProcessorResult.query->cast(@SelectSQLQuery),
+//                                                        $connection,
+//                                                        $extensions,
+//                                                        $debug
+//                                                     )
+//              );
+
+//    print(if($debug->instanceOf(RelationalDebugContext) && $debug->cast(@RelationalDebugContext).logOnlyLastSQL == true,|$sql+'\n',|''));
+
+//    let sqlQueryToStringDurationMilliseconds = ($sqlQueryToStringStart->dateDiff(now(),DurationUnit.MILLISECONDS));
+
+//    let sqlGenerationTimeInNanoSecond = ($toSqlQueryDurationMilliseconds + $sqlQueryToStringDurationMilliseconds) * 1000000;
+
+//    let possibleClass = $f.genericType.rawType;
+//    //Required if the class is a dynamically created variable expression
+//    let class = if ($possibleClass == Any, | let getAllClass = findMainClassInGetAllExpression($f); if($getAllClass->isEmpty(), | $possibleClass, | $getAllClass);, | $possibleClass );
+//    let result = executeQuery($sql, $postProcessorResult.query, if($class->toOne()->_subTypeOf(TabularDataSet), | $postProcessorResult.query->cast(@TdsSelectSqlQuery).paths, | []), $connection, $runtime, $class, $ext, $m, $sqlGenerationTimeInNanoSecond, $exeCtx.queryTimeOutInSeconds, $exeCtx, $extensions, $debug);
+
+//    $postProcessorResult.resultPostProcessor->fold({pp,res| $pp->eval($res)},$result);
+
+// }
+
+
+
+
+function meta::external::store::mongodb::contract::supports(f:FunctionExpression[1]):Boolean[1]
+{
+  true;
+}
+
+// function meta::external::store::mongodb::contract::planGraphFetchExecution(input: StoreMappingLocalGraphFetchExecutionNodeGenerationInput[1]): LocalGraphFetchExecutionNode[1]
+// {
+//   meta::external::store::mongodb::graphFetch::executionPlan::planRootGraphFetchExecutionMongoDb($input.storeQuery, $input.ext, $input.clusteredTree, $input.orderedPaths, $input.mapping, $input.runtime, $input.exeCtx, $input.enableConstraints, $input.checked, $input.extensions, $input.debug)
+// }

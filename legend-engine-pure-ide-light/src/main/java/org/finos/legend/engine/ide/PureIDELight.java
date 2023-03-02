@@ -32,8 +32,27 @@ public class PureIDELight extends PureIDEServer
 {
     public static void main(String[] args) throws Exception
     {
+        enableEngineIntegration();
         new PureIDELight().run(args.length == 0 ? new String[]{"server", "legend-engine-pure-ide-light/src/main/resources/ideLightConfig.json"} : args);
     }
+
+    public static void enableEngineIntegration()
+    {
+        System.setProperty("alloy.test.server.host", "127.0.0.1");
+        System.setProperty("alloy.test.server.port", "6300");
+        System.setProperty("alloy.test.h2.port", "9092");
+        System.setProperty("alloy.test.clientVersion", "vX_X_X");
+        System.setProperty("alloy.test.serverVersion", "v1");
+        System.setProperty("alloy.test.serializationKind", "json");
+
+        System.setProperty("legend.test.server.host", "127.0.0.1");
+        System.setProperty("legend.test.server.port", "6300");
+        System.setProperty("legend.test.h2.port", "9092");
+        System.setProperty("legend.test.clientVersion", "vX_X_X");
+        System.setProperty("legend.test.serverVersion", "v1");
+        System.setProperty("legend.test.serializationKind", "json");
+    }
+
 
     @Override
     protected MutableList<RepositoryCodeStorage> buildRepositories(SourceLocationConfiguration sourceLocationConfiguration)

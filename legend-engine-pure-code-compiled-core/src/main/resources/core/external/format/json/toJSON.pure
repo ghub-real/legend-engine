@@ -268,6 +268,15 @@ function <<access.private>> meta::json::tdsRowValueToJSON(value:Any[1]):String[1
 //---------------
 // toJSONElement
 //---------------
+function meta::json::toPrettyJSON(obj:Any[*]):String[1]
+{
+  meta::json::toPrettyJSONString(meta::json::toJSONElement($obj));
+}
+
+function meta::json::toPrettyJSON(obj:Any[*], nestingCount:Integer[1]):String[1]
+{
+  meta::json::toPrettyJSONString(meta::json::toJSONElement($obj, [], $nestingCount, defaultConfig()));
+}
 
 function meta::json::toJSONElement(obj:Any[*]):JSONElement[1]
 {
@@ -345,7 +354,10 @@ function <<access.private>> meta::json::buildLambdas(extraSerializers:Function<{
          {t:TaggedValue[1], state:JSONState[1]  | $t->taggedValueToJSON()},
          {t:Tag[1], state:JSONState[1]  | $t->tagToJSON()},
          {m:Multiplicity[1], state:JSONState[1]  | $m->multiplicityToJSON()},
-         {f:FunctionDefinition<Any>[1], state:JSONState[1]  | ^JSONString(value=$f.name->toOne())}, // TODO consider giving it structure
+         {f:FunctionDefinition<Any>[1], state:JSONState[1]  | ^JSONString(value=if($f.name->size() == 1,
+                                              | $f.name->toOne(),
+                                              | '$f.name->toOne()'
+                                          ))}, // TODO consider giving it structure
          {p:PackageableElement[1], state:JSONState[1]  | ^JSONString(value=$p->elementToPath())}, // TODO consider giving it structure
          
          {t:TabularDataSet[1], state:JSONState[1]  | let c= $state.config;

@@ -28,6 +28,8 @@ import meta::pure::store::*;
 
 function meta::pure::router::execute<X|n>(fn:FunctionDefinition<{->X[n]}>[1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:meta::pure::extension::Extension[*], debug:DebugContext[1]):Result<X|n>[1]
 {
+
+
    let routingStarted                 = now();
    let routed                         = $fn->routeFunction($m, $runtime, $exeCtx, $extensions, $debug);
    let routingElapsedTimeInNanoSecond = ($routingStarted->dateDiff(now(),DurationUnit.MILLISECONDS)) * 1000000;
@@ -58,7 +60,10 @@ function meta::pure::router::execute<X|n>(fn:FunctionDefinition<{->X[n]}>[1], m:
 
 function meta::pure::router::execution::executeExpression(clusters:ClusteredValueSpecification[*], inScopeVars:Map<String, List<Any>>[1], activities:Activity[*], exeCtx: ExecutionContext[0..1], extensions:Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
 {
+
+  
    let current = $clusters->head()->toOne()->evaluateAndDeactivate();
+
    print(if($debug.debug,|'\n'+$debug.space+'Start Execution: '+$current.val->asString()+'\n',|''));
    
    let fe = $current.val->byPassValueSpecificationWrapper()->cast(@FunctionExpression);

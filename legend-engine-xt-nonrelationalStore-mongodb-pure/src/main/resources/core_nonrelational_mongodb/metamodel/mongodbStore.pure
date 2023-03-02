@@ -187,7 +187,8 @@ Class meta::external::store::mongodb::metamodel::Collection
   name: String[1];
   uuid: String[1];
   collation: Collation[0..1];
-  validator: Validator[1];
+  validator: Validator[0..1];
+  // TODO HG
   indexes:  MongoIndex[0..1];
   field(fieldName: String[1])
   {
@@ -228,8 +229,8 @@ Class  {doc.doc = 'https://www.mongodb.com/docs/manual/reference/command/aggrega
 meta::external::store::mongodb::metamodel::aggregation::DatabaseCommand extends MongoDBOperationElement
 {
     type: String[1];
-    collectionName: String[1];
-    aggregationPipeline: AggregationPipeline[1];
+    collectionName: String[0..1];
+    aggregationPipeline: AggregationPipeline[0..1];
     cursor: Cursor[0..1];
     explain: Boolean[0..1];
     allowDiskUse: Boolean[0..1];
@@ -377,7 +378,7 @@ Class meta::external::store::mongodb::metamodel::aggregation::NorOperatorExpress
 {
 }
 
-Class meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair
+Class meta::external::store::mongodb::metamodel::aggregation::KeyValueExpressionPair extends MongoDBOperationElement
 {
   field: String[1];
   argument: ArgumentExpression[1];
