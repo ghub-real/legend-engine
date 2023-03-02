@@ -114,6 +114,7 @@
 <!--            <groupId>org.finos.legend.engine</groupId>-->
 <!--            <artifactId>legend-engine-language-pure-grammar</artifactId>-->
 <!--        </dependency>-->
+
         <dependency>
             <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-protocol-pure</artifactId>
@@ -127,12 +128,40 @@
 <!--        </dependency>-->
         <!-- pure -->
 
+        <!-- MONGO -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+        </dependency>
+        <!-- MONGO -->
+
+        <!-- ECLIPSE -->
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections-api</artifactId>
+        </dependency>
+        <!-- ECLIPSE -->
+
         <!-- JACKSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
         <!-- JACKSON -->
+
+
 
         <!-- TEST -->
         <dependency>
@@ -140,6 +169,7 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+
         <!-- TEST -->
     </dependencies>
 </project>
