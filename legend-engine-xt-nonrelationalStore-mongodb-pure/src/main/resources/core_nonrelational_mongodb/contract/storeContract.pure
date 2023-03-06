@@ -47,6 +47,7 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
                           );
 
     let databaseCommand = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
+    println($databaseCommand, 6);
 
     let connection = $runtime->toOne()->connectionByElement($store)->cast(@MongoDatabaseConnection);
 
@@ -78,65 +79,6 @@ function meta::external::store::mongodb::contract::getStore(r:InstanceSetImpleme
     ]
   )
 }
-
-
-// Execution flow
-// function meta::external::store::mongodb::contract::execution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
-// {
-//    execution($sq.store->cast(@Database), $sq.fe, $ext, $m, $runtime, $sq.inScopeVars, $exeCtx, $extensions, $debug);
-// }
-
-
-// TODO HG Figure out where we want to keep this function in relational it lives in relationalMappingExecution.pure.. 
-
-// function meta::relational::mapping::execution(store: Database[1], f:FunctionExpression[1], ext:RoutedValueSpecification[0..1], m:Mapping[1], runtime:Runtime[1], inScopeVars:Map<String, List<Any>>[1], exeCtx:ExecutionContext[1], extensions:meta::pure::extension::Extension[*], debug:DebugContext[1]):Result<Any|*>[1]
-// {
-//    let toSqlQueryStart = now();
-
-//    let relationalExecutionContext = $exeCtx->match([r:RelationalExecutionContext[1]|$r, a:Any[0..1]|[]]);
-
-//    let originalQuery = $f->toSQLQuery($m, $inScopeVars, $relationalExecutionContext, $debug, $extensions);
-//    let toSqlQueryDurationMilliseconds = ($toSqlQueryStart->dateDiff(now(),DurationUnit.MILLISECONDS));
-
-//    let connections = $runtime.connections->filter(c | $c->instanceOf(DatabaseConnection));
-//    let storeRuntime = if($connections->size() <= 1,
-//                          | $runtime->toOne(),
-//                          | let oldRuntime = $runtime->toOne();
-//                            let dbConn = $oldRuntime->connectionByElement($store)->cast(@DatabaseConnection);
-//                            ^$oldRuntime(connections = $dbConn);
-//                       );
-
-//    let postProcessorResult = postProcessQuery($exeCtx, $originalQuery, $storeRuntime, $store, $extensions);
-
-//    let connection = $runtime->connectionByElement($store)->cast(@DatabaseConnection);
-
-//    let sqlQueryToStringStart = now();
-//    let sql = if($relationalExecutionContext.insertDriverTablePkInTempTable->isEmpty(),
-//                 |sqlQueryToStringPretty($postProcessorResult.query, $connection.type, $connection.timeZone, $connection.quoteIdentifiers, $extensions),
-//                 |meta::relational::functions::toDDL::buildInsertSQLQueryResultIntoTable
-//                                                     (
-//                                                        $relationalExecutionContext.insertDriverTablePkInTempTable->toOne(),
-//                                                        $postProcessorResult.query->cast(@SelectSQLQuery),
-//                                                        $connection,
-//                                                        $extensions,
-//                                                        $debug
-//                                                     )
-//              );
-
-//    print(if($debug->instanceOf(RelationalDebugContext) && $debug->cast(@RelationalDebugContext).logOnlyLastSQL == true,|$sql+'\n',|''));
-
-//    let sqlQueryToStringDurationMilliseconds = ($sqlQueryToStringStart->dateDiff(now(),DurationUnit.MILLISECONDS));
-
-//    let sqlGenerationTimeInNanoSecond = ($toSqlQueryDurationMilliseconds + $sqlQueryToStringDurationMilliseconds) * 1000000;
-
-//    let possibleClass = $f.genericType.rawType;
-//    //Required if the class is a dynamically created variable expression
-//    let class = if ($possibleClass == Any, | let getAllClass = findMainClassInGetAllExpression($f); if($getAllClass->isEmpty(), | $possibleClass, | $getAllClass);, | $possibleClass );
-//    let result = executeQuery($sql, $postProcessorResult.query, if($class->toOne()->_subTypeOf(TabularDataSet), | $postProcessorResult.query->cast(@TdsSelectSqlQuery).paths, | []), $connection, $runtime, $class, $ext, $m, $sqlGenerationTimeInNanoSecond, $exeCtx.queryTimeOutInSeconds, $exeCtx, $extensions, $debug);
-
-//    $postProcessorResult.resultPostProcessor->fold({pp,res| $pp->eval($res)},$result);
-
-// }
 
 
 

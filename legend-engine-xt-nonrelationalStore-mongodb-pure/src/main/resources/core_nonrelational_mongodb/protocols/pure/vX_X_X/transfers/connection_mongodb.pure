@@ -7,31 +7,7 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
    let element = $otherConnection.element->match([d:meta::pure::store::Store[1]|$d->elementToPath(),s:String[1]|$s]);
    let type = $otherConnection.type->toString();
    let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('mongoDb')->cast(@meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f | $f->eval($_type, $element, $type))->concatenate([
-    /*
-      test:meta::external::store::mongodb::runtime::TestDatabaseConnection[1]|
-          ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::MongoDatabaseConnection(
-            _type = 'MongoDatabaseConnection',
-            type = $type,
-            timeZone = $test.timeZone,
-            quoteIdentifiers = $test.quoteIdentifiers,
-            element = $element,
 
-            datasourceSpecification = ^meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::alloy::specification::LocalH2DatasourceSpecification(
-              _type = 'h2Local',
-               testDataSetupCsv = $test.testDataSetupCsv,
-               testDataSetupSqls = $test.testDataSetupSqls
-            ),
-
-            authenticationStrategy = ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::alloy::authentication::TestDatabaseAuthenticationStrategy(
-              _type = 'test'
-            )
-         ),
-
-
-
-      mongo:meta::pure::alloy::connections::MongoDatabaseConnection[1] |
-         mongoDb($type, $element, $mongo.timeZone, $mongo.quoteIdentifiers, $mongo.datasourceSpecification, $mongo.authenticationStrategy, $extensions);,
-       */
       dbCon:meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection[1]|
          ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection(
                   _type = $_type,
@@ -44,37 +20,3 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connectio
     )->toOneMany());
     $alloyConnection;
 }
-//   transfers_connection_transformDatabaseConnection : meta::pure::metamodel::function::Function<{String[1], String[1], String[1] -> meta::pure::metamodel::function::Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection[1]}>[*]}>[0..1];
-
-
-/*
-function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::mongoDb(type:String[1], element:String[1], timeZone:String[0..1], quoteIdentifiers:Boolean[0..1],
-                                                                                              spec:meta::pure::alloy::connections::alloy::specification::mongodb::DatasourceSpecification[1],
-                                                                                              auth:meta::pure::alloy::connections::alloy::authentication::mongodb::AuthenticationStrategy[1],
-                                                                                              extensions:meta::pure::extension::Extension[*]
-                                                      ):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::MongoDatabaseConnection[1]
-{
-  //meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection
-   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::MongoDatabaseConnection(
-      _type = 'MongoDatabaseConnection',
-      timeZone = $timeZone,
-      quoteIdentifiers = $quoteIdentifiers,
-      element = $element,
-      type = $type,
-      datasourceSpecification = $spec->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformMongoDatasourceSpecification($extensions),
-      authenticationStrategy = $auth->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformMongoAuthenticationStrategy($extensions)
-   );
-}
-
-// meta::pure::alloy::connections::alloy::authentication::AuthenticationStrategy[1]
-function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformMongoAuthenticationStrategy(a:Any[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::alloy::authentication::AuthenticationStrategy[1]
-{
-   $a->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('mongoDb')->cast(@meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension).transfers_connection_transformAuthenticationStrategy->toOneMany())
-}
-
-// meta::pure::alloy::connections::alloy::specification::DatasourceSpecification[1]
-function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformMongoDatasourceSpecification(ds: Any[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::alloy::specification::DatasourceSpecification[1]
-{
-   $ds->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('mongoDb')->cast(@meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension).transfers_connection_transformDatasourceSpecification->toOneMany())
-}
-*/

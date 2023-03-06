@@ -160,7 +160,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::getProjectKeyValuesForMongoDBPropertyMappings(propertyMappings: MongoDBPropertyMapping[*]): ObjectQueryExpression[1]
 {
   let keyValues = $propertyMappings->map(k |
-    let field = $k.property.name->toOne();
+    let field = $k.field.argumentExpression->cast(@FieldPathExpression).fieldPath;
     ^QueryExprKeyValue(key=^FieldPathExpression(fieldPath=$field), value=^LiteralValue(value=^IntTypeValue(value=1)));
   );
   ^ObjectQueryExpression(keyValues=$keyValues);

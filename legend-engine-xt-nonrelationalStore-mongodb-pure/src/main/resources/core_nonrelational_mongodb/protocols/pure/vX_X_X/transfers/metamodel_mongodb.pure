@@ -7,29 +7,22 @@ import meta::pure::mapping::*;
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDBInstanceSetImplementation(r:RootMongoDBInstanceSetImplementation[1], mapping:Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDBClassMapping[1]
 {
    let collection = $r.mainCollection;
-  //  let schema = $collection.schema;
    let db = $collection.owner;
-   //let storeFromTableAlias = $r.mainTableAlias.database;
   ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDBClassMapping
    (
       id = $r.id,
       _type = 'mongoDb',
       root = $r.root,
       class = $r.class->elementToPath(),
-      /*
-      extendsClassMappingId = $r.superSetImplementationId,
       mappingClass = $r.mappingClass->map(mc|$mc->transformMappingClass($mapping, $extensions)),
+      /*
       mainCollection = ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection(
          _type = 'collection',
          collection = $collection.name,
          database = $db->elementToPath(),
          schema = $schema
       ),
-      //distinct = $r.distinct->isTrue(),
-      //groupBy = $r.groupBy.columns->map(c|$c->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformRelationalOperationElement($db)),
-      //filter = if($r.filter->isEmpty(), |[], | ^FilterWithJoins(filter = ^FilterPtr(db=$r.filter.filter.database->toOne()->elementToPath(), name=$r.filter->toOne().filterName), joins = if($r.filter->toOne().joinTreeNode->isEmpty(),|[],|$r.filter->toOne().joinTreeNode->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::relational::transformJoinTreeNode()))),
       */
-      // primaryKey = $r.primaryKey->map(c| meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformField($c)),
       propertyMappings = $r.propertyMappings->map(pm|$pm->transformMongoDbPropertyMapping($db, $mapping, $extensions))
    );
 }
@@ -67,7 +60,6 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mo
    ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Schema(
       _type = 'schema',
       id = $s.id->toOne()
-      // TODO HG
   )
 }
 

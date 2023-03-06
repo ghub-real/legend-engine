@@ -42,17 +42,6 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
    (
 
     moduleSerializerExtensions = meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtension(),
-    /*
-    scan_buildBasePureModel_extractStores = {m:Mapping[1], extensions:meta::pure::extension::Extension[*] |
-                                                     [
-                                                        rsi: RootMongoDbInstanceSetImplementation[1] |
-                                                                          // Main Store
-                                                                          let mainCollection = $rsi.mainCollection;
-                                                                          let mongoDatabase = $mainCollection.owner;
-                                                     ]
-                                                   },
-      */
-
     transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
     [
         db:meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
@@ -66,8 +55,8 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
         min:meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode[1]|
                         ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode(
                            _type = 'mongoDbClassInstantiation',
+                           resultSizeRange = $min.resultSizeRange->isEmpty()->if(|[],|$min.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            resultType = $min.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)
-                           //resultSizeRange = $rel.resultSizeRange->isEmpty()->if(|[],|$rel.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity())
                         ),
         men:meta::external::store::mongodb::mapping::MongoDbExecutionNode[1]|
 
@@ -76,25 +65,20 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
                            resultType = $men.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
                            resultSizeRange = $men.resultSizeRange->isEmpty()->if(|[],|$men.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            databaseCommand = meta::json::toJSON($men.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false)), 1000),
-                           //resultFields = $men.resultFields,
-                           authDependent = true
-                           //onConnectionCloseCommitQuery = $men.onConnectionCloseCommitQuery,
-                           //onConnectionCloseRollbackQuery = $men.onConnectionCloseRollbackQuery,
-                           //connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
+                           authDependent = true,
+                           connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
               );
           ];
-       },
+       }
+       /*
+       ,
 
       transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
-            rdi:RootMongoDBInstanceSetImplementation[1]  | $rdi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDBInstanceSetImplementation($mapping, $extensions),
-            any:Any[1] | println('I AM CALLED TOO - transfers_mapping_transformSetImplementation2'); let a = []; $a;
+            rdi:RootMongoDBInstanceSetImplementation[1]  | $rdi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDBInstanceSetImplementation($mapping, $extensions)
           ]}
+          */
    )
 }
-
-
-   //reverse_transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::pure::alloy::connections::alloy::authentication::AuthenticationStrategy[1]}>[*];
-
 
 function meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension[1]
 {
@@ -106,8 +90,6 @@ function meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtens
     transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
     transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,
     transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.transfers_connection_transformDatasourceSpecification
-    //reverse_transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.reverse_transfers_connection_transformAuthenticationStrategy,
-    //reverse_transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.reverse_transfers_connection_transformDatasourceSpecification
   );
 
 }
