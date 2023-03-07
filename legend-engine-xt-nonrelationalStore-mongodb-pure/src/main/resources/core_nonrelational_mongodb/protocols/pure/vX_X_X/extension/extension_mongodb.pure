@@ -42,43 +42,18 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
    (
 
     moduleSerializerExtensions = meta::protocols::pure::vX_X_X::extension::store::mongodb::mongoDbModuleSerializerExtension(),
-    transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
-    [
-        db:meta::external::store::mongodb::metamodel::runtime::MongoDBConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
-    ]},
-   transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
-   [
-        d:meta::external::store::mongodb::metamodel::MongoDatabase[1] | $d->transformMongoDatabase($extensions)
-   ]},
    transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
           [
-            /*
-        min:meta::external::store::mongodb::mapping::MongoDBClassInstantiationExecutionNode[1]|
-                        ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode(
-                           _type = 'mongoDbClassInstantiation',
-                           resultSizeRange = $min.resultSizeRange->isEmpty()->if(|[],|$min.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
-                           resultType = $min.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)
-                        ),
-                        */
         men:meta::external::store::mongodb::metamodel::mapping::MongoDBExecutionNode[1]|
 
                 ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDbExecutionNode(
                            _type = 'mongoDbExecutionNode',
                            resultType = $men.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-                           resultSizeRange = $men.resultSizeRange->isEmpty()->if(|[],|$men.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            databaseCommand = meta::json::toJSON($men.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false)), 1000),
-                           authDependent = true,
                            connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
               );
           ];
        }
-       /*
-       ,
-
-      transfers_mapping_transformSetImplementation2 = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] | [
-            rdi:RootMongoDBInstanceSetImplementation[1]  | $rdi->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDBInstanceSetImplementation($mapping, $extensions)
-          ]}
-          */
    )
 }
 
@@ -89,9 +64,7 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::mongoDbModule
   let transformDatabaseConnection = $dbSpecificExtensions.transfers_connection_transformDatabaseConnection;
   ^meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModuleSerializerExtension(
     module = 'mongoDb',
-    transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
-    transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,
-    transfers_connection_transformDatasourceSpecification = $dbSpecificExtensions.transfers_connection_transformDatasourceSpecification
+    transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[])
   );
 
 }

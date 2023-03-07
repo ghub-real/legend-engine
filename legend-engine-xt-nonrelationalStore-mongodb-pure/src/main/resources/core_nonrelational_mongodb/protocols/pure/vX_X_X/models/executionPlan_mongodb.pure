@@ -5,16 +5,5 @@ import meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::*;
 Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDbExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
 {
     databaseCommand : String[1];
-    connection      : DatabaseConnection[1];
+    connection      : MongoDBConnection[1];
 }
-
-/*
-Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDbInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::ExecutionNode
-{
-}
-
-Class meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDbClassInstantiationExecutionNode extends meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDbInstantiationExecutionNode
-[classResultType:$this.resultType->instanceOf(meta::protocols::pure::vX_X_X::metamodel::executionPlan::ClassResultType)]
-{
-}
-*/

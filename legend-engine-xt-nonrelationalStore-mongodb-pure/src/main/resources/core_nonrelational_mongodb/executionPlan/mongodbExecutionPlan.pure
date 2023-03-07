@@ -21,12 +21,3 @@ Class <<typemodifiers.abstract>> meta::external::store::mongodb::metamodel::mapp
   databaseCommand: DatabaseCommand[1];
   connection: MongoDBConnection[1];
 }
-
-//Class meta::external::store::mongodb::metamodel::mapping::MongoDBInstantiationExecutionNode extends MongoDBExecutionNode
-//{
-//}
-//
-//Class meta::external::store::mongodb::metamodel::mapping::MongoDBClassInstantiationExecutionNode extends MongoDBInstantiationExecutionNode
-//[classResultType:$this.resultType->instanceOf(meta::pure::executionPlan::ClassResultType)]
-//{
-//}
