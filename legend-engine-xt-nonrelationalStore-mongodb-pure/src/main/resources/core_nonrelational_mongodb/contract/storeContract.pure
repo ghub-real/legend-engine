@@ -47,7 +47,6 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
                           );
 
     let databaseCommand = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
-    println($databaseCommand, 6);
 
     let connection = $runtime->toOne()->connectionByElement($store)->cast(@MongoDBConnection);
 
@@ -56,11 +55,6 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
         databaseCommand = $databaseCommand,
         connection = $connection
       );
-}
-
-function meta::external::store::mongodb::contract::supportsStream(f:FunctionExpression[1]):Boolean[1]
-{
-  true;
 }
 
 function meta::external::store::mongodb::contract::getStore(r:InstanceSetImplementation[1]):Store[1]
@@ -74,12 +68,9 @@ function meta::external::store::mongodb::contract::getStore(r:InstanceSetImpleme
   )
 }
 
-
-
-
 function meta::external::store::mongodb::contract::supports(f:FunctionExpression[1]):Boolean[1]
 {
-  true;
+  !findSupportedFunction($f, getSupportedFunctions())->isEmpty()
 }
 
 // function meta::external::store::mongodb::contract::planGraphFetchExecution(input: StoreMappingLocalGraphFetchExecutionNodeGenerationInput[1]): LocalGraphFetchExecutionNode[1]
