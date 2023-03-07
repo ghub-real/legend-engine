@@ -1,20 +1,11 @@
-import meta::pure::alloy::connections::alloy::authentication::*;
-import meta::pure::alloy::connections::alloy::specification::*;
-
-Class meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension extends meta::protocols::pure::vX_X_X::extension::ModuleSerializerExtension
+Class meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModuleSerializerExtension extends meta::protocols::pure::vX_X_X::extension::ModuleSerializerExtension
 {
    transfers_connection_transformDatabaseConnection : meta::pure::metamodel::function::Function<{String[1], String[1], String[1] -> meta::pure::metamodel::function::Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection[1]}>[*]}>[0..1];
-   //transfers_connection_transformPostProcessors : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::document::postProcessor::PostProcessor[1]}>[*];
    transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::alloy::authentication::AuthenticationStrategy[1]}>[*];
    transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::alloy::specification::DatasourceSpecification[1]}>[*];
-   //reverse_transfers_typeLookups: Pair<String, String>[*];
-   //reverse_transfers_connection_transformAuthenticationStrategy : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::mongodb::metamodel::authentication::AuthenticationStrategy[1]}>[*];
-   //reverse_transfers_connection_transformDatasourceSpecification : meta::pure::metamodel::function::Function<{Nil[1] -> meta::external::store::mongodb::metamodel::datasource::DatasourceSpecification[1]}>[*];
 }
 
-Profile meta::protocols::pure::vX_X_X::extension::MongoDbModule
+Profile meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModule
 {
    stereotypes: [SerializerExtension];
 }
-
-//   transfers_connection_transformDatabaseConnection : meta::pure::metamodel::function::Function<{String[1], String[1], String[1] -> meta::pure::metamodel::function::Function<{Nil[1]->meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection[1]}>[*]}>[0..1];

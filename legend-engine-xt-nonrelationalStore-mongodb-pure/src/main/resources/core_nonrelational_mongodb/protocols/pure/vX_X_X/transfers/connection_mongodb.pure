@@ -1,14 +1,14 @@
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::*;
 import meta::external::store::mongodb::runtime::*;
 
-function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection(otherConnection: meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection[1]
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection(otherConnection: meta::external::store::mongodb::metamodel::runtime::MongoDBConnection[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection[1]
 {
    let _type = $otherConnection->class()->toString();
    let element = $otherConnection.element->match([d:meta::pure::store::Store[1]|$d->elementToPath(),s:String[1]|$s]);
    let type = $otherConnection.type->toString();
-   let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('mongoDb')->cast(@meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f | $f->eval($_type, $element, $type))->concatenate([
+   let alloyConnection = $otherConnection->match($extensions.serializerExtension('vX_X_X')->cast(@meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X).moduleSerializerExtension('mongoDb')->cast(@meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModuleSerializerExtension).transfers_connection_transformDatabaseConnection->map(f | $f->eval($_type, $element, $type))->concatenate([
 
-      dbCon:meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection[1]|
+      dbCon:meta::external::store::mongodb::metamodel::runtime::MongoDBConnection[1]|
          ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::DatabaseConnection(
                   _type = $_type,
                   //timeZone = $dbCon.timeZone,

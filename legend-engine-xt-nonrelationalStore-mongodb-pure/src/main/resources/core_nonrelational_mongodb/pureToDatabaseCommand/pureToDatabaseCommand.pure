@@ -68,7 +68,7 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::getFieldPathForPropertyNameAndMapping(propertyName: String[1], mapping: Mapping[1]): String[1]
 {
-  let mongoDbPropertyMapping = $mapping.classMappings->cast(@RootMongoDBInstanceSetImplementation).propertyMappings->filter(x | $x.property.name == $propertyName)->toOne();
+  let mongoDbPropertyMapping = $mapping.classMappings->cast(@MongoDBSetImplementation).propertyMappings->filter(x | $x.property.name == $propertyName)->toOne();
   $mongoDbPropertyMapping->cast(@MongoDBPropertyMapping).field.argumentExpression->cast(@FieldPathExpression).fieldPath;
 }
 
@@ -151,8 +151,8 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processGetAll(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand [1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): DatabaseCommand[1]
 {
   let setImplementation = $functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).sets->toOne();
-  let collectionName = $setImplementation->cast(@RootMongoDBInstanceSetImplementation).mainCollection->cast(@Collection).name;
-  let projectedKeys = getProjectKeyValuesForMongoDBPropertyMappings($setImplementation->cast(@RootMongoDBInstanceSetImplementation).propertyMappings->cast(@MongoDBPropertyMapping));
+  let collectionName = $setImplementation->cast(@MongoDBSetImplementation).mainCollection->cast(@Collection).name;
+  let projectedKeys = getProjectKeyValuesForMongoDBPropertyMappings($setImplementation->cast(@MongoDBSetImplementation).propertyMappings->cast(@MongoDBPropertyMapping));
   let result = ^$databaseCommand(collectionName=$collectionName, aggregationPipeline=^AggregationPipeline(stages=^ProjectStage(projections=$projectedKeys)));
   $result;
 }

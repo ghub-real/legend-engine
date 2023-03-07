@@ -23,7 +23,7 @@ Enum meta::external::store::mongodb::metamodel::runtime::DatabaseType
   MongoDb
 }
 
-Class meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection extends Connection
+Class meta::external::store::mongodb::metamodel::runtime::MongoDBConnection extends Connection
 [
    $this.element->instanceOf(MongoDatabase)
 ]
@@ -35,7 +35,7 @@ Class meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnectio
    debug: Boolean[0..1];
 }
 
-Class meta::external::store::mongodb::metamodel::runtime::MongoDBDatasourceSpecification // extends meta::pure::alloy::connections::alloy::specification::DatasourceSpecification
+Class meta::external::store::mongodb::metamodel::runtime::MongoDBDatasourceSpecification
 {
    baseUrl: String[1];
    port: Integer[1];

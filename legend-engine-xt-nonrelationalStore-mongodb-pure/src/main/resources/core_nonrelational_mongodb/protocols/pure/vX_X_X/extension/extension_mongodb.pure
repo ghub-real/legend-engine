@@ -16,7 +16,7 @@
 import meta::json::*;
 import meta::external::store::mongodb::metamodel::*;
 import  meta::external::store::mongodb::mapping::*;
-import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::*;
+import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::*;
 import meta::external::store::mongodb::runtime::*;
 import meta::pure::mapping::*;
 
@@ -41,10 +41,10 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
    ^meta::protocols::pure::vX_X_X::extension::SerializerExtension_vX_X_X
    (
 
-    moduleSerializerExtensions = meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtension(),
+    moduleSerializerExtensions = meta::protocols::pure::vX_X_X::extension::store::mongodb::mongoDbModuleSerializerExtension(),
     transfers_store_transformConnection2 = {extensions:meta::pure::extension::Extension[*] |
     [
-        db:meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+        db:meta::external::store::mongodb::metamodel::runtime::MongoDBConnection[1] | $db->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
     ]},
    transfers_store_transformStore2 = {extensions:meta::pure::extension::Extension[*] |
    [
@@ -52,21 +52,23 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
    ]},
    transfers_executionPlan_transformNode = {mapping:Mapping[1], extensions:meta::pure::extension::Extension[*] |
           [
-        min:meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode[1]|
+            /*
+        min:meta::external::store::mongodb::mapping::MongoDBClassInstantiationExecutionNode[1]|
                         ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbClassInstantiationExecutionNode(
                            _type = 'mongoDbClassInstantiation',
                            resultSizeRange = $min.resultSizeRange->isEmpty()->if(|[],|$min.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            resultType = $min.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions)
                         ),
-        men:meta::external::store::mongodb::mapping::MongoDbExecutionNode[1]|
+                        */
+        men:meta::external::store::mongodb::metamodel::mapping::MongoDBExecutionNode[1]|
 
-                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::MongoDbExecutionNode(
+                ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDbExecutionNode(
                            _type = 'mongoDbExecutionNode',
                            resultType = $men.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
                            resultSizeRange = $men.resultSizeRange->isEmpty()->if(|[],|$men.resultSizeRange->toOne()->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::transformMultiplicity()),
                            databaseCommand = meta::json::toJSON($men.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false)), 1000),
                            authDependent = true,
-                           connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::transformDatabaseConnection($extensions)
+                           connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
               );
           ];
        }
@@ -80,12 +82,12 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDbSto
    )
 }
 
-function meta::protocols::pure::vX_X_X::extension::mongoDbModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension[1]
+function meta::protocols::pure::vX_X_X::extension::store::mongodb::mongoDbModuleSerializerExtension(): meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModuleSerializerExtension[1]
 {
-  let dbSpecificExtensions = meta::protocols::pure::vX_X_X::extension::MongoDbModule->stereotype('SerializerExtension').modelElements->cast(@meta::pure::metamodel::function::Function<{->meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension[1]}>)
+  let dbSpecificExtensions = meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModule->stereotype('SerializerExtension').modelElements->cast(@meta::pure::metamodel::function::Function<{->meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModuleSerializerExtension[1]}>)
     ->map(f| $f->eval())->sortBy(e| $e.module);
   let transformDatabaseConnection = $dbSpecificExtensions.transfers_connection_transformDatabaseConnection;
-  ^meta::protocols::pure::vX_X_X::extension::MongoDbModuleSerializerExtension(
+  ^meta::protocols::pure::vX_X_X::extension::store::mongodb::MongoDbModuleSerializerExtension(
     module = 'mongoDb',
     transfers_connection_transformDatabaseConnection = if($transformDatabaseConnection->isNotEmpty(), |$transformDatabaseConnection->toOne(), |[]),
     transfers_connection_transformAuthenticationStrategy = $dbSpecificExtensions.transfers_connection_transformAuthenticationStrategy,

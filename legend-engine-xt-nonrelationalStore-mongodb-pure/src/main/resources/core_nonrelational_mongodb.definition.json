@@ -1,5 +1,5 @@
 {
   "name" : "core_nonrelational_mongodb",
-  "pattern" : "(meta::external::store::mongodb|meta::pure::alloy::connections::alloy::specification::mongodb|meta::pure::alloy::connections|meta::protocols::pure::vX_X_X)(::.*)?",
+  "pattern" : "(meta::external::store::mongodb|meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb|meta::protocols::pure::vX_X_X::extension::store::mongodb|meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb|meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element|meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection|meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping|meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb)(::.*)?",
   "dependencies" : ["platform", "core", "platform_dsl_mapping", "platform_dsl_path", "platform_functions","core_external_language_java", "core_authentication"]
 }

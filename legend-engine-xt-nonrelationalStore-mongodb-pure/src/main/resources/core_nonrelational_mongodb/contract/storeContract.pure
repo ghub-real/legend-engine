@@ -27,7 +27,7 @@ function meta::external::store::mongodb::contract::mongoDbStoreContract(): Store
     // planGraphFetchExecution = meta::external::store::mongodb::contract::planGraphFetchExecution_StoreMappingLocalGraphFetchExecutionNodeGenerationInput_1__LocalGraphFetchExecutionNode_1_,
     supportsStore = s:Store[1]|$s->instanceOf(meta::external::store::mongodb::metamodel::MongoDatabase),
     supportsNativeJoinAmongElements = false,
-    supportsSetImplementation = s:SetImplementation[1]| $s->instanceOf(MongoDBInstanceSetImplementation) ||
+    supportsSetImplementation = s:SetImplementation[1]| $s->instanceOf(MongoDBSetImplementation) ||
                                                         $s->instanceOf(CrossSetImplementation) && $s->cast(@CrossSetImplementation).targetStore->instanceOf(MongoDatabase),
     resolveStoreFromSetImplementation = s:InstanceSetImplementation[1]|$s->meta::external::store::mongodb::contract::getStore(),
     supports = meta::external::store::mongodb::contract::supports_FunctionExpression_1__Boolean_1_
@@ -38,30 +38,24 @@ function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::
 {
     let store = $sq.store->cast(@MongoDatabase);
     let fe = $sq.fe->evaluateAndDeactivate();
-    let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDatabaseConnection));
+    let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDBConnection));
     let storeRuntime = if($connections->size() <= 1,
                              | $runtime->toOne(),
                              | let oldRuntime = $runtime->toOne();
-                               let dbConn = $oldRuntime->connectionByElement($store)->cast(@MongoDatabaseConnection);
+                               let dbConn = $oldRuntime->connectionByElement($store)->cast(@MongoDBConnection);
                                ^$oldRuntime(connections = $dbConn);
                           );
 
     let databaseCommand = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
     println($databaseCommand, 6);
 
-    let connection = $runtime->toOne()->connectionByElement($store)->cast(@MongoDatabaseConnection);
+    let connection = $runtime->toOne()->connectionByElement($store)->cast(@MongoDBConnection);
 
-    let node = ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(
+    ^meta::external::store::mongodb::metamodel::mapping::MongoDBExecutionNode(
         resultType = ^meta::pure::executionPlan::ResultType(type = Any),
         databaseCommand = $databaseCommand,
         connection = $connection
       );
-
-    let possibleClass = $sq.fe.genericType.rawType->toOne();
-    let setImplementations = $ext->cast(@StoreMappingRoutedValueSpecification).sets->at(0);
-    let classResultType = ^ClassResultType(type=$possibleClass, setImplementations=$setImplementations);
-
-    ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = $classResultType, resultSizeRange = $sq.fe.multiplicity);
 }
 
 function meta::external::store::mongodb::contract::supportsStream(f:FunctionExpression[1]):Boolean[1]
@@ -73,7 +67,7 @@ function meta::external::store::mongodb::contract::getStore(r:InstanceSetImpleme
 {
   $r->match(
     [
-      r:RootMongoDBInstanceSetImplementation[1]|
+      r:MongoDBSetImplementation[1]|
           $r.mainCollection.owner->toOne(),
       s:CrossSetImplementation[1]|$s.targetStore
     ]

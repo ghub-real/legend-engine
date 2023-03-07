@@ -4,7 +4,8 @@ import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mong
 import meta::protocols::pure::vX_X_X::transformation::fromPureGraph::domain::*;
 import meta::pure::mapping::*;
 
-function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDBInstanceSetImplementation(r:RootMongoDBInstanceSetImplementation[1], mapping:Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDBClassMapping[1]
+/*
+function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformRootMongoDBInstanceSetImplementation(r:RootMongoDbInstanceSetImplementation[1], mapping:Mapping[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::mapping::RootMongoDBClassMapping[1]
 {
    let collection = $r.mainCollection;
    let db = $collection.owner;
@@ -15,17 +16,18 @@ function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mo
       root = $r.root,
       class = $r.class->elementToPath(),
       mappingClass = $r.mappingClass->map(mc|$mc->transformMappingClass($mapping, $extensions)),
-      /*
-      mainCollection = ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection(
-         _type = 'collection',
-         collection = $collection.name,
-         database = $db->elementToPath(),
-         schema = $schema
-      ),
-      */
+      
+      //mainCollection = ^meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::Collection(
+      //   _type = 'collection',
+      //   collection = $collection.name,
+      //   database = $db->elementToPath(),
+      //   schema = $schema
+      //),
+      
       propertyMappings = $r.propertyMappings->map(pm|$pm->transformMongoDbPropertyMapping($db, $mapping, $extensions))
    );
 }
+*/
 
 function meta::protocols::pure::vX_X_X::transformation::fromPureGraph::store::mongodb::transformMongoDatabase(db:meta::external::store::mongodb::metamodel::MongoDatabase[1], extensions:meta::pure::extension::Extension[*]):meta::protocols::pure::vX_X_X::metamodel::store::mongodb::element::MongoDatabase[1]
 {
