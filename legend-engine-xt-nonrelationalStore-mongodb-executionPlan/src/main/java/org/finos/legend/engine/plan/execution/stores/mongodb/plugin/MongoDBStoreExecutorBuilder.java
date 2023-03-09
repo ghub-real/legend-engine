@@ -18,6 +18,7 @@ import org.finos.legend.engine.plan.execution.stores.StoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.StoreExecutorBuilder;
 import org.finos.legend.engine.plan.execution.stores.StoreExecutorConfiguration;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
+import org.finos.legend.engine.plan.execution.stores.mongodb.config.MongoDBExecutionConfiguration;
 
 public class MongoDBStoreExecutorBuilder implements StoreExecutorBuilder
 {
@@ -30,7 +31,7 @@ public class MongoDBStoreExecutorBuilder implements StoreExecutorBuilder
     @Override
     public MongoDBStoreExecutor build()
     {
-        return (MongoDBStoreExecutor) build(MongoDBStoreExecutorConfiguration.newInstance().build());
+        return (MongoDBStoreExecutor) build(MongoDBExecutionConfiguration.builder().build());
     }
 
     @Override

@@ -14,9 +14,7 @@
 
 package org.finos.legend.engine.plan.execution.stores.mongodb.plugin;
 
-import org.finos.legend.engine.plan.execution.stores.StoreExecutionState;
 import org.finos.legend.engine.plan.execution.stores.StoreExecutor;
-import org.finos.legend.engine.plan.execution.stores.StoreState;
 
 public class MongoDBStoreExecutor  implements StoreExecutor
 {
@@ -30,8 +28,6 @@ public class MongoDBStoreExecutor  implements StoreExecutor
         this.storeExecutionConfiguration = storeExecutionConfiguration;
     }
 
-
-
     @Override
     public MongoDBStoreExecutionState buildStoreExecutionState()
     {
@@ -43,6 +39,4 @@ public class MongoDBStoreExecutor  implements StoreExecutor
     {
         return this.state;
     }
-
-
 }
