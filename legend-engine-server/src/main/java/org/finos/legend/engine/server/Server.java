@@ -74,6 +74,7 @@ import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
 import org.finos.legend.engine.plan.execution.stores.mongodb.plugin.MongoDBStoreExecutor;
 import org.finos.legend.engine.plan.execution.stores.mongodb.plugin.MongoDBStoreExecutorBuilder;
 import org.finos.legend.engine.plan.execution.stores.mongodb.plugin.MongoDBStoreExecutorConfiguration;
+import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
 import org.finos.legend.engine.plan.execution.stores.relational.api.RelationalExecutorInformation;
 import org.finos.legend.engine.plan.execution.stores.relational.config.RelationalExecutionConfiguration;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.api.schema.SchemaExplorationApi;
@@ -135,6 +136,8 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     private Environment environment;
 
+    private org.h2.tools.Server h2Server;
+
     public static void main(String[] args) throws Exception
     {
         EngineUrlStreamHandlerFactory.initialize();
@@ -160,6 +163,8 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         bootstrap.addBundle(new MultiPartBundle());
         bootstrap.addBundle(new ErrorHandlingBundle<T>(serverConfiguration -> serverConfiguration.errorhandlingconfiguration));
 
+        setupLocalH2Db();
+
         // Enable variable substitution with environment variables
         bootstrap.setConfigurationSourceProvider(new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(), new EnvironmentVariableSubstitutor(true)));
 
@@ -168,6 +173,25 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         ObjectMapperFactory.withStandardConfigurations(bootstrap.getObjectMapper());
 
         bootstrap.getObjectMapper().registerSubtypes(new NamedType(LegendDefaultDatabaseAuthenticationFlowProviderConfiguration.class, "legendDefault"));
+    }
+
+    private void setupLocalH2Db()
+    {
+        long start = System.currentTimeMillis();
+        System.out.println("Starting setup of dynamic connection for database: H2 ");
+
+        int relationalDBPort = 9092;
+        try
+        {
+            h2Server =  AlloyH2Server.startServer(relationalDBPort);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.println("Completed setup of dynamic connection for database: H2 on port:" + relationalDBPort + " , time taken(ms):" + (end - start));
     }
 
     public CredentialProviderProvider configureCredentialProviders(List<VaultConfiguration> vaultConfigurations)
