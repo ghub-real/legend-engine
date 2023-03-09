@@ -27,8 +27,9 @@ public class MongoDBQueryJsonComposer
 
     public String parseDatabaseCommand(DatabaseCommand databaseCommand)
     {
+        // TODO: fix the composer
         String collectionName = databaseCommand.collectionName;
-        return "{ " + const_TypeValue + "\"aggregate\": \"" + collectionName + "\" , " + visitDatabaseCommand(databaseCommand) +
+        return "{ \"aggregate\": \"" + collectionName + "\" , " + visitDatabaseCommand(databaseCommand) +
                 ", \"cursor\": {} }";
     }
 

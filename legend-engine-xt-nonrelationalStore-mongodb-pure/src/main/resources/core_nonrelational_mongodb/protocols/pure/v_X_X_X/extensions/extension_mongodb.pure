@@ -48,7 +48,7 @@ function meta::protocols::pure::vX_X_X::extension::store::mongodb::getMongoDBSto
                 ^meta::protocols::pure::vX_X_X::metamodel::executionPlan::store::mongodb::MongoDBExecutionNode(
                            _type = 'mongoDBExecutionNode',
                            resultType = $men.resultType->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::executionPlan::transformResultType($mapping, $extensions),
-                           databaseCommand = meta::json::toJSON($men.databaseCommand->toJSONElement([], 1000, meta::json::config(true, true, true, true, '_type', false)), 1000),
+                           databaseCommand = meta::json::toJSON($men.databaseCommand, 1000, meta::json::config(true, true, true, true, '_type', false)),
                            connection = $men.connection->meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::store::mongodb::transformDatabaseConnection($extensions)
               );
           ];

@@ -14,14 +14,22 @@
 
 package org.finos.legend.engine.plan.execution.stores.mongodb.plugin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentracing.Scope;
 import io.opentracing.util.GlobalTracer;
 import org.eclipse.collections.api.list.MutableList;
 import org.finos.legend.authentication.credentialprovider.CredentialProviderProvider;
+import org.finos.legend.engine.language.mongodb.schema.grammar.to.MongoDBQueryJsonComposer;
 import org.finos.legend.engine.plan.execution.nodes.state.ExecutionState;
 import org.finos.legend.engine.plan.execution.result.Result;
 import org.finos.legend.engine.plan.execution.stores.StoreType;
 import org.finos.legend.engine.plan.execution.stores.mongodb.MongoDBExecutor;
+import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.BaseTypeValue;
+import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.DatabaseCommand;
+import org.finos.legend.engine.protocol.mongodb.schema.metamodel.mixIn.BaseTypeValueMixIn;
+import org.finos.legend.engine.protocol.mongodb.schema.metamodel.mixIn.DatabaseCommandMixIn;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.pure.MongoDBConnection;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.pure.MongoDBExecutionNode;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.nodes.*;
@@ -55,10 +63,22 @@ public class MongoDBExecutionNodeExecutor implements ExecutionNodeVisitor<Result
                 scope.span().setTag("databaseCommand", ((MongoDBExecutionNode) executionNode).databaseCommand.toString());
                 MongoDBExecutionNode node = (MongoDBExecutionNode) executionNode;
 
+                MongoDBQueryJsonComposer mongoDBQueryJsonComposer = new MongoDBQueryJsonComposer();
+
                 String databaseCommand = node.databaseCommand.toString();
-                MongoDBConnection mongoDBConnection = node.mongoDBConnection;
+                MongoDBConnection mongoDBConnection = node.connection;
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.addMixIn(DatabaseCommand.class, DatabaseCommandMixIn.class);
+                objectMapper.addMixIn(BaseTypeValue.class, BaseTypeValueMixIn.class);
+                DatabaseCommand dbCommand = objectMapper.readValue(databaseCommand, DatabaseCommand.class);
+                String composedDbCommand = mongoDBQueryJsonComposer.parseDatabaseCommand(dbCommand);
                 CredentialProviderProvider credentialProviderProvider = ((MongoDBStoreExecutionState) executionState.getStoreExecutionState(StoreType.NonRelational_MongoDB)).getCredentialProviderProvider();
-                return new MongoDBExecutor(credentialProviderProvider).executeMongoDBQuery(databaseCommand, mongoDBConnection);
+                return new MongoDBExecutor(credentialProviderProvider).executeMongoDBQuery(composedDbCommand, mongoDBConnection);
+            } catch (JsonMappingException e) {
+                throw new RuntimeException(e);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
         }
         else

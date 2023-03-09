@@ -33,7 +33,8 @@ public class MongoDBPureProtocolExtension implements PureProtocolExtension
         return Lists.fixedSize.with(() -> Lists.fixedSize.with(
                 // Connection
                 ProtocolSubTypeInfo.newBuilder(Connection.class)
-                        .withSubtype(MongoDBConnection.class, "mongoDBConnection")
+                        // TODO: fix casing
+                        .withSubtype(MongoDBConnection.class, "MongoDBConnection")
                         .build(),
                 // Execution Nodes
                 ProtocolSubTypeInfo.newBuilder(ExecutionNode.class)
