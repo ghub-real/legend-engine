@@ -21,6 +21,7 @@ Mapping meta::external::store::document::tests::object::MongoDbMapping
 )
 
 ###Pure
+import meta::pure::runtime::connection::authentication::*;
 import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::external::store::mongodb::mapping::*;
 import meta::external::shared::format::executionPlan::platformBinding::legendJava::*;
@@ -61,7 +62,7 @@ function go(): Any[*]
 
 function mongoExec():Any[*]
 {
-  println('ok1112',3);
+  println('ok1',3);
 
   let myDb = meta::pure::mapping::modelToModel::test::setup::TestDbStore;
 
@@ -164,7 +165,7 @@ function mongoExec():Any[*]
 
     //println($personQuery, 12);
 
-     let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()};
+     let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->filter(y | $y.fName == 'Theo' && $y.lName != 'Theo')};
 
     // let personQuery = {|meta::pure::mapping::modelToModel::test::setup::Person.all()->graphFetch($personTree)};
 
@@ -197,10 +198,38 @@ function mongoExec():Any[*]
    let mongoRuntime = ^meta::pure::runtime::Runtime(
       connections = ^meta::external::store::mongodb::metamodel::pure::runtime::MongoDBConnection(
           element=$mongoDatabase,
-          type=meta::external::store::mongodb::metamodel::runtime::DatabaseType.MongoDb
+          type=meta::external::store::mongodb::metamodel::runtime::DatabaseType.MongoDb,
+          authenticationSpecification = ^UserPasswordAuthenticationSpecification(username='mongo', password=^SystemPropertiesSecret(systemPropertyName='mongo')),
+          dataSourceSpecification = ^meta::external::store::mongodb::metamodel::runtime::MongoDBDatasourceSpecification(
+              databaseName = 'mongoDatabase',
+              serverURLs=[^meta::external::store::mongodb::metamodel::runtime::MongoDBURL(
+                baseUrl = 'localhost',
+                port = 123
+              )]
+          )
       )
     );
+/*
+    Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::MongoDBDatasourceSpecification // extends meta::pure::alloy::connections::alloy::specification::DatasourceSpecification
+{
+   serverURLs: meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::MongoDBURL[1..*];
+   databaseName: String[0..1];
+   useSSL: Boolean[0..1];
+   connectionTimeoutMS: Integer[0..1];
+   socketTimeoutMS: Integer[0..1];
+   maxIdleTimeMS: Integer[0..1];
+   maxLifeTimeMS: Integer[0..1];
+   maxPoolSize: Integer[0..1];
+   waitQueueMultiple: Integer[0..1];
+   waitQueueTimeoutMS: Integer[0..1];
+}
 
+Class meta::protocols::pure::vX_X_X::metamodel::store::mongodb::connection::MongoDBURL
+{
+    baseUrl: String[1];
+    port: Integer[1];
+}
+*/
    //let routed = $f->routeFunction($context, $extensions, $debugContext);
    //let routedFunction = $personQuery->routeFunction($mappingMongo, $runtime, $context, $extensions, $debugContext);
 
