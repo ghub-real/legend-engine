@@ -63,7 +63,7 @@ public class MongoDBExecutionNodeExecutor implements ExecutionNodeVisitor<Result
                 scope.span().setTag("databaseCommand", ((MongoDBExecutionNode) executionNode).databaseCommand.toString());
                 MongoDBExecutionNode node = (MongoDBExecutionNode) executionNode;
 
-                MongoDBQueryJsonComposer mongoDBQueryJsonComposer = new MongoDBQueryJsonComposer();
+                MongoDBQueryJsonComposer mongoDBQueryJsonComposer = new MongoDBQueryJsonComposer(false);
 
                 String databaseCommand = node.databaseCommand.toString();
                 MongoDBConnection mongoDBConnection = node.connection;

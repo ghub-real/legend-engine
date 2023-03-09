@@ -22,15 +22,25 @@ import java.util.stream.Collectors;
 
 public class MongoDBQueryJsonComposer
 {
+    private boolean withTypeIdentifier;
 
+    public MongoDBQueryJsonComposer()
+    {
+        this.withTypeIdentifier = true;
+    }
+
+    public MongoDBQueryJsonComposer(boolean withTypeIdentifier)
+    {
+        this.withTypeIdentifier = withTypeIdentifier;
+    }
     final String const_TypeValue = "\"_type\": \"databaseCommand\",";
 
     public String parseDatabaseCommand(DatabaseCommand databaseCommand)
     {
-        // TODO: fix the composer
         String collectionName = databaseCommand.collectionName;
-        return "{ \"aggregate\": \"" + collectionName + "\" , " + visitDatabaseCommand(databaseCommand) +
-                ", \"cursor\": {} }";
+        return withTypeIdentifier
+                ? "{ " + const_TypeValue + "\"aggregate\": \"" + collectionName + "\" , " + visitDatabaseCommand(databaseCommand) + ", \"cursor\": {} }"
+                : "{ \"aggregate\": \"" + collectionName + "\" , " + visitDatabaseCommand(databaseCommand) + ", \"cursor\": {} }";
     }
 
     private String visitDatabaseCommand(DatabaseCommand databaseCommand)
