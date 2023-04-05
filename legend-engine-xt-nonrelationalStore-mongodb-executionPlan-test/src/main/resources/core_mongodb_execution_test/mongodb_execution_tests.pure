@@ -1,0 +1,251 @@
+// Copyright 2023 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::json::*;
+import meta::pure::graphFetch::execution::*;
+import meta::pure::mapping::*;
+import meta::pure::extension::*;
+import meta::pure::functions::io::http::*;
+import meta::pure::test::*;
+import meta::pure::store::*;
+import meta::pure::runtime::*;
+import meta::external::store::mongodb::executionTest::utils::*;
+
+import meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::*;
+
+import  meta::external::store::mongodb::executionPlan::legendJava::test::*;
+
+import meta::external::store::mongodb::executionTest::*;
+import meta::external::store::mongodb::executionTest::utils::*;
+
+Class meta::external::store::mongodb::executionTest::TestConfig
+{
+  tag: String[1];
+  mapping: meta::pure::mapping::Mapping[1];
+  runtime: meta::pure::runtime::Runtime[1];
+  // store: Function<{String[1], Type[1]->Elasticsearch7Store[1]}>[1]; // todo generalize
+  // connection: Function<{URL[1], Store[1]->Connection[1]}>[1];
+  // extension: Extension[1];
+  // indexRecordRequest: Function<{String[1], Any[*]->Any[*]}>[1];
+}
+
+
+
+
+function  meta::external::store::mongodb::executionTest::collectTest(
+    tag: String[1]
+    // store: Function<{String[1], Type[1]->Elasticsearch7Store[1]}>[1], // todo generalize
+    // connection: Function<{URL[1], Store[1]->Connection[1]}>[1],
+    // extension: Extension[1],
+    // indexRecordRequest: Function<{String[1], Any[*]->Any[*]}>[1]
+  ): PureTestCollection[1]
+{
+
+  let port = 61976; // update the port with what you get from the MongoTestServerInvoker
+
+
+  let mapping = meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::getTestMongoPersonMapping();
+  let runtime = meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::getMongoRuntime($port);
+ 
+
+   let testConfig = ^meta::external::store::mongodb::executionTest::TestConfig(
+        tag = $tag,
+        mapping = $mapping,
+        runtime = $runtime
+      );
+
+  meta::pure::test::collectParameterizedTests(
+    meta::external::store::mongodb::executionTest::testCase,
+    $tag,
+    $testConfig,
+    [],
+    []
+  );
+}
+
+
+function <<paramTest.BeforePackage>>  meta::external::store::mongodb::executionTest::startESCluster():Boolean[1]
+{
+  // $config.tag->startElasticsearchTestServer();
+  // let commands = $config.indexRecordRequest->eval('omdb-common', omdbCommonIndexRecords())
+  //     ->map(c | $c->meta::json::toJSON(1000, meta::json::config(false, false, true, true)));
+  // $commands->forAll({c | $config.tag->requestElasticsearchTestServer($c)->println(); true;});
+  true;
+}
+
+function <<paramTest.AfterPackage>>  meta::external::store::mongodb::executionTest::stopESCluster():Boolean[1]
+{
+  // $config.tag->stopElasticsearchTestServer();
+  true;
+}
+
+
+function meta::external::store::mongodb::executionTest::executeAndAssert(f: FunctionDefinition<Any>[1], expectedResult: String[1]):Boolean[1]
+ {
+
+ let executionContext = ^meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDBExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+  
+   let result = meta::legend::execute(
+    $f,
+    [],
+    $executionContext,
+    meta::external::store::mongodb::executionPlan::platformBinding::legendJava::mongoDBLegendJavaPlatformBindingExtensions()
+  )->meta::json::parseJSON()->meta::json::toPrettyJSONString();
+  
+  assertEquals($expectedResult, $result);
+}
+function 
+  <<paramTest.Test>>
+  {doc.doc = 'Test simple single level Filter'} 
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::singleSimpleFilter(config:meta::external::store::mongodb::executionTest::TestConfig[1]):Boolean[1]
+{
+
+  let mapping = $config.mapping;
+  let runtime = $config.runtime;
+
+  let personTree = #{
+    Person {
+      firstName,
+      lastName,
+        firm {
+          legalName,
+          address
+        }
+      }
+    }#;
+
+  let personQuery = {|Person.all()->from($mapping, $runtime)->filter(x|  $x.firm.legalName == 'Goldman Sachs')
+  ->graphFetch($personTree)->serialize($personTree)};
+
+  let expectedResult = readFile('/core_mongodb_execution_test/data/simpleSingleLevelFilter.json')->toOne();
+  
+  meta::external::store::mongodb::executionTest::executeAndAssert($personQuery, $expectedResult);
+}
+
+
+function 
+  <<paramTest.Test>>
+  {doc.doc = 'Test simple nested level Filter'} 
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::singleNestedLevelFilter(config:TestConfig[1]):Boolean[1]
+{
+
+  let mapping = $config.mapping;
+  let runtime = $config.runtime;
+
+  let personTree = #{
+    Person {
+      firstName,
+      lastName
+      }
+    }#;
+
+  let personQuery = {|Person.all()->from($mapping, $runtime)->filter(x| $x.firstName == 'Jane')
+  ->graphFetch($personTree)->serialize($personTree)};
+
+  let expectedResult = readFile('/core_mongodb_execution_test/data/simpleNestedLevelFilter.json')->toOne();
+  executeAndAssert($personQuery, $expectedResult);
+}
+
+function 
+  <<paramTest.Test>>
+  {doc.doc = 'Test simple nested level Filter'} 
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::multipleFilters(config:TestConfig[1]):Boolean[1]
+{
+
+  let mapping = $config.mapping;
+  let runtime = $config.runtime;
+
+  let personTree = #{
+    Person {
+      firstName,
+      lastName
+      }
+    }#;
+
+  let personQuery = {|Person.all()->from($mapping, $runtime)->filter(x| $x.firstName == 'Jane' && $x.lastName == 'Doe')
+  ->graphFetch($personTree)->serialize($personTree)};
+
+  let expectedResult = readFile('/core_mongodb_execution_test/data/multipleSimpleFilters.json')->toOne();
+  executeAndAssert($personQuery, $expectedResult);
+}
+
+
+
+// function 
+//   <<paramTest.Test>>
+//   {doc.doc = 'Test simple nested level Filter'} 
+//  meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::executionWithDSL(config:TestConfig[1]):Boolean[1]
+// {
+
+
+// let file = meta::pure::functions::io::readFile('core_nonrelational_mongodb_java_platform_binding/test/pureSetup.txt')->toOne();
+
+// println($file);
+// let compiled = meta::legend::compile($file);
+
+// let compiledMapping = $compiled->at(3)->cast(@meta::pure::mapping::Mapping)->toOne();
+
+// let compiledRuntime = $compiled->at(1)->cast(@meta::pure::runtime::PackageableRuntime).runtimeValue->cast(@meta::pure::runtime::Runtime);
+
+// let executionContext = ^meta::external::store::mongodb::functions::pureToDatabaseCommand::MongoDBExecutionContext(queryTimeOutInSeconds=5, enableConstraints=false);
+// let debugContext = ^meta::pure::tools::DebugContext(
+// debug=false,
+// space=' '
+// );
+
+// let personTree = #{
+// Person {
+// firstName,
+// lastName,
+// firm {
+// legalName,
+// address
+// }
+// }
+// }#;
+
+// let personQuery = {|Person.all()->from($compiledMapping, $compiledRuntime)->filter(x| $x.firm.legalName == 'Goldman Sachs')->graphFetch($personTree)->serialize($personTree)};
+
+// let result = meta::legend::execute(
+// $personQuery,
+// [],
+// $executionContext,
+// meta::external::store::mongodb::executionPlan::platformBinding::legendJava::mongoDBLegendJavaPlatformBindingExtensions()
+// )->meta::json::parseJSON()->meta::json::toPrettyJSONString();
+// println($result);
+
+ 
+//   fail();
+// }
+
+
+
+function <<access.private>> meta::external::store::mongodb::executionTest::v7::collectTest(tag: String[1]): PureTestCollection[1]
+{
+  meta::external::store::mongodb::executionTest::collectTest(
+    $tag
+    // store_String_1__Type_1__Elasticsearch7Store_1_,
+    // connection_URL_1__Store_1__Connection_1_,
+    // elasticsearchV7Extension(),
+    // index_String_1__Any_MANY__Any_MANY_
+  );
+}
+
+function <<test.TestCollection>> meta::external::store::mongodb::executionTest::v7::test_4_4_1(): PureTestCollection[1]
+{
+  '4.4.1'->meta::external::store::mongodb::executionTest::v7::collectTest();  
+}
+
+###Mapping
+Mapping  meta::external::store::mongodb::executionTest::EmptyMapping()
