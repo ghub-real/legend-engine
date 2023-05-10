@@ -98,3 +98,55 @@ MongoDBConnection test::mongodb::testConnection
         };
     }#;
 }
+
+###Service test::mongodb::service::PersonService
+{
+    pattern: '/api/allPersons';
+    documentation: '';
+    autoActivateUpdates: true;
+    execution: Single
+    {
+        query: |meta::external::store::mongodb::executionTest::domain::Person.all()->graphFetch(#{meta::external::store::mongodb::executionTest::domain::Person{id,firstName,lastName,firm{legalName}}}#)->serialize(#{meta::external::store::mongodb::executionTest::domain::Person{id,firstName,lastName,firm{legalName}}}#);
+        mapping: test::mongodb::TestPersonMapping;
+        runtime: test::mongodb::runtime::TestMongoDBRuntime;
+    }
+    testSuites:
+    [
+        testSuite_1:
+        {
+            data:
+            [
+                connections:
+                [
+                    testConnection:
+                    [
+                        ExternalFormat
+                        #{
+                            contentType: 'application/json';
+                            data: '[]';
+                        }#
+                    ]
+                ]
+            ]
+            tests:
+            [
+                test_1:
+                {
+                    asserts:
+                    [
+                        assertion_1:
+                        EqualToJson
+                        #{
+                            expected:
+                            ExternalFormat
+                            #{
+                                contentType: 'application/json';
+                                data: '[]';
+                            }#
+                        }#
+                    ]
+                }
+            ]
+        }
+    ]
+}
