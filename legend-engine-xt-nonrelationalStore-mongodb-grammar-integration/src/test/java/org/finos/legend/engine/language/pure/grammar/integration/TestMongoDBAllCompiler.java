@@ -1,3 +1,17 @@
+// Copyright 2023 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package org.finos.legend.engine.language.pure.grammar.integration;
 
 import org.finos.legend.engine.language.pure.compiler.test.TestCompilationFromGrammar;
@@ -9,13 +23,32 @@ public class TestMongoDBAllCompiler extends TestCompilationFromGrammar.TestCompi
     @Override
     protected String getDuplicatedElementTestCode()
     {
-        return null;
+        return "Class anything::class {}\n" +
+                "###Mapping\n" +
+                "Mapping test::mongodb::mapping ()\n" +
+                "###Service\n" +
+                "Service test::mongodb::mapping\n" +
+                "{\n" +
+                "  pattern: 'url/myUrl/';\n" +
+                "  owners:\n" +
+                "  [\n" +
+                "    'ownerName'\n" +
+                "  ];\n" +
+                "  documentation: 'test';\n" +
+                "  autoActivateUpdates: true;\n" +
+                "  execution: Single\n" +
+                "  {\n" +
+                "    query: |meta::external::store::mongodb::showcase::domain::Person.all()->graphFetch(#{meta::external::store::mongodb::showcase::domain::Person{firstName}}#)->serialize(#{meta::external::store::mongodb::showcase::domain::Person{firstName}}#);\n" +
+                "    mapping: test::mongodb::mapping;\n" +
+                "    runtime: test::mongodb::runtime;\n" +
+                "  }\n" +
+                "}";
     }
 
     @Override
     protected String getDuplicatedElementTestExpectedErrorMessage()
     {
-        return null;
+        return "COMPILATION error at [5:1-20:1]: Duplicated element 'test::mongodb::mapping'";
     }
 
     @Test
@@ -83,35 +116,24 @@ public class TestMongoDBAllCompiler extends TestCompilationFromGrammar.TestCompi
                 "  }\n" +
                 "  testSuites:\n" +
                 "  [\n" +
-                "    testSuite_1:\n" +
+                "    testSuite1:\n" +
                 "    {\n" +
-                "      data:\n" +
-                "      [\n" +
-                "        connections:\n" +
-                "        [\n" +
-                "          mongoDBConection:\n" +
-                "            ExternalFormat\n" +
-                "            #{\n" +
-                "              contentType: 'application/json'\n" +
-                "              data: '[]'\n" +
-                "            }#\n" +
-                "        ]\n" +
-                "      ]\n" +
                 "      tests:\n" +
                 "      [\n" +
-                "        test_1:\n" +
+                "        test1:\n" +
                 "        {\n" +
                 "          asserts:\n" +
-                "          [\n\n" +
-                "            EqualToJson\n" +
-                "            #{\n" +
-                "              expected:\n" +
-                "                ExternalFormat\n" +
-                "                #{\n" +
-                "                  contentType: 'application/json';\n" +
-                "                  data: '[]';\n" +
-                "                }#\n" +
-                "            }#\n" +
+                "          [\n" +
+                "            assert1:\n" +
+                "              EqualToJson\n" +
+                "              #{\n" +
+                "                expected : \n" +
+                "                  ExternalFormat\n" +
+                "                  #{\n" +
+                "                    contentType: 'application/json';\n" +
+                "                    data: '{\"employees\":[{\"firstName\":\"firstName 36\",\"lastName\":\"lastName 77\"}],\"legalName\":\"legalName 19\"}';\n" +
+                "                  }#;\n" +
+                "              }#\n" +
                 "          ]\n" +
                 "        }\n" +
                 "      ]\n" +
