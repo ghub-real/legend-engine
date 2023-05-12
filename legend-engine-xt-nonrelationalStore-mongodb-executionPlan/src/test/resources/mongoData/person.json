@@ -5,7 +5,7 @@
       "firstName": "Gelya",
       "lastName": "Bowhay",
       "age": 25,
-      "birthDate": "1990-07-03T00:00:00.000Z",
+      "birthDate": new ISODate("1990-07-03T00:00:00Z"),
       "phoneNumber": "+1 202 704 9709",
       "email": "gbowhay0@1688.com",
       "car": [
@@ -65,7 +65,7 @@
       "firstName": "Jefferey",
       "lastName": "Raye",
       "age": 45,
-      "birthDate": "1994-04-04T18:09:35.000Z",
+      "birthDate": new ISODate("1994-04-04T18:09:35Z"),
       "phoneNumber": "+1 301 842 7614",
       "email": "jraye1@ted.com",
       "car": [
@@ -124,7 +124,7 @@
       "firstName": "Coralie",
       "lastName": "Batie",
       "age": 23,
-      "birthDate": "1980-04-04T12:29:35.000Z",
+      "birthDate": new ISODate("1980-04-04T12:29:35Z"),
       "phoneNumber": "+1 501 883 4607",
       "email": "cbatie2@amazon.co.jp",
       "car": [
@@ -187,7 +187,7 @@
       "firstName": "Franz",
       "lastName": "Stiant",
       "age": 68,
-      "birthDate": "1985-04-04T17:18:23.000Z",
+      "birthDate": new ISODate("1985-04-04T17:18:23Z"),
       "phoneNumber": "+1 916 456 9969",
       "email": "fstiant3@europa.eu",
       "car": [
@@ -236,7 +236,7 @@
       "firstName": "Chev",
       "lastName": "Gehrts",
       "age": 38,
-      "birthDate": "1970-04-04T17:18:23.000Z",
+      "birthDate": new ISODate("1970-04-04T17:18:23Z"),
       "phoneNumber": "+1 602 898 8006",
       "email": "cgehrts4@github.com",
       "car": [
