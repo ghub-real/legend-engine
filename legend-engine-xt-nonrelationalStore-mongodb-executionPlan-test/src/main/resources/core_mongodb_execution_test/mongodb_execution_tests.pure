@@ -91,6 +91,7 @@ function  meta::external::store::mongodb::executionTest::personTreeFull(): meta:
         firstName,
         lastName,
         age,
+        birthDate,
         email,
         phoneNumber,
         otherPhoneNumbers,
@@ -286,6 +287,22 @@ function <<paramTest.Test>>
 {
   let filterLambda = { x: Person[1] | $x.age >= 45 };
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/greater_than_equal/testGreaterThanEqualNumber.json', personTreeSmall());
+}
+
+// Filters - Dates
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::dates::testDateBetweenWithGTandLT(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | ($x.birthDate > %1990-01-01) && ($x.birthDate < %1992-01-01T10:00:00)};
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/combinations/testDatesBetweenWithGTandLT.json', personTreeSmall());
+}
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::dates::testDateBetweenWithGTEandLTE(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | ($x.birthDate > %1990-01-01) && ($x.birthDate <= %1994-04-04T18:09:35)};
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/combinations/testDatesBetweenWithGTEandLTE.json', personTreeSmall());
 }
 
 // GraphFetch

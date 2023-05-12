@@ -18,6 +18,7 @@ import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.Arr
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.BaseTypeValue;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.BaseTypeValueVisitor;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.BoolTypeValue;
+import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.DateTypeValue;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.DecimalTypeValue;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.IntTypeValue;
 import org.finos.legend.engine.protocol.mongodb.schema.metamodel.aggregation.KeyValuePair;
@@ -84,6 +85,13 @@ public class BaseTypeValueVisitorImpl implements BaseTypeValueVisitor<String>
     public String visit(StringTypeValue val)
     {
         return convertToStringWithQuotes(String.valueOf(val.value));
+    }
+
+    @Override
+    public String visit(DateTypeValue val)
+    {
+        String stringDate = val.value.toString().split("\\+")[0];
+        return "\"" + stringDate + ".000Z\"";
     }
 
     private String visitKeyValuePair(KeyValuePair pair)
