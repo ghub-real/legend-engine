@@ -90,7 +90,7 @@ public class BaseTypeValueVisitorImpl implements BaseTypeValueVisitor<String>
     @Override
     public String visit(DateTypeValue val)
     {
-        return "\"" + val.value.toString() + "\"";
+        return "new ISODate(\"" + val.value.toString() + "\")";
     }
 
     private String visitKeyValuePair(KeyValuePair pair)

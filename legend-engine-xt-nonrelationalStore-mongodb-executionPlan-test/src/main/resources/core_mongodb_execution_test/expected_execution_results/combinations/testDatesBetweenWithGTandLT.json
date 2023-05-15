@@ -1,8 +1,8 @@
 {
   "values":   {
-    "firstName": "Gelya",
-    "lastName": "Bowhay",
-    "age": 25
+    "firstName": "Chev",
+    "lastName": "Gehrts",
+    "age": 38
   },
   "builder":   {
     "_type": "json"

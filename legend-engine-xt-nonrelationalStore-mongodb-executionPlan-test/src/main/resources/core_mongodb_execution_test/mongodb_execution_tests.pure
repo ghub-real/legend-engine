@@ -294,14 +294,14 @@ function <<paramTest.Test>>
 function <<paramTest.Test>>
  meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::dates::testDateBetweenWithGTandLT(config:TestConfig[1]):Boolean[1]
 {
-  let filterLambda = { x: Person[1] | ($x.birthDate > %1990-01-01) && ($x.birthDate < %1992-01-01T10:00:00)};
+  let filterLambda = { x: Person[1] | ($x.birthDate > %1969-01-01) && ($x.birthDate < %1971-04-04T18:09:35)};
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/combinations/testDatesBetweenWithGTandLT.json', personTreeSmall());
 }
 
 function <<paramTest.Test>>
  meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::dates::testDateBetweenWithGTEandLTE(config:TestConfig[1]):Boolean[1]
 {
-  let filterLambda = { x: Person[1] | ($x.birthDate > %1990-01-01) && ($x.birthDate <= %1994-04-04T18:09:35)};
+  let filterLambda = { x: Person[1] | ($x.birthDate >= %1980-04-04T07:12:12) && ($x.birthDate <= %1983-05-06T00:12:12)};
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/combinations/testDatesBetweenWithGTEandLTE.json', personTreeSmall());
 }
 
