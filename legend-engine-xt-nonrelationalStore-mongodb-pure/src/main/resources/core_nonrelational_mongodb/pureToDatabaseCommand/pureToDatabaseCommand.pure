@@ -164,10 +164,10 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processInstanceValue(i: InstanceValue[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): MongoDBOperationElement[1]
 {
   $i.values->match([
-    s: String[1]     | ^LiteralValue(value=^StringTypeValue(value=$s)),
-    i: Integer[1]    | ^LiteralValue(value=^IntTypeValue(value=$i)),
-    s: StrictDate[1] | let stringDate = $s->toString() + 'T00:00:00'; ^LiteralValue(value=^DateTypeValue(value=$stringDate));,
-    d: Date[1]       | ^LiteralValue(value=^DateTypeValue(value=$d->toString())),
+    s: String[1]      | ^LiteralValue(value=^StringTypeValue(value=$s)),
+    i: Integer[1]     | ^LiteralValue(value=^IntTypeValue(value=$i)),
+    sd :StrictDate[1] | ^LiteralValue(value=^DateTypeValue(value=meta::pure::functions::date::date(year($sd), monthNumber($sd), dayOfMonth($sd), 0, 0 ,0)->toString()));,                 // type cast StrictDate to dateTime,(as strictdates in expected value are converted to datetime,to retain timezone info)
+    dt: DateTime[1]   | ^LiteralValue(value=^DateTypeValue(value=$dt->toString()));,
     l: LambdaFunction<Any>[1] |
       let fe = $i.values->cast(@LambdaFunction<Any>).expressionSequence->cast(@SimpleFunctionExpression);
       processFunctionExpression($fe->toOne(), $databaseCommand, $mapping, $inScopeVars, $debug);

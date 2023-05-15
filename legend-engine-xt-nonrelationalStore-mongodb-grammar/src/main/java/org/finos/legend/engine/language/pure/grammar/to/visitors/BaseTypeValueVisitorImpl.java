@@ -90,8 +90,7 @@ public class BaseTypeValueVisitorImpl implements BaseTypeValueVisitor<String>
     @Override
     public String visit(DateTypeValue val)
     {
-        String stringDate = val.value.toString().split("\\+")[0];
-        return "\"" + stringDate + ".000Z\"";
+        return "\"" + val.value.toString() + "\"";
     }
 
     private String visitKeyValuePair(KeyValuePair pair)
