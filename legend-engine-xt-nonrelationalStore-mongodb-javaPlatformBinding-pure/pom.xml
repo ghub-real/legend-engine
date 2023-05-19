@@ -38,6 +38,7 @@
                             <ignoredUnusedDeclaredDependencies>
                                 <dependency>org.finos.legend.engine:legend-engine-pure-platform-functions-java</dependency>
                                 <dependency>org.finos.legend.engine:legend-engine-xt-authentication-pure</dependency>
+                                <dependency>org.finos.legend.engine:legend-engine-pure-runtime-compiler</dependency>
                             </ignoredUnusedDeclaredDependencies>
                         </configuration>
                     </execution>
@@ -266,10 +267,10 @@
             <groupId>org.finos.legend.engine</groupId>
             <artifactId>legend-engine-xt-authentication-pure</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.finos.legend.engine</groupId>-->
-<!--            <artifactId>legend-engine-pure-runtime-compiler</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.finos.legend.engine</groupId>
+            <artifactId>legend-engine-pure-runtime-compiler</artifactId>
+        </dependency>
         <!-- ENGINE -->
 
         <dependency>
