@@ -93,23 +93,23 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::build
       |
         if ($simpleFunctionExpression.func == toOne_T_MANY__T_1_,
           | 
-            let leftPart = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
-            buildFilterPath($leftPart, $path);,
+            let functionExpression = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
+            buildFilterPath($functionExpression, $path);,
           |
-            let leftPart = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
-            let rightPart = $simpleFunctionExpression.func.name->toOne();
-            let currentPath = buildPath($path, $rightPart);
-            buildFilterPath($leftPart, $currentPath);
+            let functionExpression = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
+            let key = $simpleFunctionExpression.func.name->toOne();
+            let currentPath = buildPath($path, $key);
+            buildFilterPath($functionExpression, $currentPath);
         );,
       |
-        let leftPart = $simpleFunctionExpression.func.name->toOne();
-        buildPath($path, $leftPart);
+        let key = $simpleFunctionExpression.func.name->toOne();
+        buildPath($path, $key);
     );,
   |
-    let rightPart = $simpleFunctionExpression.parametersValues->at(1)->cast(@StoreMappingRoutedValueSpecification).value->cast(@FunctionRoutedValueSpecification).value->cast(@InstanceValue).values->cast(@LambdaFunction<Any>).expressionSequence->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne();
-    let leftPart = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
-    let currentPath = buildPath($path, $rightPart);
-    buildFilterPath($leftPart, $currentPath);
+    let key = $simpleFunctionExpression.parametersValues->at(1)->cast(@StoreMappingRoutedValueSpecification).value->cast(@FunctionRoutedValueSpecification).value->cast(@InstanceValue).values->cast(@LambdaFunction<Any>).expressionSequence->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne();
+    let functionExpression = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
+    let currentPath = buildPath($path, $key);
+    buildFilterPath($functionExpression, $currentPath);
   );
 }
 
