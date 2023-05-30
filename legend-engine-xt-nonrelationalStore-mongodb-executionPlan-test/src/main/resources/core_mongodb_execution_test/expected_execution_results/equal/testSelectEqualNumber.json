@@ -2,6 +2,10 @@
   "values":   {
     "firstName": "Jefferey",
     "lastName": "Raye",
+    "country":     {
+      "continent": "Europe",
+      "countryCode": "UK"
+    },
     "firm":     {
       "legalName": "Yodoo",
       "industrySectors": [
@@ -16,7 +20,8 @@
         "street": "382 Towne Plaza",
         "postalCode": "81010"
       },
-      "dateFounded": "1994-03-10T15:24:54.000"
+      "dateFounded": "2015-01-11T00:36:08.000",
+      "numberOfEmployees": 100
     },
     "phoneNumber": "+1 301 842 7614",
     "address":     {

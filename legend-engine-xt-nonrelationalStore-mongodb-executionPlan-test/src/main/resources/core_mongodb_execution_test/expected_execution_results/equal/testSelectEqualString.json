@@ -2,6 +2,10 @@
   "values":   {
     "firstName": "Gelya",
     "lastName": "Bowhay",
+    "country":     {
+      "continent": "America",
+      "countryCode": "US"
+    },
     "firm":     {
       "legalName": "Babblestorm",
       "industrySectors": [
@@ -18,7 +22,8 @@
         "street": "1 Farmco Road",
         "postalCode": "02208"
       },
-      "dateFounded": "1998-07-05T18:09:35.000"
+      "dateFounded": "1998-07-05T18:09:35.000",
+      "numberOfEmployees": 10
     },
     "phoneNumber": "+1 202 704 9709",
     "address":     {

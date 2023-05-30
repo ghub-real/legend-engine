@@ -2,6 +2,10 @@
   "values":   {
     "firstName": "Franz",
     "lastName": "Stiant",
+    "country":     {
+      "continent": "Europe",
+      "countryCode": "DE"
+    },
     "firm":     {
       "legalName": "Voolia",
       "industrySectors": [
@@ -16,7 +20,8 @@
         "street": "59 Leroy Parkway",
         "postalCode": "CB4"
       },
-      "dateFounded": "1993-10-07T04:40:27.000"
+      "dateFounded": "1993-10-07T04:40:27.000",
+      "numberOfEmployees": 2000
     },
     "phoneNumber": "+1 916 456 9969",
     "address":     {

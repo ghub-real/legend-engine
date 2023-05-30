@@ -98,19 +98,24 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::build
           |
             let leftPart = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
             let rightPart = $simpleFunctionExpression.func.name->toOne();
-            let currentPath = if ($path == '', | $rightPart, | $rightPart + '.' + $path);
+            let currentPath = buildPath($path, $rightPart);
             buildFilterPath($leftPart, $currentPath);
         );,
       |
         let leftPart = $simpleFunctionExpression.func.name->toOne();
-        $leftPart + '.' + $path;
+        buildPath($path, $leftPart);
     );,
   |
     let rightPart = $simpleFunctionExpression.parametersValues->at(1)->cast(@StoreMappingRoutedValueSpecification).value->cast(@FunctionRoutedValueSpecification).value->cast(@InstanceValue).values->cast(@LambdaFunction<Any>).expressionSequence->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne();
     let leftPart = $simpleFunctionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression);
-    let currentPath = if ($path == '', | $rightPart, | $rightPart + '.' + $path);
+    let currentPath = buildPath($path, $rightPart);
     buildFilterPath($leftPart, $currentPath);
   );
+}
+
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::buildPath(currentPath: String[1], pathToAppend: String[1]): String[1]
+{
+  if ($currentPath == '', | $pathToAppend, | $pathToAppend + '.' + $currentPath);
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processEqual(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): EqOperatorExpression[1]
@@ -153,8 +158,8 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
   let path = if($firstParameterValue->instanceOf(VariableExpression),
     | 
       if ($functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name != 'toOne_T_MANY__T_1_',
-        | let a = $functionExpression->cast(@SimpleFunctionExpression).parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne(); println('true'); println($a); $a;,
-        | let a = $functionExpression->cast(@SimpleFunctionExpression).parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).parametersValues->toOne()->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne(); println('false'); println($a); $a;
+        | $functionExpression->cast(@SimpleFunctionExpression).parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne();,
+        | $functionExpression->cast(@SimpleFunctionExpression).parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).parametersValues->toOne()->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression).func.name->toOne();
       );,
     |
       buildFilterPath($functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).value->cast(@SimpleFunctionExpression), '')

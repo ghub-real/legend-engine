@@ -8,6 +8,10 @@
       "birthDate": new ISODate("1983-05-05T12:12:12.000+1200"),
       "phoneNumber": "+1 202 704 9709",
       "email": "gbowhay0@1688.com",
+      "country": {
+        "continent": "America",
+        "countryCode": "US"
+      },
       "car": [
         {
           "model": "Model X",
@@ -44,6 +48,7 @@
       },
       "firm": {
         "legalName": "Babblestorm",
+        "numberOfEmployees": 10,
         "dateFounded": new ISODate("1998-07-05T18:09:35.000Z"),
         "industrySectors": [
           "Finance",
@@ -68,6 +73,10 @@
       "birthDate": new Date(1684154899000),
       "phoneNumber": "+1 301 842 7614",
       "email": "jraye1@ted.com",
+      "country": {
+        "continent": "Europe",
+        "countryCode": "UK"
+      },
       "car": [
         {
           "model": "Auris",
@@ -105,7 +114,8 @@
       },
       "firm": {
         "legalName": "Yodoo",
-        "dateFounded": new ISODate("1994-03-10T15:24:54.000Z"),
+        "dateFounded": new ISODate("2015-01-11T00:36:08.000Z"),
+        "numberOfEmployees": 100,
         "industrySectors": [
           "Technology"
         ],
@@ -127,6 +137,10 @@
       "birthDate": new ISODate("1980-04-04T12:12:12.000+0500"),
       "phoneNumber": "+1 501 883 4607",
       "email": "cbatie2@amazon.co.jp",
+      "country": {
+        "continent": "Europe",
+        "countryCode": "FR"
+      },
       "car": [
         {
           "model": "Almera",
@@ -165,6 +179,7 @@
       },
       "firm": {
         "legalName": "Devpoint",
+        "numberOfEmployees": 50,
         "dateFounded": new ISODate("2018-01-14T00:36:08.000Z"),
         "industrySectors": [
           "Technology",
@@ -190,6 +205,10 @@
       "birthDate": new ISODate("1985-04-04T17:18:23Z"),
       "phoneNumber": "+1 916 456 9969",
       "email": "fstiant3@europa.eu",
+      "country": {
+        "continent": "Europe",
+        "countryCode": "DE"
+      },
       "car": [
         {
           "model": "Guilia",
@@ -217,6 +236,7 @@
       },
       "firm": {
         "legalName": "Voolia",
+        "numberOfEmployees": 2000,
         "dateFounded": new ISODate("1993-10-07T04:40:27.000Z"),
         "industrySectors": [
           "Health Care"
@@ -239,6 +259,10 @@
       "birthDate": new ISODate("1970-04-04T17:18:23Z"),
       "phoneNumber": "+1 602 898 8006",
       "email": "cgehrts4@github.com",
+      "country": {
+        "continent": "America",
+        "countryCode": "US"
+      },
       "car": [
         {
           "model": "Civic",
@@ -286,6 +310,7 @@
       },
       "firm": {
         "legalName": "Gabspot",
+        "numberOfEmployees": 150,
         "dateFounded": new ISODate("1974-02-14T05:55:00.000Z"),
         "industrySectors": [
           "Consumer Services"

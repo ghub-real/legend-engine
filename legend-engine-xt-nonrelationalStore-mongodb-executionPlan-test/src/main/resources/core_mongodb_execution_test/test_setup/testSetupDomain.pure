@@ -10,16 +10,17 @@ Class meta::external::store::mongodb::executionTest::domain::Person
   otherPhoneNumbers: String[0..*];
   email:             String[1];
   address:           Address[0..1];
+  country:           Country[1];
 }
 
 Class meta::external::store::mongodb::executionTest::domain::Firm
 {
-  legalName :      String[0..1];
-  dateFounded:     DateTime[1];
-  industrySectors: String[0..*];
-  address:         Address[1];
+  legalName:         String[0..1];
+  numberOfEmployees: Integer[1];
+  dateFounded:       DateTime[1];
+  industrySectors:   String[0..*];
+  address:           Address[1];
 }
-
 
 Class meta::external::store::mongodb::executionTest::domain::Address
 {

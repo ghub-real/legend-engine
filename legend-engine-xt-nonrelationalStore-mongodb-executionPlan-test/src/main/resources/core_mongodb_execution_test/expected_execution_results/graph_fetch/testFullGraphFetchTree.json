@@ -2,6 +2,10 @@
   "values":   {
     "firstName": "Coralie",
     "lastName": "Batie",
+    "country":     {
+      "continent": "Europe",
+      "countryCode": "FR"
+    },
     "firm":     {
       "legalName": "Devpoint",
       "industrySectors": [
@@ -19,7 +23,8 @@
         "street": "974 Sunbrook Crossing",
         "postalCode": "55103"
       },
-      "dateFounded": "2018-01-14T00:36:08.000"
+      "dateFounded": "2018-01-14T00:36:08.000",
+      "numberOfEmployees": 50
     },
     "phoneNumber": "+1 501 883 4607",
     "address":     {
