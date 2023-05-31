@@ -113,9 +113,9 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::build
   );
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::buildDotNotationPath(currentPath: String[1], pathToAppend: String[1]): String[1]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::buildDotNotationPath(path: String[1], key: String[1]): String[1]
 {
-  if ($currentPath == '', | $pathToAppend, | $pathToAppend + '.' + $currentPath);
+  if ($path == '', | $key, | $key + '.' + $path);
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::processEqual(functionExpression: FunctionExpression[1], databaseCommand: DatabaseCommand[1], mapping: Mapping[1], inScopeVars:Map<String, List<Any>>[1], debug:DebugContext[1]): EqOperatorExpression[1]
