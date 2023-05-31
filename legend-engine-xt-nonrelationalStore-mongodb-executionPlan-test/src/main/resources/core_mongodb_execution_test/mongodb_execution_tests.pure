@@ -91,45 +91,36 @@ function  meta::external::store::mongodb::executionTest::personTreeFull(): meta:
         lastName,
         age,
         birthDate,
-        email,
-        phoneNumber,
+        legallyCompetent,
         otherPhoneNumbers,
-        country {
-          continent,
-          countryCode
-        },
-        car {
-          model,
-          manufacturer {
-            name,
-            country {
-              countryCode,
-              continent
-            }
-          }
-        },
         address {
-          country {
-            continent,
-            countryCode
-          },
-          street,
           city,
-          postalCode
+          buildingNumber,
+          isActive,
+          lastUpdated
+        },
+        department {
+          name,
+          numberOfEmployees,
+          dateCreated,
+          isActive
         },
         firm {
           legalName,
+          public,
           dateFounded,
           numberOfEmployees,
-          industrySectors,
           address {
-            country {
-              continent,
-              countryCode
-            },
-            street,
             city,
-            postalCode
+            buildingNumber,
+            isActive,
+            lastUpdated
+          },
+          department {
+            name,
+            numberOfEmployees,
+            dateCreated,
+            isActive
           }
         }
       }
@@ -343,9 +334,7 @@ function <<paramTest.Test>>
           firstName,
           lastName,
           age,
-          phoneNumber,
-          otherPhoneNumbers,
-          email
+          otherPhoneNumbers
           }
         }#;
 
@@ -361,10 +350,10 @@ function <<paramTest.Test>>
           Person {
             firm {
               address {
-                country {
-                  continent,
-                  countryCode
-                }
+                city,
+                buildingNumber,
+                isActive,
+                lastUpdated
               }
             }
           }
@@ -396,7 +385,7 @@ function
 function <<paramTest.Test>>
  meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::combinations::testMultipleNestedSelectEqualFilters(config:TestConfig[1]):Boolean[1]
 {
-  let filterLambda = { x: Person[1] | $x.firm.legalName == 'Devpoint' && $x.address.country.countryCode == 'US'};
+  let filterLambda = { x: Person[1] | $x.firm.legalName == 'Devpoint' && $x.address.city == 'Little Rock'};
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/combinations/testMultipleNestedSelectEqualFilters.json', personTreeFull());
 }
 
@@ -413,7 +402,7 @@ function <<paramTest.Test>>
 {doc.doc = 'Test multiple nested level Filters with an And'}
  meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::combinations::testMultipleNestedFiltersWithAnd(config:TestConfig[1]):Boolean[1]
 {
-  let filterLambda = { p: Person[1] | ($p.firm.address.country.countryCode == 'UK') && ($p.firstName == 'Franz') && ($p.age > 60) && ($p.address.city == 'Sacramento') && ($p.firm.legalName == 'Voolia') && ($p.address.street == '540 Arrowood Trail') && ($p.country.countryCode == 'DE') && ($p.country.continent == 'Europe') && ($p.firm.numberOfEmployees > 1900) && ($p.firm.dateFounded >= %1993-10-07T04:40:27) };
+  let filterLambda = { p: Person[1] | ($p.firm.address.city == 'London') && ($p.firstName == 'Franz') && ($p.age > 60) && ($p.address.buildingNumber == 540) && ($p.firm.legalName == 'Voolia') && ($p.department.name == 'HR') && ($p.firm.numberOfEmployees > 1900) && ($p.firm.dateFounded >= %1993-10-07T04:40:27) && ($p.firm.address.buildingNumber > 37) };
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/combinations/testMultipleAndNestedFilters.json', personTreeFull());
 }
 

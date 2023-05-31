@@ -38,68 +38,47 @@ Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava
   lastName:          String[1];
   age:               Integer[0..1];
   birthDate:         DateTime[1];
-  phoneNumber:       String[1];
   otherPhoneNumbers: String[0..*];
-  email:             String[1];
-  address:           Address[0..1];
-  country:           Country[1];
+  legallyCompetent:  Boolean[1];
+  address:           Address[1];
+  firm:              Firm[0..1];
 }
 
 Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Firm
 {
-  legalName :        String[0..1];
+  legalName:         String[0..1];
   numberOfEmployees: Integer[1];
   dateFounded:       DateTime[1];
-  industrySectors:   String[0..*];
-  address:           Address[1];
+  address:           Address[0..1];
+  public:            Boolean[0..1];
 }
 
 Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Address
 {
-  street:     String[1];
-  city:       String[0..1];
-  postalCode: String[1];
-  country:    Country[0..1];
+  city:             String[1];
+  buildingNumber:   Integer[0..1];
+  isActive:         Boolean[0..1];
+  lastUpdated:      DateTime[1];
 }
 
-Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Country
+Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Department
 {
-  continent:   String[0..1];
-  countryCode: String[1];
+  name:              String[1];
+  numberOfEmployees: Integer[0..1];
+  dateCreated:       DateTime[1];
+  isActive:          Boolean[1];
 }
 
-Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Car
+Association meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person_Department
 {
-  model:        String[1];
+  person:     meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person[0..1];
+  department: meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Department[0..1];
 }
 
-Class meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Manufacturer
+Association meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Firm_Department
 {
-  name:        String[0..1];
-}
-
-Association meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person_Car
-{
-  person:  meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person[1];
-  car:     meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Car[1..*];
-}
-
-Association meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Car_Manufacturer
-{
-  manufacturer:  meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Manufacturer[1];
-  car:           meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Car[1];
-}
-
-Association meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Country_Manufacturer
-{
-  manufacturer:  meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Manufacturer[0..1];
-  country:       meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Country[1];
-}
-
-Association meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person_Firm
-{
-  person:  meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person[1];
-  firm:       meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Firm[0..1];
+  firm:         meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Firm[0..1];
+  department:   meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Department[*];
 }
 
 function meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::getSimpleSchema(): SchemaSet[1]

@@ -102,9 +102,7 @@ Binding meta::external::store::mongodb::showcase::store::PersonCollectionBinding
         meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person,
         meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Firm,
         meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Address,
-        meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Country,
-        meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Car,
-        meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Manufacturer
+        meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Department
     ];
 }
 
@@ -123,7 +121,7 @@ MongoDBConnection test::mongodb::testConnection
 {
     database: userDatabase;
     store: test::mongodb::mydatabase;
-    serverURLs: [localhost:57482];
+    serverURLs: [localhost:52186];
     authentication: # UserPassword {
         username: 'sa';
         password: SystemPropertiesSecret
@@ -141,7 +139,7 @@ Service test::mongodb::service::PersonService
     autoActivateUpdates: true;
     execution: Single
     {
-        query: |meta::external::store::mongodb::executionTest::domain::Person.all()->graphFetch(#{meta::external::store::mongodb::executionTest::domain::Person{firstName,lastName,firm{legalName}}}#)->serialize(#{meta::external::store::mongodb::executionTest::domain::Person{firstName,lastName,firm{legalName}}}#);
+        query: |meta::external::store::mongodb::executionTest::domain::Person.all()->graphFetch(#{meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person{firstName,lastName,firm{legalName}}}#)->serialize(#{meta::external::store::mongodb::executionPlan::platformBinding::legendJava::test::Person{firstName,lastName,firm{legalName}}}#);
         mapping: test::mongodb::TestPersonMapping;
         runtime: test::mongodb::runtime::TestMongoDBRuntime;
     }
