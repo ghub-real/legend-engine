@@ -45,13 +45,25 @@
     - Select "Add VM Options"
     - In the "VM Options" input field that appeared after clicking "Add VM Options", add "-Dmongo_pwd=sa" (without the double quotes)
     - Click "Apply"
-- Run MongoTestServerInvoker.java
+- In module executionPlan-test, run MongoTestServerInvoker.java
   - By running this, a dockerized mongo db spins up, and contains the data from this file: src/test/resources/mongoData/person.json
   - After running the MongoTestServerInvoker, in the console you will see the Running port. You will need to use this port when running the execute function in the welcome.pure.
-    - In the PURE IDE, go the File Explorer on the left hand side.
-    - Find the `pureSetup.txt` file under `/core_nonrelational_mongodb_java_platform_binding/test`.
-    - On the `###Connection` section, at the `serverURLs`, add the port number that the MongoTestServerInvoker generated.
-- Use the welcome.pure pasted on the section below to execute the query using F9.
+    - In the PURE IDE, add the following line to your welcome.pure replacing the port 123123 for the one you noted down on the previous section.
+
+<div align="center" style="width:100%">
+<div style="width:90%" align="left">
+
+    function go():Any[*]
+        {
+            let testConfig = meta::external::store::mongodb::executionTest::getCompiledTestConfig('4.1.1', 'localhost', 123123, '/core_mongodb_execution_test/test_setup/testSetupDSL.txt');
+            let result =meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::greaterThan::testGreaterThanNumber($testConfig);
+    
+            println('test result:');
+            println($result);
+        }
+</div>
+</div>
+   - Use the welcome.pure pasted on the section above to execute the query using F9.
 
 #### Welcome.pure
 
