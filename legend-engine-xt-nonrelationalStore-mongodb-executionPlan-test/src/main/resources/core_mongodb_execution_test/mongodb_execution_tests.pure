@@ -109,6 +109,7 @@ function  meta::external::store::mongodb::executionTest::personTreeFull(): meta:
           legalName,
           public,
           dateFounded,
+          phoneNumbers,
           numberOfEmployees,
           address {
             city,
@@ -312,6 +313,43 @@ function <<paramTest.Test>>
 {
   let filterLambda = { x: Person[1] | ($x.firm.dateFounded >= %2014-04-04T07:12:12) };
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/greater_than_equal/testGreaterThanEqualNestedDate.json', personTreeSmall());
+}
+
+// Filters - Arrays
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::arrays::testFirstLevelArray(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | ('+1 347 336 3704'->in($x.otherPhoneNumbers)) };
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/arrays/testFirstLevelArray.json', personTreeSmall());
+}
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::arrays::testNestedArray(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | ('+9 5857 9923'->in($x.firm.phoneNumbers)) };
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/arrays/testNestedArray.json', personTreeSmall());
+}
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::arrays::testNestedValueInArrayOfObjects(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | ('Marketing'->in($x.firm.department.name)) };
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/arrays/testNestedValueInArrayOfObjects.json', personTreeSmall());
+}
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::arrays::testMultipleArraysWithAnd(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | ('Marketing'->in($x.firm.department.name)) && ('+5 5555 6666'->in($x.firm.phoneNumbers)) && ('+1 405 332 4537'->in($x.otherPhoneNumbers)) };
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/arrays/testMultipleArraysWithAnd.json', personTreeSmall());
+}
+
+function <<paramTest.Test>>
+ meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::arrays::testMultipleArraysWithNot(config:TestConfig[1]):Boolean[1]
+{
+  let filterLambda = { x: Person[1] | !(('Marketing'->in($x.firm.department.name)) && ('+5 5555 6666'->in($x.firm.phoneNumbers)) && ('+1 405 332 4537'->in($x.otherPhoneNumbers))) };
+  testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/arrays/testMultipleArraysWithNot.json', personTreeSmall());
 }
 
 // GraphFetch

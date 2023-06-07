@@ -17,6 +17,7 @@ Class meta::external::store::mongodb::executionTest::domain::Firm
   legalName:         String[0..1];
   numberOfEmployees: Integer[1];
   dateFounded:       DateTime[1];
+  phoneNumbers:      String[1..*];
   address:           Address[0..1];
   public:            Boolean[0..1];
 }
