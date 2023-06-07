@@ -341,7 +341,7 @@ function <<paramTest.Test>>
 function <<paramTest.Test>>
  meta::external::store::mongodb::executionTest::testCase::graphfetch::filter::arrays::testMultipleArraysWithAnd(config:TestConfig[1]):Boolean[1]
 {
-  let filterLambda = { x: Person[1] | ('Marketing'->in($x.firm.department.name)) && ('+5 5555 6666'->in($x.firm.phoneNumbers)) && ('+1 405 332 4537'->in($x.otherPhoneNumbers)) };
+  let filterLambda = { x: Person[1] | ('Marketing'->in($x.firm.department.name)) && ('+5 5555 6666'->in($x.firm.phoneNumbers)) && ('+1 405 332 4537'->in($x.otherPhoneNumbers)) && (2020->in($x.yearsEmployed)) && (2010->in($x.firm.yearsAwarded)) };
   testFilterExecution($config, $filterLambda, '/core_mongodb_execution_test/expected_execution_results/arrays/testMultipleArraysWithAnd.json', personTreeSmall());
 }
 

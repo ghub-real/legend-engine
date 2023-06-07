@@ -7,6 +7,7 @@ Class meta::external::store::mongodb::executionTest::domain::Person
   age:               Integer[0..1];
   birthDate:         DateTime[1];
   otherPhoneNumbers: String[0..*];
+  yearsEmployed:      Integer[1..*];
   legallyCompetent:  Boolean[1];
   address:           Address[1];
   firm:              Firm[0..1];
@@ -18,6 +19,7 @@ Class meta::external::store::mongodb::executionTest::domain::Firm
   numberOfEmployees: Integer[1];
   dateFounded:       DateTime[1];
   phoneNumbers:      String[1..*];
+  yearsAwarded:      Integer[1..*];
   address:           Address[0..1];
   public:            Boolean[0..1];
 }

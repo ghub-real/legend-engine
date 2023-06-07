@@ -7,6 +7,7 @@
       "age": 25,
       "birthDate": new ISODate("1983-05-05T12:12:12.000+1200"),
       "legallyCompetent": true,
+      "yearsEmployed": [2021, 2022, 2023],
       "otherPhoneNumbers": [
         "+1 347 336 3704"
       ],
@@ -26,6 +27,7 @@
         "legalName": "Babblestorm",
         "numberOfEmployees": 10,
         "dateFounded": new ISODate("1998-07-05T18:09:35.000Z"),
+        "yearsAwarded": [2012, 2019],
         "phoneNumbers": [
           "+1 2345 6789",
           "+4 5432 1354"
@@ -65,6 +67,7 @@
       "age": 45,
       "birthDate": new Date(1684154899000),
       "legallyCompetent": true,
+      "yearsEmployed": [2019 ,2020, 2021, 2022, 2023],
       "otherPhoneNumbers": [
         "+44 774 643 2334",
         "+1 515 165 0534"
@@ -85,6 +88,7 @@
         "legalName": "Yodoo",
         "numberOfEmployees": 100,
         "dateFounded": new ISODate("2015-01-11T00:36:08.000Z"),
+        "yearsAwarded": [2022],
         "phoneNumbers": [
           "+9 5857 9923"
         ],
@@ -123,6 +127,7 @@
       "age": 23,
       "birthDate": new ISODate("1980-04-04T12:12:12.000+0500"),
       "legallyCompetent": false,
+      "yearsEmployed": [2019 ,2020, 2021, 2022],
       "otherPhoneNumbers": [
         "+1 571 689 6039",
         "+1 303 278 3547",
@@ -144,6 +149,7 @@
         "legalName": "Devpoint",
         "numberOfEmployees": 50,
         "dateFounded": new ISODate("2018-01-14T00:36:08.000Z"),
+        "yearsAwarded": [2020, 2021],
         "phoneNumbers": [
           "+7 4638 4639"
         ],
@@ -182,6 +188,7 @@
       "age": 68,
       "birthDate": new ISODate("1985-04-04T17:18:23Z"),
       "legallyCompetent": false,
+      "yearsEmployed": [2019 ,2020, 2021, 2022],
       "otherPhoneNumbers": [
         "+1 405 332 4537",
         "+1 814 987 3881"
@@ -202,6 +209,7 @@
         "legalName": "Voolia",
         "numberOfEmployees": 2000,
         "dateFounded": new ISODate("1993-10-07T04:40:27.000Z"),
+        "yearsAwarded": [2010, 2011, 2021],
         "phoneNumbers": [
           "+5 5555 6666",
           "+9 3333 6666"
@@ -259,6 +267,7 @@
       "age": 38,
       "birthDate": new ISODate("1970-04-04T17:18:23Z"),
       "legallyCompetent": false,
+      "yearsEmployed": [2020, 2021],
       "otherPhoneNumbers": [
         "+44 425 338 0548",
         "+1 904 162 3004"
@@ -279,6 +288,7 @@
         "legalName": "Gabspot",
         "numberOfEmployees": 150,
         "dateFounded": new ISODate("1974-02-14T05:55:00.000Z"),
+        "yearsAwarded": [2008],
         "phoneNumbers": [
           "+1 1111 2222",
           "+3 4444 5555"
