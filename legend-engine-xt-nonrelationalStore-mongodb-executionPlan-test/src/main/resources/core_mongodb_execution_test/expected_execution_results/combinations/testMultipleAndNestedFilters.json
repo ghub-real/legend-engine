@@ -51,6 +51,10 @@
           "numberOfEmployees": 100
         }
       ],
+      "phoneNumbers": [
+"+5 5555 6666",
+"+9 3333 6666"
+      ],
       "numberOfEmployees": 2000
     },
     "address":     {

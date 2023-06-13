@@ -33,6 +33,10 @@
           "numberOfEmployees": 4
         }
       ],
+      "phoneNumbers": [
+"+1 2345 6789",
+"+4 5432 1354"
+      ],
       "numberOfEmployees": 10
     },
     "address":     {
